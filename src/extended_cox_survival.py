@@ -1,0 +1,192 @@
+"""
+Extended Cox Proportional Hazards Model (Time-Varying Covariates Edition)
+========================================================================
+Modelliert den Einfluss von Support-Maßnahmen als ZEITVERÄNDERLICHE KOVARIATE
+(Time-Varying Treatment X_i(t)) über die gesamte Studiendauer.
+
+Vorteile:
+- Verhindert Immortal-Time Bias vollständig (ohne Datenverlust durch Landmark-Schnitte)
+- Berücksichtigt Support-Teilnahmen zu jedem Zeitpunkt des Studiums
+- Nutzt den denormalisierten DataCube `agg_pruefungen.csv` & `agg_abschluesse.csv`
+"""
+
+import os
+from pathlib import Path
+import pandas as pd
+import numpy as np
+
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+
+def build_person_semester_panel(data_dir: Path):
+    print("Lade Datensätze für Extended Cox Modell ...")
+    agg_abschluesse_path = data_dir / 'agg_abschluesse.csv'
+    agg_pruefungen_path = data_dir / 'agg_pruefungen.csv'
+    
+    if not agg_abschluesse_path.exists():
+        data_dir = Path('output_dl')
+        agg_abschluesse_path = data_dir / 'agg_abschluesse.csv'
+        agg_pruefungen_path = data_dir / 'agg_pruefungen.csv'
+        
+    df_abschluesse = pd.read_csv(agg_abschluesse_path)
+    df_pruefungen = pd.read_csv(agg_pruefungen_path)
+    
+    df_abschluesse.columns = df_abschluesse.columns.str.strip()
+    df_pruefungen.columns = df_pruefungen.columns.str.strip()
+    
+    # 1. Bestimme pro Student und Semester die aggregierte Support-Exposition & Leistungen
+    print("Erstelle semesterweisen Support-Indikator und Leistungswerte aus agg_pruefungen ...")
+    
+    df_pruefungen['cp_earned'] = np.where(df_pruefungen['bestanden'], df_pruefungen['cp'], 0)
+    df_pruefungen['is_fail'] = np.where(~df_pruefungen['bestanden'], 1, 0)
+    
+    # Gruppierung der Prüfungsdaten nach Student & Fachsemester
+    pr_sem = df_pruefungen.groupby(['studierenden_id', 'fachsemester']).agg({
+        'support_vorher_fachlich': 'max',
+        'support_glz_fachlich': 'max',
+        'support_vorher_ueberfachlich': 'max',
+        'support_glz_ueberfachlich': 'max',
+        'support_vorher_psychosozial': 'max',
+        'support_glz_psychosozial': 'max',
+        'cp_earned': 'sum',
+        'is_fail': 'sum'
+    }).reset_index()
+    
+    # Gesamt-Support bis inklusive Fachsemester t
+    pr_sem['fachlich_any_t'] = (pr_sem['support_vorher_fachlich'] > 0) | (pr_sem['support_glz_fachlich'] > 0)
+    pr_sem['ueberfachlich_any_t'] = (pr_sem['support_vorher_ueberfachlich'] > 0) | (pr_sem['support_glz_ueberfachlich'] > 0)
+    pr_sem['psychosozial_any_t'] = (pr_sem['support_vorher_psychosozial'] > 0) | (pr_sem['support_glz_psychosozial'] > 0)
+    pr_sem['support_any_t'] = pr_sem['fachlich_any_t'] | pr_sem['ueberfachlich_any_t'] | pr_sem['psychosozial_any_t']
+    
+    # Map für schnellen Lookup
+    sup_dict_fach = pr_sem.set_index(['studierenden_id', 'fachsemester'])['fachlich_any_t'].to_dict()
+    sup_dict_uebf = pr_sem.set_index(['studierenden_id', 'fachsemester'])['ueberfachlich_any_t'].to_dict()
+    sup_dict_psych = pr_sem.set_index(['studierenden_id', 'fachsemester'])['psychosozial_any_t'].to_dict()
+    sup_dict_any = pr_sem.set_index(['studierenden_id', 'fachsemester'])['support_any_t'].to_dict()
+    
+    cp_dict = pr_sem.set_index(['studierenden_id', 'fachsemester'])['cp_earned'].to_dict()
+    fails_dict = pr_sem.set_index(['studierenden_id', 'fachsemester'])['is_fail'].to_dict()
+
+    print("Baue Person-Semester Längsschnitt-Panel auf ...")
+    panel_rows = []
+    
+    for idx, row in df_abschluesse.iterrows():
+        s_id = row['studierenden_id']
+        max_sem = int(row['studiendauer_semester'])
+        status = str(row['status']).strip().lower()
+        is_event_final = status in ['abgebrochen', 'exmatrikuliert', 'zeitueberschreitung']
+        
+        # Kumulative Tracking-Flags über die Semester
+        cum_fach = False
+        cum_uebf = False
+        cum_psych = False
+        cum_any = False
+        
+        # Lagged Confounder (Vergangenheit bis t-1)
+        cum_cp_vorher = 0.0
+        cum_fails_vorher = 0
+        
+        for sem in range(1, max_sem + 1):
+            t_start = sem - 1
+            t_stop = sem
+            
+            # Event tritt nur im finalen Beobachtungssemester auf
+            event_t = 1 if (sem == max_sem and is_event_final) else 0
+            
+            # Aktualisiere kumulatives Treatment X_i(t)
+            if (s_id, sem) in sup_dict_fach and sup_dict_fach[(s_id, sem)]: cum_fach = True
+            if (s_id, sem) in sup_dict_uebf and sup_dict_uebf[(s_id, sem)]: cum_uebf = True
+            if (s_id, sem) in sup_dict_psych and sup_dict_psych[(s_id, sem)]: cum_psych = True
+            if (s_id, sem) in sup_dict_any and sup_dict_any[(s_id, sem)]: cum_any = True
+            
+            panel_rows.append({
+                'studierenden_id': s_id,
+                't_start': t_start,
+                't_stop': t_stop,
+                'event': event_t,
+                'fach_supp_tv': int(cum_fach),
+                'uebf_supp_tv': int(cum_uebf),
+                'psych_supp_tv': int(cum_psych),
+                'any_supp_tv': int(cum_any),
+                'cum_cp': cum_cp_vorher,
+                'cum_fails': cum_fails_vorher,
+                'hzb_note': row['hzb_note'],
+                'erstakademiker': int(bool(row['erstakademiker'])),
+                'erwerbstaetigkeit_std': row['erwerbstaetigkeit_std'],
+                'stg_name': row['stg_name']
+            })
+            
+            # Update lagged values for next semester (t+1)
+            cum_cp_vorher += cp_dict.get((s_id, sem), 0.0)
+            cum_fails_vorher += fails_dict.get((s_id, sem), 0)
+            
+    panel_df = pd.DataFrame(panel_rows)
+    print(f"Panel erfolgreich erstellt: {len(panel_df)} Person-Semester Zeilen von {len(df_abschluesse)} Studierenden.")
+    return panel_df
+
+from metrics_logger import save_metrics
+import warnings
+warnings.filterwarnings('ignore', category=FutureWarning)
+
+def fit_extended_cox_model(panel_df, base_dir=None):
+    print("\n==========================================================================")
+    print("   EXTENDED COX PROPORTIONAL HAZARDS MODEL (STATSMODELS PHREG)")
+    print("==========================================================================")
+    
+    # Bereinigung fehlender Werte
+    model_df = panel_df.dropna(subset=['hzb_note', 'erwerbstaetigkeit_std', 'erstakademiker', 'cum_cp', 'cum_fails']).copy()
+    
+    print(f"Schätze Modell mit {len(model_df)} Zeilen...")
+    
+    formel = "t_stop ~ fach_supp_tv + uebf_supp_tv + psych_supp_tv + cum_cp + cum_fails + hzb_note + erwerbstaetigkeit_std + erstakademiker"
+    
+    try:
+        cox_mod = smf.phreg(
+            formula=formel, 
+            data=model_df, 
+            status=model_df['event'].values, 
+            entry=model_df['t_start'].values, 
+            ties='breslow'
+        )
+        results = cox_mod.fit()
+    except Exception as e:
+        print(f"Fehler beim Fitten des Modells: {e}")
+        return None
+    
+    print("\n--- ESTIMATION RESULTS ---")
+    print(results.summary())
+    
+    params_s = pd.Series(results.params, index=results.model.exog_names)
+    hr = np.exp(params_s)
+    
+    print("\nExtrahierte Hazard Ratios:")
+    for var_name, value in hr.items():
+        print(f"  • {var_name:<20}: HR = {value:.4f}")
+        
+    print("\nInterpretation der zeitveränderlichen Effekte (Time-Varying HR):")
+    print("- HR < 1.0 bedeutet: Support-Nutzung verringert das Risiko eines Studienabbruchs im jeweiligen Semester (Schutzfaktor).")
+    print("- HR > 1.0 bedeutet: Erhöhtes Abbruchrisiko im jeweiligen Semester.")
+    print("\nVorteil dieses Modells: Entstörung des kausalen Effekts durch Einbeziehung vergangener Fehlversuche & CPs.")
+    print("==========================================================================")
+    
+    if base_dir:
+        metrics_dict = {
+            "Support_HR_Fach_tv": float(hr.get('fach_supp_tv', 1.0)),
+            "Support_HR_Uebf_tv": float(hr.get('uebf_supp_tv', 1.0)),
+            "Support_HR_Psych_tv": float(hr.get('psych_supp_tv', 1.0)),
+            "HR_cum_fails": float(hr.get('cum_fails', 1.0)),
+            "HR_cum_cp": float(hr.get('cum_cp', 1.0))
+        }
+        save_metrics("extended_cox_panel", metrics_dict, base_dir)
+    
+    return results
+
+if __name__ == '__main__':
+    data_directory = Path('../output_dl')
+    if not data_directory.exists():
+        data_directory = Path('output_dl')
+        
+    base_dir = data_directory
+    panel_data = build_person_semester_panel(data_directory)
+    fit_extended_cox_model(panel_data, base_dir)
+

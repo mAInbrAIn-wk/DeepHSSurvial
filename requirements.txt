@@ -1,0 +1,23 @@
+# DeepSupport Project Requirements
+# Diese Datei enthält die spezifischen Versionen, die zur Ausführung des Codes verwendet wurden.
+
+# Core Data Science & Machine Learning
+pandas==3.0.5
+numpy==2.5.1
+scikit-learn==1.9.0
+tensorflow==2.21.0
+
+# Survival Analysis & Statistics
+statsmodels==0.14.6
+lifelines==0.30.3
+
+# Dashboard & Visualisierung
+dash==4.4.1
+dash-bootstrap-components==2.0.4
+plotly==6.9.0
+matplotlib==3.11.1
+seaborn==0.13.2
+
+# Wichtig: Spezifischer Fix für Dash unter Python 3.12 (verhindert SystemError)
+pydantic==2.13.4
+pydantic_core==2.46.4
