@@ -1,3 +1,11 @@
+"""
+Counterfactual Hazard Ratio Analysis (Extended DeepSurv Delta Edition)
+========================================================================
+Berechnet empirische kontrafaktische Hazard Ratios für die semester-lokalen
+Support-Interventionen (fachlich, überfachlich, psychosozial) basierend auf
+dem Extended DeepSurv Delta Modell.
+"""
+
 import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
@@ -13,21 +21,20 @@ from sklearn.impute import SimpleImputer
 
 import tensorflow as tf
 
-from extended_cox_survival import build_person_semester_panel
-from extended_deep_survival import breslow_cox_loss
+from extended_cox_delta import build_delta_panel
+from extended_deep_survival_delta import breslow_cox_loss
 from metrics_logger import save_metrics
 
-def analyze_counterfactual_hr(data_dir: Path):
+def analyze_counterfactual_hr_delta(data_dir: Path):
     print("\n==========================================================================")
-    print("   COUNTERFACTUAL HAZARD RATIO ANALYSIS (EXTENDED DEEPSURV)")
+    print("   COUNTERFACTUAL HAZARD RATIO ANALYSIS (EXTENDED DEEPSURV DELTA)")
     print("==========================================================================")
     
-    panel_df = build_person_semester_panel(data_dir)
+    panel_df = build_delta_panel(data_dir)
     
-    # Feature-Set MUSS mit extended_deep_survival.py übereinstimmen (Zeile 67-69 dort)
-    num_cols = ['hzb_note', 'erwerbstaetigkeit_std', 't_stop', 't_start', 'cum_cp', 'cum_fails']
+    num_cols = ['hzb_note', 'erwerbstaetigkeit_std', 't_stop', 't_start', 'fails_prev', 'delta_cp_prev', 'cp_rueckstand']
     cat_cols = ['stg_name', 'erstakademiker']
-    treatment_cols = ['fach_supp_tv', 'uebf_supp_tv', 'psych_supp_tv']
+    treatment_cols = ['fach_supp_active', 'uebf_supp_active', 'psych_supp_active']
     
     feature_cols = num_cols + cat_cols + treatment_cols
     
@@ -44,7 +51,7 @@ def analyze_counterfactual_hr(data_dir: Path):
     ])
     preprocessor.fit(train_panel[feature_cols])
     
-    model_path = data_dir / "models" / "extended_deepsurv_panel.keras"
+    model_path = data_dir / "models" / "extended_deepsurv_delta.keras"
     if not model_path.exists():
         print(f"Modell {model_path} nicht gefunden!")
         return
@@ -55,9 +62,9 @@ def analyze_counterfactual_hr(data_dir: Path):
     metrics_all = {}
 
     for supp_col, label in [
-        ('fach_supp_tv',  'Fachlicher Support'),
-        ('uebf_supp_tv',  'Überfachlicher Support'),
-        ('psych_supp_tv', 'Psychosozialer Support'),
+        ('fach_supp_active',  'Fachlicher Support (aktives Semester)'),
+        ('uebf_supp_active',  'Überfachlicher Support (aktives Semester)'),
+        ('psych_supp_active', 'Psychosozialer Support (aktives Semester)'),
     ]:
         control = test_panel.copy()
         treated = test_panel.copy()
@@ -86,7 +93,7 @@ def analyze_counterfactual_hr(data_dir: Path):
         direction = "senkt" if median_hr < 1.0 else "ERHÖHT"
         print(f"  -> Median HR {direction} das Risiko {'um ' + f'{(1-median_hr)*100:.1f}%' if median_hr < 1.0 else 'um ' + f'{(median_hr-1)*100:.1f}%'}.")
 
-        prefix = supp_col.replace('_tv', '')
+        prefix = supp_col.replace('_supp_active', '')
         metrics_all[f"Mean_HR_{prefix}"]   = mean_hr
         metrics_all[f"Median_HR_{prefix}"] = median_hr
         metrics_all[f"Min_HR_{prefix}"]    = min_hr
@@ -95,11 +102,11 @@ def analyze_counterfactual_hr(data_dir: Path):
         metrics_all[f"Q95_HR_{prefix}"]    = q95
 
     print("\n" + "=" * 74)
-    save_metrics("counterfactual_hr_analyzer", metrics_all, data_dir)
-    print("Counterfactual HR Analyse abgeschlossen.")
+    save_metrics("counterfactual_hr_delta", metrics_all, data_dir)
+    print("Counterfactual HR Delta Analyse abgeschlossen.")
 
 if __name__ == '__main__':
     data_dir = Path('../output_dl')
     if not data_dir.exists():
         data_dir = Path('output_dl')
-    analyze_counterfactual_hr(data_dir)
+    analyze_counterfactual_hr_delta(data_dir)

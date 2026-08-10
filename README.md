@@ -101,4 +101,4 @@ flowchart TD
    ```
 4. Die Ergebnisse, `.keras` Modelle, JSON-Metriken und PNG-Plots werden automatisch in `output_dl/` abgelegt.
 
-> **Hinweis zum Dashboard:** Das ehemals verwendete Dash-Dashboard (`dashboard_survival_dl.py`) befindet sich derzeit im Umbau, da die Datengenerierung und die Spaltenstruktur für die kausale Survival-Analyse stark modifiziert wurden.
+> **Hinweis zum Dashboard:** Das ehemals verwendete Dash-Dashboard (`dashboard_survival_dl.py`) ist derzeit **Work in Progress** und aufgrund der stark überarbeiteten Spaltenstruktur und den neuen Delta-Modellreihen in der aktuellen Fassung fehlerhaft/problematisch. Die primären Analysen und Modellauswertungen erfolgen über das strukturierte Logging in `output_dl/metrics/`.
