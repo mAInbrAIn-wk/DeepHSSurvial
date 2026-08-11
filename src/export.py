@@ -94,14 +94,14 @@ def as_dataframe(studierende: List[Student], stammdaten: Dict[str, pd.DataFrame]
         "studierende_df": pd.DataFrame(studierende_rows),
         "einschreibungen_df": pd.DataFrame(einschreibungen_rows),
         "pruefungen_df": pd.DataFrame(pruefungen_rows),
-        "support_teilnahmen_df": pd.DataFrame(support_teilnahmen_rows),
+        "support_teilnahmen_df": pd.DataFrame(support_teilnahmen_rows, columns=["studierenden_id", "semester_id", "angebot_id"]),
         "abschluesse_df": pd.DataFrame(abschluesse_rows),
     }
 
 def exportiere_csv(daten: Dict[str, pd.DataFrame], output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     for key, df in daten.items():
-        if df is not None and not df.empty:
+        if df is not None:
             pfad = output_dir / f"{key.replace('_df', '')}.csv"
             df.to_csv(pfad, index=False, sep=",", decimal=".")
             print(f"  [OK] {pfad.name:<25} {len(df):>8} Zeilen")

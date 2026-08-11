@@ -5,7 +5,24 @@
 
 ---
 
-## 📖 Projektübersicht
+## KI-Transparenz & Methodischer Stack
+
+Alle Inhalte dieses Projekts (Code-Architektur, Datengenerierungs-Engine, Modellierung, Kausalanalyse, Audits und Dokumentation) wurden in intensiver, transparenter Auseinandersetzung mit KI-Systemen entwickelt, überprüft, reviewed, korrigiert und erweitert.
+
+- **Entwicklungsumgebung & Orchestrierung:** Antigravity IDE / Antigravity Agent
+- **Integrierte LLM-Modelle (Pair Programming & Code Generation):** Gemini 3.1 Pro, Gemini 3.6 Flash
+- **Weitere KI-Tools & Exploration (via Mammouth.ai):** Claude Opus/Sonnet 5, ChatGPT 5.6, ChatGPT Sol, Kimi K2.5 / K3
+- **Dokumentations-Artefakte:** Sämtliche Berichte, Reviews und Walkthroughs im Ordner `Artifacts/` sowie im System-Kontext sind direkte, transparente KI-generierte Audit-Protokolle.
+
+---
+
+## Beziehung zum Vorläufer-Projekt (DataAnalysis)
+
+Dieses Repository darstellt **Phase 2 (Hauptarbeit)** der Projektgruppe dar. Das vorausgehende Kurs-Projekt *DataAnalysis* diente als explorativer Prototyp (Phase 1). Während *DataAnalysis* das Confounding-Problem aufdeckte und dokumentierte, löst das vorliegende *Abschlussprojekt* dieses Problem durch neu entwickelte dynamische Längsschnitt-Panels, zeitveränderliche Deltas und neuronale Survival-Architekturen vollständig auf.
+
+---
+
+## Projektübersicht
 
 Dieses Projekt analysiert datengetrieben die Wirksamkeit von Unterstützungsangeboten (z.B. Tutorien, Repetitorien) an Hochschulen. 
 Die Kernherausforderung liegt in der Auflösung des **Selektionsbias** und des **Immortal-Time-Bias**: Da eher leistungsschwächere Studierende an Supportmaßnahmen teilnehmen, kommen naive, statische Machine-Learning-Modelle oft zu dem fehlerhaften Schluss, dass Support die Studienabbruch-Wahrscheinlichkeit erhöht (*Dropout-Paradoxon*).
@@ -13,13 +30,13 @@ Die Kernherausforderung liegt in der Auflösung des **Selektionsbias** und des *
 Um diesen Bias aufzulösen, kombiniert das Projekt:
 1. **Dynamisch-stochastische Datengenerierung:** Eine realitätsnahe Simulation von 50.000 Studienverläufen inklusive Feedback-Schleifen (Motivation, CP-Rückstand, Noten).
 2. **Kausale Survival-Analyse (Ereigniszeitanalyse):** Überführung der Daten in longitudinale Person-Semester-Panels (Counting Process Format).
-3. **Deep Learning Sequence Models:** Einsatz von RNNs (GRU/LSTM), Transformern und Multi-Task Netzwerken (DeepHit), um zeitveränderliche Zusammenhänge und nicht-lineare Interaktionen zu lernen.
+3. **Deep Learning Sequence Models:** Einsatz von RNNs (GRU/LSTM), Transformern, Multi-Task Netzwerken (DeepHit) und Double Machine Learning (DML), um zeitveränderliche Zusammenhänge und entzerrte Behandlungseffekte zu lernen.
 
 ---
 
-## 🧠 Methodik & Modell-Stufen
+## Methodik & Modell-Stufen
 
-Das Projekt implementiert und vergleicht über **13 verschiedene Modellarchitekturen** in vier aufsteigenden methodischen Stufen:
+Das Projekt implementiert und vergleicht über **13 verschiedene Modellarchitekturen** in fünf aufsteigenden methodischen Stufen:
 
 ### Stufe 0: Statische Baselines
 - **Klassifikation & Regression:** Naive Bayes, Random Forest, SVM, Ridge Regression.
@@ -30,33 +47,31 @@ Das Projekt implementiert und vergleicht über **13 verschiedene Modellarchitekt
 - **Modelle:** DeepSurv (Keras Cox-Partial-Likelihood) und Discrete-Time Logistic (DTL) Hazard.
 - *Ergebnis:* Ohne Berücksichtigung zeitvariabler Confounder zeigen die Modelle fälschlicherweise eine Risikoerhöhung durch Support an (Hazard Ratio > 1).
 
-### Stufe 2: Extended Panel Survival (Zeitveränderlich)
-- **Modelle:** Extended Cox (statsmodels), Extended DeepSurv, Extended DTL Hazard.
-- **Ansatz:** Die Datenstruktur wird in ein Person-Semester-Panel umgebaut. Die Modelle werten den Zustand (und die Support-Nutzung) in *jedem spezifischen Semester* separat aus.
-- *Ergebnis:* Das "Dropout-Paradoxon" wird erfolgreich aufgelöst. Das statistische Extended Cox-Modell weist eine **Hazard Ratio von ≈ 0.37** aus (signifikante Risikosenkung). 
+### Stufe 2: Extended Panel Survival (Zeitveränderlich & Delta-Features)
+- **Modelle:** Extended Cox (statsmodels), Extended DeepSurv Delta, Extended DTL Hazard Delta.
+- **Ansatz:** Die Datenstruktur wird in ein Person-Semester-Panel umgebaut. Die Modelle werten den Zustand (und die Support-Nutzung) in *jedem spezifischen Semester* separat aus unter Verwendung lokaler Vorsemester-Deltas (`fails_prev`, `delta_cp_prev`, `cp_rueckstand`).
+- *Ergebnis:* Das "Dropout-Paradoxon" wird erfolgreich aufgelöst. Extended DeepSurv Delta weist für fachlichen ($\text{HR} \approx 0.92$) und psychosozialen Support ($\text{HR} \approx 0.92$) echte risikosenkende Effekte aus.
 
-### Stufe 3: Sequenz-Survival (RNN & Transformer)
+### Stufe 3: Sequenz-Survival (RNN & Transformer Delta)
 - **Modelle:** GRU (Semester- und Prüfungs-Ebene) und Causal Masked Transformer.
 - **Ansatz:** Betrachtung der gesamten Historie bis zum Semester $t$. Masked-Loss Funktionen ignorieren Padding (-99.0).
-- *Ergebnis:* Sehr hohe Prognosekraft (ROC-AUC bis 0.90) und Lift für operative Frühwarnsysteme.
+- *Ergebnis:* Sehr hohe Prognosekraft (ROC-AUC bis 0.87) und hoher Lift für operative Frühwarnsysteme.
 
-### Stufe 4: Competing Risks
-- **Modelle:** Dynamic DeepHit.
-- **Ansatz:** Ein Multi-Task Netzwerk mit Shared-GRU Backbone und zwei separaten Time-Distributed Heads.
-- *Ergebnis:* Simultane Vorhersage von *Studienabbruch* und *erfolgreichem Abschluss* als konkurrierende Risiken.
+### Stufe 4: Competing Risks & Double Machine Learning (DML)
+- **Modelle:** Dynamic DeepHit Delta, DML Orthogonalized Survival.
+- **Ansatz:** Simultane Vorhersage von *Studienabbruch* und *erfolgreichem Abschluss* als konkurrierende Risiken sowie Entzerrung reaktiver Selection Biases über orthogonalisierte Treatment-Residuen.
+- *Ergebnis:* DeepHit Delta erzielt eine Dropout ROC-AUC von **0.8276** und eine Abschluss ROC-AUC von **0.9998**.
 
 ---
 
-## 🔬 Kausale Inferenz & Kontrafaktische Simulation
+## Kausale Inferenz & Kontrafaktische Simulation
 
 Um echte kausale Effekte in den neuronalen Netzwerken zu messen, wurde eine **kontrafaktische Simulation** implementiert:
-Die trainierten Sequence-Modelle (GRU, Transformer) bewerten jeden Studierenden zweimal: Einmal mit modifizierter Historie *inklusive* Support und einmal *ohne* Support. 
-
-**Kernergebnis:** Das Extended DeepSurv liefert bei kontrafaktischer Analyse eine mediane Hazard Ratio von **≈ 0.88** (individuelle Risikosenkung um 12%), während klassische lineare Modelle einen fixen Effekt von 0.37 schätzen. Die neuronalen Netze decken somit auf, dass der Effekt höchst individuell und kontextabhängig ist.
+Die trainierten Sequence-Modelle (GRU, Transformer, DeepHit) bewerten jeden Studierenden zweimal: Einmal mit modifizierter Historie *inklusive* Support und einmal *ohne* Support.
 
 ---
 
-## ⚙️ Projektarchitektur & Pipeline
+## Projektarchitektur & Pipeline
 
 Die Pipeline zeichnet sich durch strikte Modularität und konsequente Prävention von Data Leakage aus.
 
@@ -80,17 +95,17 @@ flowchart TD
 
 ### Die wichtigsten Skripte im `src/` Ordner:
 - `simulation.py`: Core-Engine zur Simulation von Studierendenprofilen.
-- `extended_cox_survival.py`: Transformiert Daten ins Counting-Process Format.
-- `deep_survival.py` / `extended_deep_survival.py`: Implementierungen des Keras Cox-Loss (Breslow).
-- `timeseries_exam_transformer.py`: Causal Masked Attention Netzwerk.
-- `dynamic_deephit_model.py`: Multi-Task Architektur für Competing Risks.
-- `counterfactual_*.py`: Skripte zur kontrafaktischen Analyse und HR-Schätzung der Deep Learning Modelle.
+- `extended_cox_delta.py`: Transformiert Daten ins Counting-Process Format mit Delta-Features.
+- `extended_deep_survival_delta.py`: Implementierung neuronaler Survival-Panels.
+- `dynamic_deephit_delta_model.py`: Multi-Task Architektur für Competing Risks auf Delta-Features.
+- `dml_orthogonal_survival.py`: Double Machine Learning mit orthogonalisierten Treatment-Residuen.
+- `counterfactual_*.py`: Skripte zur kontrafaktischen Analyse und HR/RR-Schätzung der Deep Learning Modelle.
 
 ---
 
-## 🚀 Ausführung
+## Ausführung
 
-1. Abhängigkeiten installieren (erfordert TensorFlow/Keras, Pandas, Scikit-Learn, Statsmodels, Lifelines, Plotly).
+1. Abhängigkeiten installieren (erfordert TensorFlow/Keras, Pandas, Scikit-Learn, Statsmodels, Plotly).
 2. Daten generieren und Pipeline ausführen:
    ```bash
    python src/main.py

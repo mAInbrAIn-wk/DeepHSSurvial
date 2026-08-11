@@ -2,23 +2,23 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **Accuracy** | 0.7871 |
-| **Precision_Macro** | 0.5025 |
-| **Recall_Macro** | 0.4109 |
-| **F1_Macro** | 0.4183 |
+| **Accuracy** | 0.8044 |
+| **Precision_Macro** | 0.4745 |
+| **Recall_Macro** | 0.3936 |
+| **F1_Macro** | 0.4042 |
 
 ## Classification Report
 
 ```text
                      precision    recall  f1-score   support
 
-        abgebrochen       0.65      0.63      0.64      2218
-      abgeschlossen       0.85      0.93      0.89      4819
-     exmatrikuliert       0.51      0.09      0.15       413
-zeitueberschreitung       0.00      0.00      0.00        50
+        abgebrochen       0.65      0.58      0.61      1958
+      abgeschlossen       0.86      0.93      0.89      5253
+     exmatrikuliert       0.40      0.07      0.12       251
+zeitueberschreitung       0.00      0.00      0.00        38
 
-           accuracy                           0.79      7500
-          macro avg       0.50      0.41      0.42      7500
-       weighted avg       0.76      0.79      0.77      7500
+           accuracy                           0.80      7500
+          macro avg       0.47      0.39      0.40      7500
+       weighted avg       0.78      0.80      0.79      7500
 
 ```

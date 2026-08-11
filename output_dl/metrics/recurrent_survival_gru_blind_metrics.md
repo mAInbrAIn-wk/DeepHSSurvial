@@ -2,24 +2,24 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **ROC-AUC_Seq** | 0.8235 |
-| **PR-AUC_Seq** | 0.2883 |
-| **Brier_Score** | 0.0433 |
-| **Accuracy_Top5** | 0.9267 |
-| **Precision_Top5** | 0.2943 |
-| **Recall_Top5** | 0.2794 |
-| **F1_Top5** | 0.2866 |
+| **ROC-AUC_Seq** | 0.8070 |
+| **PR-AUC_Seq** | 0.2279 |
+| **Brier_Score** | 0.0374 |
+| **Accuracy_Top5** | 0.9290 |
+| **Precision_Top5** | 0.2247 |
+| **Recall_Top5** | 0.2586 |
+| **F1_Top5** | 0.2404 |
 
 ## Classification Report
 
 ```text
                   precision    recall  f1-score   support
 
-    Kein Abbruch       0.96      0.96      0.96     48213
-Abbruch (Top 5%)       0.29      0.28      0.29      2681
+    Kein Abbruch       0.97      0.96      0.96     49462
+Abbruch (Top 5%)       0.22      0.26      0.24      2247
 
-        accuracy                           0.93     50894
-       macro avg       0.63      0.62      0.62     50894
-    weighted avg       0.92      0.93      0.93     50894
+        accuracy                           0.93     51709
+       macro avg       0.60      0.61      0.60     51709
+    weighted avg       0.93      0.93      0.93     51709
 
 ```

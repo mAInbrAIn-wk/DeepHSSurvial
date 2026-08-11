@@ -5,8 +5,8 @@ Synthetischer Datensatz zur Analyse der Wirkung von Studierenden-Support-Angebot
 
 ## Umfang
 - **Studierende**: 50,000
-- **Prüfungen gesamt**: 835,560
-- **Support-Teilnahmen gesamt**: 157,021
+- **Prüfungen gesamt**: 839,648
+- **Support-Teilnahmen gesamt**: 145,602
 - Kohorten: 2015–2024 (WS-Start)
 - 5 Studiengänge, 89 Module, 12 Support-Angebote
 
@@ -30,20 +30,20 @@ Synthetischer Datensatz zur Analyse der Wirkung von Studierenden-Support-Angebot
 ## Statistische Übersicht der Abgangsarten
 
 ### Gesamtübersicht
-- **Abschlussquote gesamt**: 64.3%
-- **Insg. nicht erfolgreich** (Abbruch/Exmatrikulation/Zeitüberschreitung): 35.7%
-- **Mittlere Abschlussnote**: 2.19
-- **Mittlere Bachelorarbeitsnote**: 1.89
-- **Mittlere Studiendauer (Erfolgreiche)**: 7.95 Semester
+- **Abschlussquote gesamt**: 70.0%
+- **Insg. nicht erfolgreich** (Abbruch/Exmatrikulation/Zeitüberschreitung): 30.0%
+- **Mittlere Abschlussnote**: 2.13
+- **Mittlere Bachelorarbeitsnote**: 1.69
+- **Mittlere Studiendauer (Erfolgreiche)**: 7.97 Semester
 
 ### Aufschlüsselung nach Studiengängen
 | stg_name | abgeschlossen | abgebrochen | exmatrikuliert | zeitueberschreitung | Gesamt | Abschlussquote |
 | --- | --- | --- | --- | --- | --- | --- |
-| BWL | 9212 | 3916 | 715 | 51 | 13894 | 66.3% |
-| Informatik | 7752 | 3920 | 695 | 79 | 12446 | 62.3% |
-| Maschinenbau | 5482 | 2829 | 605 | 107 | 9023 | 60.8% |
-| Psychologie | 5665 | 2466 | 459 | 55 | 8645 | 65.5% |
-| Soziale Arbeit | 4015 | 1657 | 279 | 41 | 5992 | 67.0% |
+| BWL | 9957 | 3545 | 467 | 32 | 14001 | 71.1% |
+| Informatik | 8680 | 3431 | 371 | 59 | 12541 | 69.2% |
+| Maschinenbau | 5861 | 2548 | 347 | 85 | 8841 | 66.3% |
+| Psychologie | 6060 | 2122 | 326 | 31 | 8539 | 71.0% |
+| Soziale Arbeit | 4462 | 1408 | 160 | 48 | 6078 | 73.4% |
 
 ## Modellarchitektur & Erweiterungen (DL-Edition)
 
@@ -76,8 +76,8 @@ Synthetischer Datensatz zur Analyse der Wirkung von Studierenden-Support-Angebot
 - ✅ Bestanden ⇔ Note ≤ 4.0
 - ✅ Nur erfolgreiche Abschlüsse ('abgeschlossen') enthalten eine Abschlussnote
 - ✅ Erfolgreiche Abschlüsse besitzen eine valide Bachelorarbeitsnote
-- ✅ Gesamtabschlussquote ist größer als 50% (ist: 64.3%)
-- ✅ Abschlussquote in allen Studiengängen einzeln > 50% (Min: 60.8%)
+- ✅ Gesamtabschlussquote ist größer als 50% (ist: 70.0%)
+- ✅ Abschlussquote in allen Studiengängen einzeln > 50% (Min: 66.3%)
 - ✅ Ground Truth Counterfactual Notes korrekt generiert
 
 ## Reproduzierbarkeit

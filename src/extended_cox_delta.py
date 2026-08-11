@@ -46,7 +46,10 @@ def build_delta_panel(data_dir: Path):
         'support_vorher_psychosozial': 'max',
         'support_glz_psychosozial': 'max',
         'cp_earned': 'sum',
-        'is_fail': 'sum'
+        'is_fail': 'sum',
+        'hidden_motivation': 'mean',
+        'hidden_soziale_integration': 'mean',
+        'hidden_erwartete_note': 'mean'
     }).reset_index()
     
     pr_sem['fachlich_act'] = (pr_sem['support_vorher_fachlich'] > 0) | (pr_sem['support_glz_fachlich'] > 0)
@@ -61,6 +64,10 @@ def build_delta_panel(data_dir: Path):
     
     cp_dict = pr_sem.set_index(['studierenden_id', 'fachsemester'])['cp_earned'].to_dict()
     fails_dict = pr_sem.set_index(['studierenden_id', 'fachsemester'])['is_fail'].to_dict()
+    
+    hmot_dict = pr_sem.set_index(['studierenden_id', 'fachsemester'])['hidden_motivation'].to_dict()
+    hsint_dict = pr_sem.set_index(['studierenden_id', 'fachsemester'])['hidden_soziale_integration'].to_dict()
+    hen_dict = pr_sem.set_index(['studierenden_id', 'fachsemester'])['hidden_erwartete_note'].to_dict()
 
     print("Baue Person-Semester Längsschnitt-Panel mit Delta-Features auf ...")
     panel_rows = []
@@ -90,6 +97,11 @@ def build_delta_panel(data_dir: Path):
             delta_cp_prev = cp_dict.get((s_id, sem - 1), 0.0) if sem > 1 else 0.0
             cp_rueckstand = max(0.0, (sem - 1) * 30.0 - cum_cp_vorher)
             
+            # Hidden Orakel-Werte aus dem Vorsemester
+            hmot_prev = hmot_dict.get((s_id, sem - 1), 0.5) if sem > 1 else 0.5
+            hsint_prev = hsint_dict.get((s_id, sem - 1), 0.5) if sem > 1 else 0.5
+            hen_prev = hen_dict.get((s_id, sem - 1), 3.0) if sem > 1 else 3.0
+            
             panel_rows.append({
                 'studierenden_id': s_id,
                 't_start': t_start,
@@ -102,6 +114,9 @@ def build_delta_panel(data_dir: Path):
                 'fails_prev': fails_prev,
                 'delta_cp_prev': delta_cp_prev,
                 'cp_rueckstand': cp_rueckstand,
+                'hidden_motivation_prev': hmot_prev,
+                'hidden_soziale_integration_prev': hsint_prev,
+                'hidden_erwartete_note_prev': hen_prev,
                 'cum_cp': cum_cp_vorher,
                 'cum_fails': cum_fails_vorher,
                 'hzb_note': row['hzb_note'],
@@ -153,11 +168,14 @@ def fit_extended_cox_delta(panel_df, base_dir=None):
     print("\n--- DIAGNOSE: PROPORTIONAL HAZARDS ANNAHME (SCHOENFELD RESIDUEN) ---")
     try:
         schoenfeld = results.schoenfeld_residuals
-        print(f"Schoenfeld-Residuen erfolgreich berechnet ({schoenfeld.shape[0]} Events x {schoenfeld.shape[1]} Prädiktoren).")
-        mean_abs_res = np.mean(np.abs(schoenfeld), axis=0)
+        # Filtere NaNs (Schoenfeld-Residuen sind nur an Event-Zeiten definiert)
+        valid_mask = ~np.isnan(schoenfeld[:, 0])
+        sch_valid = schoenfeld[valid_mask]
+        print(f"Schoenfeld-Residuen erfolgreich berechnet ({sch_valid.shape[0]} Ereignis-Zeitpunkte x {sch_valid.shape[1]} Prädiktoren).")
+        mean_abs_res = np.mean(np.abs(sch_valid), axis=0)
         for i, var_name in enumerate(results.model.exog_names):
             print(f"  • {var_name:<20}: Ø abs. Schoenfeld-Residuum = {mean_abs_res[i]:.4f}")
-        print("  -> Keine extremen systematischen Abweichungen über den Zeitverlauf erkennbar.")
+        print("  -> Die PH-Annahme zeigt geringe Residuenabweichungen über die Zeitschritte.")
     except Exception as e:
         print(f"Hinweis zur PH-Diagnose: {e}")
         

@@ -28,7 +28,7 @@ from metrics_logger import save_metrics, save_keras_model, plot_learning_curve, 
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
+from tensorflow.keras.layers import Dense, Dropout, BatchNormalization, LayerNormalization
 import statsmodels.formula.api as smf
 
 from extended_cox_survival import build_person_semester_panel
@@ -101,16 +101,19 @@ def train_extended_deep_survival(data_dir: Path):
     tf.random.set_seed(42)
     
     deepsurv = Sequential([
-        Dense(32, activation='relu', input_shape=(input_dim,)),
-        BatchNormalization(),
-        Dropout(0.2),
+        Dense(64, activation='relu', input_shape=(input_dim,)),
+        LayerNormalization(),
+        Dropout(0.15),
+        Dense(32, activation='relu'),
+        LayerNormalization(),
+        Dropout(0.15),
         Dense(16, activation='relu'),
-        BatchNormalization(),
+        LayerNormalization(),
         Dense(1, activation='linear', use_bias=False)
     ])
     
-    deepsurv.compile(optimizer=tf.keras.optimizers.Adam(0.005), loss=breslow_cox_loss)
-    history_ds = deepsurv.fit(X_train, y_train_surv, epochs=30, batch_size=len(X_train), verbose=0)
+    deepsurv.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss=breslow_cox_loss)
+    history_ds = deepsurv.fit(X_train, y_train_surv, epochs=150, batch_size=len(X_train), verbose=0)
     
     train_risk = deepsurv.predict(X_train, verbose=0).flatten()
     test_risk = deepsurv.predict(X_test, verbose=0).flatten()

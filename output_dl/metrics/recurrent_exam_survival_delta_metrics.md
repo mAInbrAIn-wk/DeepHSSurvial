@@ -2,6 +2,6 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **ROC-AUC_Exam** | 0.8713 |
-| **PR-AUC_Exam** | 0.1804 |
-| **Brier_Score** | 0.0193 |
+| **ROC-AUC_Exam** | 0.8618 |
+| **PR-AUC_Exam** | 0.1283 |
+| **Brier_Score** | 0.0165 |

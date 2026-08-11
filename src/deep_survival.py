@@ -201,15 +201,17 @@ def build_preprocessor(X_df):
 def build_deepsurv_model(input_dim: int):
     """DeepSurv Neural Network mit Entrauschtem Full-Batch Cox Loss."""
     model = Sequential([
-        Dense(32, activation='relu', input_shape=(input_dim,)),
+        Dense(64, activation='relu', input_shape=(input_dim,)),
         LayerNormalization(),
-        Dropout(0.2),
+        Dropout(0.15),
+        Dense(32, activation='relu'),
+        LayerNormalization(),
+        Dropout(0.15),
         Dense(16, activation='relu'),
         LayerNormalization(),
-        Dropout(0.1),
         Dense(1, activation='linear', use_bias=False)
     ])
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.005), loss=breslow_cox_partial_loss)
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss=breslow_cox_partial_loss)
     return model
 
 def build_logistic_hazard_model(input_dim: int, max_semesters: int = 14):
@@ -392,7 +394,7 @@ def main():
     history_ds = deepsurv.fit(
         X_train, y_train_surv,
         validation_data=(X_test, y_test_surv),
-        epochs=80,
+        epochs=150,
         batch_size=len(X_train),  # Full-Batch
         verbose=0
     )

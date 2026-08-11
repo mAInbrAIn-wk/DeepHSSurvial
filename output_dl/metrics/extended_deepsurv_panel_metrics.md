@@ -2,5 +2,5 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **ROC-AUC_Panel** | 0.5351 |
-| **PR-AUC_Panel** | 0.0659 |
+| **ROC-AUC_Panel** | 0.5938 |
+| **PR-AUC_Panel** | 0.0580 |

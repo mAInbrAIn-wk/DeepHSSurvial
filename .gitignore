@@ -27,6 +27,10 @@ wheels/
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
+# PDF & Archive files
+*.pdf
+*.zip
+
 # Environments
 .env
 .venv

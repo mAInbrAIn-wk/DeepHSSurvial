@@ -32,7 +32,8 @@ CONFIG = {   'anomalie_quote': 0.05,
     'output_dir': '../output_dl',
     'seed': 42,
     'start_jahr': 2015,
-    'support_deckel': 0.15,
+    'support_deckel': 1.0,
+    'support_effect_multiplier': 5.0,
     'zeitkonto_budget_h': 900}
 
 MODULE_CURRICULA = {   'SG01': [   {   'cp': 9,

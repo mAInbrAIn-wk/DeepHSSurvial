@@ -50,11 +50,10 @@ Kriege ich das in 10 Minuten hin? Fokus sollte auf Verständlichkeit liegen, nic
 - alt: Supportbesuche wurden nur von der HZB-Note beeinflusst (nicht einmal von dem erwarteten Nutzen)
     - Cox-Regression konnte (mit Kontrollvariable HZB Note!) klare Supportwirkung zeigen
 - neu: Supportbesuche wurden zusätzlich von der Fehlversuchen beeinflusst, die aber auch die Motivation senken (dynamischer Confounder)
-    - Cox-Regressor zeigt negative Supportwirkung (HR > 1!) -- klar ist, dass hier mehr nötig ist
-    - DeepSurv mit Landmark-Ansatz zeigt immer noch positive Supportwirkung? --> Checken
-    - Erst die Panel- Cox-Regression zeigt auch positive Supportwirkung!
+    - Cox-Regressor zeigt negative Supportwirkung (HR > 1!) -- Das sogenannte Dropout-Paradoxon!
+    - Erst die Längsschnitt-Panel Modelle (Extended Cox) und Double Machine Learning (DML) mit Treatment-Orthogonalisierung können diesen Bias erfolgreich auflösen und einen realistischen, positiven Effekt ausweisen (RR < 1).
 
-Dazu vielleicht etwas anschauliches? Eine Grafik? 
+Dazu vielleicht etwas anschauliches? Eine Grafik?
 
 ### Folie 7: Ergebnisse der Survivalanalyse
 

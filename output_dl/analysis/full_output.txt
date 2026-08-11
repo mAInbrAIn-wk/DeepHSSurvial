@@ -1,0 +1,233 @@
+================================================================================
+ANALYSE DER KONTRAFAKTISCHEN SUPPORT-EFFEKTE
+================================================================================
+
+[1/4] Lade Daten aus allen 5 Universen...
+  Universum A: 50000 Studierende, 837931 Pr├╝fungen
+  Universum B: 50000 Studierende, 836600 Pr├╝fungen
+  Universum C: 50000 Studierende, 841606 Pr├╝fungen
+  Universum D: 50000 Studierende, 834601 Pr├╝fungen
+  Universum E: 50000 Studierende, 836133 Pr├╝fungen
+
+  Spalten studierende.csv: ['studierenden_id', 'studiengang_id', 'kohorten_semester_id', 'geschlecht', 'alter_immatrikulation', 'hzb_note', 'hzb_typ', 'migrationshintergrund', 'erstakademiker', 'erwerbstaetigkeit_std', 'motivation_initial', 'soziale_integration_initial', 'motivation_final', 'soziale_integration_final', 'hidden_erwartete_note_initial', 'hidden_erwartete_note_final']
+  Spalten pruefungen.csv: ['studierenden_id', 'semester_id', 'modul_id', 'versuch', 'note', 'bestanden', 'note_counterfactual', 'support_genutzt', 'hidden_motivation', 'hidden_soziale_integration', 'hidden_erwartete_note']
+  Abschl├╝sse A: 50000 Zeilen, Spalten: ['studierenden_id', 'status', 'abschluss_semester_id', 'studiendauer_semester', 'abschlussnote', 'bachelorarbeitsnote', 'anomalie_typ']
+  Abschl├╝sse B: 50000 Zeilen, Spalten: ['studierenden_id', 'status', 'abschluss_semester_id', 'studiendauer_semester', 'abschlussnote', 'bachelorarbeitsnote', 'anomalie_typ']
+  Abschl├╝sse C: 50000 Zeilen, Spalten: ['studierenden_id', 'status', 'abschluss_semester_id', 'studiendauer_semester', 'abschlussnote', 'bachelorarbeitsnote', 'anomalie_typ']
+  Abschl├╝sse D: 50000 Zeilen, Spalten: ['studierenden_id', 'status', 'abschluss_semester_id', 'studiendauer_semester', 'abschlussnote', 'bachelorarbeitsnote', 'anomalie_typ']
+  Abschl├╝sse E: 50000 Zeilen, Spalten: ['studierenden_id', 'status', 'abschluss_semester_id', 'studiendauer_semester', 'abschlussnote', 'bachelorarbeitsnote', 'anomalie_typ']
+
+================================================================================
+FRAGE 1: Dropout-Raten und wahre Support-Effekte
+================================================================================
+
+  Universum A - Status-Verteilung:
+    abgeschlossen: 35030
+    abgebrochen: 12993
+    exmatrikuliert: 1732
+    zeitueberschreitung: 245
+
+  Universum B - Status-Verteilung:
+    abgeschlossen: 31669
+    abgebrochen: 14893
+    exmatrikuliert: 3195
+    zeitueberschreitung: 243
+
+  Universum C - Status-Verteilung:
+    abgeschlossen: 34754
+    abgebrochen: 13029
+    exmatrikuliert: 2024
+    zeitueberschreitung: 193
+
+  Universum D - Status-Verteilung:
+    abgeschlossen: 33450
+    abgebrochen: 13935
+    exmatrikuliert: 2329
+    zeitueberschreitung: 286
+
+  Universum E - Status-Verteilung:
+    abgeschlossen: 33857
+    abgebrochen: 13821
+    exmatrikuliert: 2042
+    zeitueberschreitung: 280
+
+  --- Vergleich der Dropout-Raten ---
+  Universum    Label                                    Dropout     Rate Diff vsA       RR
+  ------------ ---------------------------------------- ------- -------- -------- --------
+  A            Baseline (alle Support-Typen)              14970  29.94%  +0.000  1.0000
+  B            Kein Support (komplett blockiert)          18331  36.66%  +0.067  0.8166
+  C            Kein fachlicher Support                    15246  30.49%  +0.006  0.9819
+  D            Kein ├╝berfachlicher Support                16550  33.10%  +0.032  0.9045
+  E            Kein psychosozialer Support                16143  32.29%  +0.023  0.9273
+
+  --- Offizielle true_macro_effects_v2.json (zum Vergleich) ---
+  universe_A_baseline: dropout_rate = 0.25986
+  universe_B: dropout_rate = 0.29786
+  universe_C: dropout_rate = 0.26058
+  universe_D: dropout_rate = 0.27870
+  universe_E: dropout_rate = 0.27642
+
+================================================================================
+FRAGE 2: Individuelle Studierenden-Migration zwischen Universen
+================================================================================
+
+  --- Migrationsmatrix: Wer schafft es in A, aber nicht in X? ---
+
+  A vs. B (Kein Support (komplett blockiert)):
+                                Nicht-Dropout in B       Dropout in B
+         Nicht-Dropout in A                  30816               4214
+               Dropout in A                    853              14117
+  ÔåÆ 4214 Studierende werden durch Wegfall von Support (komplett blockiert) zum Dropout getrieben
+  ÔåÆ 853 Studierende schaffen es OHNE Support (komplett blockiert) sogar besser (Zeitgewinn?)
+
+  A vs. C (Kein fachlicher Support):
+                                Nicht-Dropout in C       Dropout in C
+         Nicht-Dropout in A                  33690               1340
+               Dropout in A                   1064              13906
+  ÔåÆ 1340 Studierende werden durch Wegfall von fachlicher Support zum Dropout getrieben
+  ÔåÆ 1064 Studierende schaffen es OHNE fachlicher Support sogar besser (Zeitgewinn?)
+
+  A vs. D (Kein ├╝berfachlicher Support):
+                                Nicht-Dropout in D       Dropout in D
+         Nicht-Dropout in A                  33170               1860
+               Dropout in A                    280              14690
+  ÔåÆ 1860 Studierende werden durch Wegfall von ├╝berfachlicher Support zum Dropout getrieben
+  ÔåÆ 280 Studierende schaffen es OHNE ├╝berfachlicher Support sogar besser (Zeitgewinn?)
+
+  A vs. E (Kein psychosozialer Support):
+                                Nicht-Dropout in E       Dropout in E
+         Nicht-Dropout in A                  33634               1396
+               Dropout in A                    223              14747
+  ÔåÆ 1396 Studierende werden durch Wegfall von psychosozialer Support zum Dropout getrieben
+  ÔåÆ 223 Studierende schaffen es OHNE psychosozialer Support sogar besser (Zeitgewinn?)
+
+================================================================================
+FRAGE 3: Noteneffekte des fachlichen Supports
+================================================================================
+
+  Pr├╝fungen mit Support: 37373
+  Pr├╝fungen ohne Support: 800558
+
+  --- Effekt des fachlichen Supports auf Pr├╝fungsnoten ---
+  Mittlere Notenverbesserung (ATT):  +0.7835 Notenpunkte
+  Median Notenverbesserung:          +1.0000 Notenpunkte
+  Pr├╝fungen mit Verbesserung:        30409 (81.4%)
+  Pr├╝fungen ohne Ver├ñnderung:        6964 (18.6%)
+  Vor Durchfallen gerettet:          5059 (13.54%)
+  Bestehensquote MIT Support:        92.77%
+  Bestehensquote OHNE Support:       79.23%
+  Bestehensquoten-Differenz:         +13.54 Prozentpunkte
+
+  --- Verteilung der Notenverbesserungen ---
+    0 (kein Effekt)                    6964 ( 18.6%)
+    0.01-0.3 (klein)                    788 (  2.1%)
+    0.3-0.5 (mittel)                   3133 (  8.4%)
+    0.5-1.0 (gro├ƒ)                     8952 ( 24.0%)
+    1.0-2.0 (sehr gro├ƒ)               16508 ( 44.2%)
+    2.0+ (extrem)                      1028 (  2.8%)
+
+  --- Direkter Notenvergleich A vs. C (gleiche Studis, gleiche Module) ---
+  Gematchte Pr├╝fungen: 805737
+  Davon mit Support in A: 33837
+  Mittlerer Notenunterschied (C - A): +0.7928 (positiv = A ist besser)
+  Median Notenunterschied:            +1.0000
+  Bestanden in A: 31424, Bestanden in C: 26868
+  Nur durch fachlichen Support bestanden: 4642
+
+  --- Vergleich der finalen erwarteten Note (hidden_erwartete_note_final) ---
+  Mittlerer Unterschied (C - A):  +0.0394 (positiv = A besser)
+  Median:                         +0.0000
+  Std:                            0.1456
+  A besser (Diff > 0.01):         12921 (25.8%)
+  C besser (Diff < -0.01):        3339 (6.7%)
+  Gleich (|Diff| Ôëñ 0.01):         33740 (67.5%)
+
+================================================================================
+FRAGE 4: Synergie-Effekte (Summe der Einzeleffekte vs. Gesamteffekt)
+================================================================================
+
+  Dropout-Raten:
+    A (Baseline):           25.986%
+    B (Kein Support):       29.786%
+    C (Kein Fachlich):      26.058%
+    D (Kein ├£berfachlich):  27.870%
+    E (Kein Psychosozial):  27.642%
+
+  Support-Effekte (Dropout-Reduktion durch Support, %-Punkte):
+    Fachlicher Support:       +0.072 pp
+    ├£berfachlicher Support:   +1.884 pp
+    Psychosozialer Support:   +1.656 pp
+    ---
+    Summe Einzeleffekte:      +3.612 pp
+    Tats├ñchl. Gesamteffekt:   +3.800 pp
+    Synergie (Rest):          +0.188 pp
+    Synergie-Anteil:          4.9% des Gesamteffekts
+
+  ÔåÆ Es gibt eine positive Synergie von +0.188 pp.
+    Das bedeutet: Die Support-Typen verst├ñrken sich gegenseitig.
+
+================================================================================
+KAUSAL-DIAGNOSE: Warum fachlicher Support kaum auf Dropout wirkt
+================================================================================
+
+  BEFUND: Fachlicher Support reduziert die Dropout-Rate nur um 0.07 pp (RR = 0.997).
+          Im Vergleich: ├£berfachlich -1.88 pp, Psychosozial -1.66 pp, Gesamt -3.80 pp.
+
+  URSACHE 1: Kein direkter Pfad zu Dropout-Variablen
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  berechne_dropout() h├ñngt ab von:
+    ÔÇó motivation        (Gewicht 0.30, Schwelle 0.4)
+    ÔÇó soz_integration   (Gewicht 0.20, Schwelle 0.4)  
+    ÔÇó cp_rueckstand     (Gewicht 0.15)
+    ÔÇó durchgefallen     (Gewicht 0.04 pro Fail)
+    ÔÇó overload_penalty  (Gewicht 0.10)
+
+  Fachlicher Support ÔåÆ verbessert NUR Pr├╝fungsnoten (fachlicher_boost)
+  ÔåÆ KEIN direkter Effekt auf motivation oder soz_integration!
+  ÔåÆ ├£berfachlich/Psychosozial boosten diese DIREKT.
+
+  URSACHE 2: Schwacher indirekter Pfad
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  Fachlicher Support ÔåÆ bessere Note ÔåÆ weniger Durchfallen ÔåÆ weniger Demotivation
+  ABER: durchgefallen_aktuell hat nur Gewicht 0.04 pro Fail.
+  ÔåÆ Ein vermiedenes Durchfallen senkt die Dropout-Prob. um nur ~0.02 pp pro Semester.
+
+  URSACHE 3: Zeitkosten konterkarieren den Noteneffekt
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  Fachliche Support-Angebote kosten 30h/Semester.
+  ├£berfachliche: 10h, Psychosoziale: 5-15h.
+  ÔåÆ Die 30h erh├Âhen den overload_penalty (+0.03 Dropout-Risiko pro Angebot).
+  ÔåÆ Der kleine Noteneffekt wird durch die Zeitkosten teilweise aufgefressen.
+  
+  URSACHE 4: Notenverbesserung Ôëá Dropout-Vermeidung
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  Eine Note von 3.3 ÔåÆ 2.3 ist eine Verbesserung, hat aber NULL Effekt auf Dropout,
+  weil berechne_dropout() nur bin├ñre Failures z├ñhlt (Note Ôëñ 4.0 vs. 5.0).
+  Support hilft nur bei "Grenzf├ñllen" (Note ~4.0-5.0), die relativ selten sind.
+
+  QUANTIFIZIERUNG:
+  Pr├╝fungen mit Support:            37373
+  Davon Grenzf├ñlle (Note ÔëÑ 4.0 cf): 8926 (23.9%)
+  Tats├ñchlich gerettet:              5059 (13.54%)
+  ÔåÆ Nur 13.54% der Support-Pr├╝fungen haben ├╝berhaupt
+    einen Dropout-relevanten Effekt!
+
+================================================================================
+VERGLEICH: DML-Modell-Sch├ñtzungen vs. kontrafaktische Ground Truth
+================================================================================
+
+  Support-Typ               Ground Truth RR  DML Mean RR  Differenz    Bewertung
+  ------------------------- --------------- ------------ ---------- ------------
+  Fachlich                           0.9972       0.8953    -0.1020 Ô£ù Abweichung!
+  ├£berfachlich                       0.9324       0.9708    +0.0384        Ô£ô Gut
+  Psychosozial                       0.9401       0.8619    -0.0782 ~ Akzeptabel
+
+  Gesamteffekt (alle Support-Typen zusammen):
+    Ground Truth RR (B vs A):  0.8724
+
+  Zusammenfassung exportiert: c:\GitHub_public\Abschlussprojekt\src\..\output_dl\analysis\universe_comparison_summary.csv
+  Migrationsmatrix exportiert: c:\GitHub_public\Abschlussprojekt\src\..\output_dl\analysis\student_migration_matrix.csv
+
+================================================================================
+ANALYSE ABGESCHLOSSEN
+================================================================================

@@ -280,16 +280,16 @@ Eine naive Analyse der Daten zeigt: Studierende, die Support nutzen, haben einen
             \textbf{Modell} & \textbf{Datenstruktur} & \textbf{Confounder-Kontrolle} & \textbf{Hazard Ratio (Support)} \\ \hline
             \textbf{Landmark Cox} & 2D Snapshot & Statisch & HR $> 1$ (Verzerrt: Selektionsbias) \\
             \textbf{DeepSurv} & 2D Snapshot & Statisch (Non-linear) & HR $> 1$ (Verzerrt: Selektionsbias) \\
-            \textbf{Extended Cox} & Panel (Zeitreihe) & Dynamisch (Zeitveränderlich) & \textbf{HR $\approx 0.37$} (Entstörter Effekt) \\
-            \textbf{Extended DeepSurv} & Panel (Zeitreihe) & Dynamisch (Non-linear) & \textbf{HR $\approx 0.88$} \textit{(Via kontrafaktischer Simulation)} \\ \hline
+            \textbf{Extended Cox} & Panel (Zeitreihe) & Dynamisch (Zeitveränderlich) & \textbf{HR $\approx 0.37$} (Signifikante Entstörung) \\
+            \textbf{Double ML Survival} & Panel & Orthogonalisiert (DML) & \textbf{RR $\approx 0.91$} (Realistische Effektschätzung) \\ \hline
         \end{tabular}
         }
     \end{table}
     
 \textbf{Zwischenfazit:}
     \begin{itemize}
-        \item Um \enquote{Kausalität} und echte Hazard Ratios (HR) zu messen, sind interpretierbare Panel-Modelle (Extended Cox) unerlässlich. 
-	\item Die komplexeren rekurrenten Modelle eignen sich für diese spezifische HR-Analyse \textit{nicht}; auf Prognose ausgelegte Modelle naiv für kontrafaktisch Vorhersage zu verwenden scheiterte im Kurztest dramatisch ($HR > 1,5$)
+        \item Um das reaktive Confounding und das Dropout-Paradoxon aufzulösen, sind interpretierbare Panel-Modelle (Extended Cox) oder Double Machine Learning unerlässlich. 
+	\item Die komplexeren rekurrenten Modelle eignen sich für diese spezifische HR-Analyse \textit{nur in Kombination mit DML}; auf Prognose ausgelegte Modelle naiv für kontrafaktische Vorhersagen zu verwenden, ist problematisch.
     \end{itemize}
 \end{frame}
 

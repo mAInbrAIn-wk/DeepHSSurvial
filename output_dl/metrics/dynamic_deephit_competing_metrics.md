@@ -2,9 +2,9 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **ROC-AUC_Dropout** | 0.8261 |
-| **PR-AUC_Dropout** | 0.2847 |
-| **Brier_Dropout** | 0.0434 |
+| **ROC-AUC_Dropout** | 0.8110 |
+| **PR-AUC_Dropout** | 0.2147 |
+| **Brier_Dropout** | 0.0377 |
 | **ROC-AUC_Graduation** | 0.9997 |
-| **PR-AUC_Graduation** | 0.9968 |
-| **Brier_Graduation** | 0.0033 |
+| **PR-AUC_Graduation** | 0.9974 |
+| **Brier_Graduation** | 0.0038 |

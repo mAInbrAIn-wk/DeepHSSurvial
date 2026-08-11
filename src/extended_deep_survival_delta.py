@@ -24,7 +24,7 @@ from metrics_logger import save_metrics, save_keras_model, plot_learning_curve, 
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
+from tensorflow.keras.layers import Dense, Dropout, BatchNormalization, LayerNormalization
 import statsmodels.formula.api as smf
 
 from extended_cox_delta import build_delta_panel
@@ -94,16 +94,22 @@ def train_extended_deep_survival_delta(data_dir: Path):
     tf.random.set_seed(42)
     
     deepsurv = Sequential([
-        Dense(32, activation='relu', input_shape=(input_dim,)),
-        BatchNormalization(),
-        Dropout(0.2),
+        Dense(64, activation='relu', input_shape=(input_dim,)),
+        LayerNormalization(),
+        Dropout(0.15),
+        Dense(32, activation='relu'),
+        LayerNormalization(),
+        Dropout(0.15),
         Dense(16, activation='relu'),
-        BatchNormalization(),
+        LayerNormalization(),
         Dense(1, activation='linear', use_bias=False)
     ])
     
-    deepsurv.compile(optimizer=tf.keras.optimizers.Adam(0.005), loss=breslow_cox_loss)
-    history_ds = deepsurv.fit(X_train, y_train_surv, epochs=30, batch_size=len(X_train), verbose=0)
+    # Full-Batch ist mathematisch erforderlich: breslow_cox_loss berechnet den
+    # Riskset-Nenner R(t_i) = sum_{j: T_j >= t_i} exp(r_j) über ALLE at-risk Personen.
+    # Mini-Batching würde verzerrte Gradienten erzeugen.
+    deepsurv.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss=breslow_cox_loss)
+    history_ds = deepsurv.fit(X_train, y_train_surv, epochs=150, batch_size=len(X_train), verbose=0)
     
     train_risk = deepsurv.predict(X_train, verbose=0).flatten()
     test_risk = deepsurv.predict(X_test, verbose=0).flatten()

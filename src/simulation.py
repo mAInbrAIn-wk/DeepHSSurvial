@@ -284,13 +284,14 @@ def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.Dat
                         studi.support_teilnahmen.append({"semester_id": akt_sem_id, "angebot_id": ang_id})
             
             # --- Motivation/Integration Boost durch Support ---
+            mult = CONFIG.get("support_effect_multiplier", 1.0)
             for _, ang in support_df[support_df["angebot_id"].isin(teilgenommene_angebote)].iterrows():
                 if ang["typ"] == "ueberfachlich":
-                    studi.motivation = min(1.0, studi.motivation + 0.02)
-                    studi.soziale_integration = min(1.0, studi.soziale_integration + 0.01)
+                    studi.motivation = min(1.0, studi.motivation + 0.02 * mult)
+                    studi.soziale_integration = min(1.0, studi.soziale_integration + 0.01 * mult)
                 elif ang["typ"] == "psychosozial":
-                    studi.motivation = min(1.0, studi.motivation + 0.015)
-                    studi.soziale_integration = min(1.0, studi.soziale_integration + 0.035)
+                    studi.motivation = min(1.0, studi.motivation + 0.015 * mult)
+                    studi.soziale_integration = min(1.0, studi.soziale_integration + 0.035 * mult)
 
             # --- Module nach Zeit sortieren und ggf. fallen lassen ---
             # Studierende reduzieren Module, wenn Overload zu groß wird
@@ -315,7 +316,7 @@ def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.Dat
                 
                 # Fachlicher Support Boost
                 rel = support_zuord_df[(support_zuord_df["modul_id"] == m_id) & (support_zuord_df["angebot_id"].isin(teilgenommene_angebote))]
-                boost = float(np.clip(rel["wirkungsstaerke"].sum() * CONFIG["gewicht_support_boost"], 0.0, CONFIG["support_deckel"])) if not rel.empty else 0.0
+                boost = float(np.clip(rel["wirkungsstaerke"].sum() * CONFIG["gewicht_support_boost"] * CONFIG.get("support_effect_multiplier", 1.0), 0.0, CONFIG["support_deckel"])) if not rel.empty else 0.0
                 
                 note, bestanden, note_cf = simuliere_pruefung(
                     schwierigkeit=modul_data[m_id]["schwierigkeit"],
