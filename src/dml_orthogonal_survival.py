@@ -44,12 +44,14 @@ def train_dml_orthogonal_survival(data_dir: Path):
     treatment_cols = ['fach_supp_active', 'uebf_supp_active', 'psych_supp_active']
     
     unique_studis = np.array(panel_df['studierenden_id'].unique().tolist())
-    train_ids, test_ids = train_test_split(unique_studis, test_size=0.20, random_state=42)
+    train_ids, temp_ids = train_test_split(unique_studis, test_size=0.30, random_state=42)
+    val_ids, test_ids = train_test_split(temp_ids, test_size=0.50, random_state=42)
     
     train_panel = panel_df[panel_df['studierenden_id'].isin(train_ids)].copy()
+    val_panel   = panel_df[panel_df['studierenden_id'].isin(val_ids)].copy()
     test_panel  = panel_df[panel_df['studierenden_id'].isin(test_ids)].copy()
     
-    print(f"\nGroup Split: {len(train_ids)} Train-Studierende ({len(train_panel)} Sem-Zeilen), {len(test_ids)} Test-Studierende ({len(test_panel)} Sem-Zeilen)")
+    print(f"\nGroup 3-Way Split: {len(train_ids)} Train ({len(train_panel)} Zeilen), {len(val_ids)} Val ({len(val_panel)} Zeilen), {len(test_ids)} Test ({len(test_panel)} Zeilen)")
     
     confounder_prep = ColumnTransformer([
         ('num', Pipeline([('imputer', SimpleImputer(strategy='median')), ('scaler', StandardScaler())]), confounder_num),
@@ -57,6 +59,7 @@ def train_dml_orthogonal_survival(data_dir: Path):
     ])
     
     W_train = confounder_prep.fit_transform(train_panel[confounder_cols])
+    W_val   = confounder_prep.transform(val_panel[confounder_cols])
     W_test  = confounder_prep.transform(test_panel[confounder_cols])
     
     # -------------------------------------------------------------------------
@@ -65,29 +68,36 @@ def train_dml_orthogonal_survival(data_dir: Path):
     print("\n[Stufe 1] Schätze Propensity-Modelle P(A_t = 1 | W_t) ...")
     
     residuals_train = []
+    residuals_val = []
     residuals_test = []
     
     for supp_col in treatment_cols:
         y_treat_train = train_panel[supp_col].values
+        y_treat_val   = val_panel[supp_col].values
         y_treat_test  = test_panel[supp_col].values
         
         prop_model = LogisticRegression(max_iter=500, C=1.0)
         prop_model.fit(W_train, y_treat_train)
         
         p_hat_train = prop_model.predict_proba(W_train)[:, 1]
+        p_hat_val   = prop_model.predict_proba(W_val)[:, 1]
         p_hat_test  = prop_model.predict_proba(W_test)[:, 1]
         
         # Orthogonalisiertes Treatment-Residuum A_tilde = A - P_hat
         res_train = y_treat_train - p_hat_train
+        res_val   = y_treat_val - p_hat_val
         res_test  = y_treat_test - p_hat_test
         
         residuals_train.append(res_train)
+        residuals_val.append(res_val)
         residuals_test.append(res_test)
         
     A_tilde_train = np.column_stack(residuals_train)
+    A_tilde_val   = np.column_stack(residuals_val)
     A_tilde_test  = np.column_stack(residuals_test)
     
     X_train_dml = np.column_stack([W_train, A_tilde_train])
+    X_val_dml   = np.column_stack([W_val, A_tilde_val])
     X_test_dml  = np.column_stack([W_test, A_tilde_test])
     
     input_dim = X_train_dml.shape[1]
@@ -108,7 +118,13 @@ def train_dml_orthogonal_survival(data_dir: Path):
     ])
     
     dml_model.compile(optimizer=tf.keras.optimizers.Adam(0.005), loss='binary_crossentropy', metrics=['AUC'])
-    history_dml = dml_model.fit(X_train_dml, train_panel['event'].values, epochs=30, batch_size=2048, verbose=0)
+    es_dml = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True)
+    history_dml = dml_model.fit(
+        X_train_dml, train_panel['event'].values,
+        validation_data=(X_val_dml, val_panel['event'].values),
+        epochs=60, batch_size=2048,
+        callbacks=[es_dml], verbose=0
+    )
     
     test_p_pred = dml_model.predict(X_test_dml, verbose=0).flatten()
     

@@ -66,12 +66,14 @@ def train_extended_deep_survival_delta(data_dir: Path):
     feature_cols = num_cols + cat_cols + treatment_cols
     
     unique_studis = np.array(panel_df['studierenden_id'].unique().tolist())
-    train_ids, test_ids = train_test_split(unique_studis, test_size=0.20, random_state=42)
+    train_ids, temp_ids = train_test_split(unique_studis, test_size=0.30, random_state=42)
+    val_ids, test_ids = train_test_split(temp_ids, test_size=0.50, random_state=42)
     
     train_panel = panel_df[panel_df['studierenden_id'].isin(train_ids)].copy()
+    val_panel = panel_df[panel_df['studierenden_id'].isin(val_ids)].copy()
     test_panel = panel_df[panel_df['studierenden_id'].isin(test_ids)].copy()
     
-    print(f"\nGroup Split: {len(train_ids)} Train-Studierende ({len(train_panel)} Sem-Zeilen), {len(test_ids)} Test-Studierende ({len(test_panel)} Sem-Zeilen)")
+    print(f"\nGroup 3-Way Split: {len(train_ids)} Train ({len(train_panel)} Zeilen), {len(val_ids)} Val ({len(val_panel)} Zeilen), {len(test_ids)} Test ({len(test_panel)} Zeilen)")
     
     preprocessor = ColumnTransformer([
         ('num', Pipeline([('imputer', SimpleImputer(strategy='median')), ('scaler', StandardScaler())]), num_cols),
@@ -80,9 +82,11 @@ def train_extended_deep_survival_delta(data_dir: Path):
     ])
     
     X_train = preprocessor.fit_transform(train_panel[feature_cols])
+    X_val = preprocessor.transform(val_panel[feature_cols])
     X_test = preprocessor.transform(test_panel[feature_cols])
     
     y_train_surv = np.column_stack([train_panel['t_stop'].values, train_panel['event'].values])
+    y_val_surv = np.column_stack([val_panel['t_stop'].values, val_panel['event'].values])
     y_test_surv = np.column_stack([test_panel['t_stop'].values, test_panel['event'].values])
     
     input_dim = X_train.shape[1]
@@ -94,7 +98,10 @@ def train_extended_deep_survival_delta(data_dir: Path):
     tf.random.set_seed(42)
     
     deepsurv = Sequential([
-        Dense(64, activation='relu', input_shape=(input_dim,)),
+        Dense(128, activation='relu', input_shape=(input_dim,)),
+        LayerNormalization(),
+        Dropout(0.15),
+        Dense(64, activation='relu'),
         LayerNormalization(),
         Dropout(0.15),
         Dense(32, activation='relu'),
@@ -105,11 +112,14 @@ def train_extended_deep_survival_delta(data_dir: Path):
         Dense(1, activation='linear', use_bias=False)
     ])
     
-    # Full-Batch ist mathematisch erforderlich: breslow_cox_loss berechnet den
-    # Riskset-Nenner R(t_i) = sum_{j: T_j >= t_i} exp(r_j) über ALLE at-risk Personen.
-    # Mini-Batching würde verzerrte Gradienten erzeugen.
     deepsurv.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss=breslow_cox_loss)
-    history_ds = deepsurv.fit(X_train, y_train_surv, epochs=150, batch_size=len(X_train), verbose=0)
+    es_ds = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=100, restore_best_weights=True)
+    history_ds = deepsurv.fit(
+        X_train, y_train_surv,
+        validation_data=(X_val, y_val_surv),
+        epochs=300, batch_size=len(X_train),
+        callbacks=[es_ds], verbose=0
+    )
     
     train_risk = deepsurv.predict(X_train, verbose=0).flatten()
     test_risk = deepsurv.predict(X_test, verbose=0).flatten()
@@ -130,7 +140,13 @@ def train_extended_deep_survival_delta(data_dir: Path):
     ])
     
     dtl_hazard.compile(optimizer=tf.keras.optimizers.Adam(0.005), loss='binary_crossentropy', metrics=['AUC'])
-    history_lh = dtl_hazard.fit(X_train, train_panel['event'].values, epochs=30, batch_size=2048, verbose=0)
+    es_lh = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True)
+    history_lh = dtl_hazard.fit(
+        X_train, train_panel['event'].values,
+        validation_data=(X_val, val_panel['event'].values),
+        epochs=60, batch_size=2048,
+        callbacks=[es_lh], verbose=0
+    )
     
     test_h_pred = dtl_hazard.predict(X_test, verbose=0).flatten()
     

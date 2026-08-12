@@ -1,0 +1,23 @@
+================================================================================
+1. TIMELINE & OVERLOAD-FALLE ANALLYSEN (G1 OPFER)
+================================================================================
+
+--- G1 (Geschõdigte, N=1.064): Zeitpunkt der Support-Nutzung relativ zum Abbruch-Semester ---
+sem_diff = 0 bedeutet: Abbruch erfolgte im EXAKTEN Semester der Support-Nutzung!
+sem_diff
+0    272
+1    341
+2    260
+3    135
+4     63
+5     27
+6      6
+7      1
+8      1
+
+--- Overload-Check beim Support-Kauf ---
+                 n_support_semesters  n_overload_semesters  pct_in_overload
+gruppe                                                                     
+Andere                         28343                    14         0.000494
+G1_Geschaedigte                  924                     3         0.003247
+G2_Gerettete                    2697                     1         0.000371

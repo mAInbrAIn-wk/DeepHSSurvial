@@ -44,6 +44,10 @@ PADDING_VALUE = -99.0
 
 def create_semester_timeseries_dataset(output_dir: Path):
     print("Lade Datensätze für semesterweise Zeitreihen-Transformation ...")
+    if not (output_dir / 'studierende.csv').exists():
+        output_dir = Path('../output_dl') if Path('../output_dl/studierende.csv').exists() else Path('output_dl')
+    if not (output_dir / 'studierende.csv').exists():
+        output_dir = Path(r"c:\GitHub_public\Abschlussprojekt\output_dl")
     studierende_df = pd.read_csv(output_dir / 'studierende.csv')
     studiengaenge_df = pd.read_csv(output_dir / 'studiengaenge.csv')
     einschreibungen_df = pd.read_csv(output_dir / 'einschreibungen.csv')

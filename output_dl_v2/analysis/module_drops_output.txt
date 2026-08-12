@@ -1,0 +1,27 @@
+================================================================================
+1. LIFETIME MODUL-ABWURF & CP-DYNAMIK ANALLYSEN (1:1 WELTEN-VERGLEICH A vs C)
+================================================================================
+
+Kohorten-Verteilung:
+gruppe
+G0_Andere          47596
+G2_Gerettete        1340
+G1_Geschaedigte     1064
+
+--------------------------------------------------------------------------------
+LIFETIME MODUL-ABWURF EVALUATION NACH GRUPPEN
+--------------------------------------------------------------------------------
+                 n_studis  n_studis_with_abwurf  pct_studis_with_abwurf  avg_abgeworfene_module  avg_passed_diff_C_minus_A
+gruppe                                                                                                                    
+G0_Andere           47596                  6231               13.091436                0.337066                  -0.055152
+G1_Geschaedigte      1064                  1049               98.590226                8.015977                   6.333647
+G2_Gerettete         1340                  1121               83.656716                1.372388                  -6.891045
+
+--------------------------------------------------------------------------------
+MODUL-ABWURF IN SEMESTERN MIT FACHLICHEM SUPPORT
+--------------------------------------------------------------------------------
+                 n_support_sems  n_abwurf_sems  pct_abwurf_in_support_sem
+gruppe                                                                   
+G0_Andere                 28343           1610                   5.680415
+G1_Geschaedigte             924            225                  24.350649
+G2_Gerettete               2697            391                  14.497590

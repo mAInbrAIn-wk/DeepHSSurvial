@@ -21,6 +21,10 @@ class PruefungsErgebnis:
     hidden_motivation: Optional[float] = None
     hidden_soziale_integration: Optional[float] = None
     hidden_erwartete_note: Optional[float] = None
+    hidden_overload: Optional[float] = None
+    hidden_zeit_puffer: Optional[float] = None
+    hidden_penalty_capped: Optional[bool] = None
+    hidden_support_capped: Optional[bool] = None
 
 @dataclass
 class Student:
@@ -39,6 +43,7 @@ class Student:
     motivation: float
     soziale_integration: float
     erwartete_note: float = 2.5
+    hidden_zeit_puffer: float = 60.0
     
     # Initiale Latente Variablen (zum Speichern)
     motivation_initial: float = 0.5

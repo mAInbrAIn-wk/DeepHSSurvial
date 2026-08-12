@@ -201,7 +201,10 @@ def build_preprocessor(X_df):
 def build_deepsurv_model(input_dim: int):
     """DeepSurv Neural Network mit Entrauschtem Full-Batch Cox Loss."""
     model = Sequential([
-        Dense(64, activation='relu', input_shape=(input_dim,)),
+        Dense(128, activation='relu', input_shape=(input_dim,)),
+        LayerNormalization(),
+        Dropout(0.15),
+        Dense(64, activation='relu'),
         LayerNormalization(),
         Dropout(0.15),
         Dense(32, activation='relu'),
@@ -394,8 +397,9 @@ def main():
     history_ds = deepsurv.fit(
         X_train, y_train_surv,
         validation_data=(X_test, y_test_surv),
-        epochs=150,
+        epochs=300,
         batch_size=len(X_train),  # Full-Batch
+        callbacks=[tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=100, restore_best_weights=True)],
         verbose=0
     )
     

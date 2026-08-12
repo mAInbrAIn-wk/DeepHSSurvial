@@ -59,15 +59,11 @@ def main():
     print("=" * 70)
     
     # =========================================================================
-    # SCHRITT 1: Simulation V2 (erzeugt alle Daten + 5 Universen)
+    # SCHRITT 1: Simulation V3 (erzeugt alle Daten + 5 Universen mit V3 Mechanik)
     # =========================================================================
-    # simulation_v2.py exportiert Universe A direkt nach output_dl/
-    # und Universe B-E nach output_dl/universe_{B,C,D,E}/
-    def run_simulation_v2():
-        import simulation_v2
-        # Wird über if __name__ == "__main__" Block nicht getriggert bei import,
-        # daher manuell:
-        from simulation_v2 import simuliere_verlaeufe, generiere_stammdaten, generiere_studierende
+    def run_simulation_v3():
+        import simulation_v3
+        from simulation_v3 import simuliere_verlaeufe_v3, generiere_studierende_v3, generiere_stammdaten
         from config import CONFIG
         from export import as_dataframe, exportiere_csv
         from aggregate import aggregiere_daten
@@ -93,9 +89,9 @@ def main():
         for uni_key, uni_cfg in UNIVERSES.items():
             print(f"\n  UNIVERSUM {uni_key}: {uni_cfg['label']}")
             rng = np.random.default_rng(POPULATION_SEED)
-            studierende = generiere_studierende(stammdaten, rng)
+            studierende = generiere_studierende_v3(stammdaten, rng)
             
-            simuliere_verlaeufe(
+            simuliere_verlaeufe_v3(
                 studierende, stammdaten,
                 block_fach=uni_cfg["block_fach"],
                 block_uebf=uni_cfg["block_uebf"],
@@ -129,12 +125,12 @@ def main():
                 "vs_A_relative_reduction_pct": (1 - rr) * 100
             }
         
-        out_file = base_output / "metrics" / "true_macro_effects_v2.json"
+        out_file = base_output / "metrics" / "true_macro_effects_v3.json"
         with open(out_file, "w") as f:
             json.dump(macro_effects, f, indent=4)
         print(f"\n  Makro-Effekte gespeichert in: {out_file}")
     
-    run_step("1. Simulation V2 (5 Universen)", run_simulation_v2)
+    run_step("1. Simulation V3 (5 Universen)", run_simulation_v3)
     
     # =========================================================================
     # SCHRITT 2: Validierung
@@ -149,7 +145,7 @@ def main():
     # SCHRITT 3: Ground-Truth Berechnung (Mikro-Effekte)
     # =========================================================================
     def run_ground_truth():
-        from calculate_true_effect import main as calc_true
+        from calculate_true_effect import calculate_true_effect as calc_true
         calc_true()
     
     run_step("3. Ground-Truth Mikro-Effekte", run_ground_truth)
@@ -162,6 +158,15 @@ def main():
         run_all()
     
     run_step("4. Alle Modell-Trainings (20+ Modelle)", run_all_models)
+    
+    # =========================================================================
+    # SCHRITT 5: Deep Causal Transformer-DML Benchmark
+    # =========================================================================
+    def run_transformer_dml():
+        from train_transformer_dml import main as run_trans_dml
+        run_trans_dml()
+    
+    run_step("5. Deep Causal Transformer-DML Benchmark", run_transformer_dml)
     
     # =========================================================================
     # ZUSAMMENFASSUNG

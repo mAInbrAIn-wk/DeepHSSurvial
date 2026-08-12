@@ -124,9 +124,16 @@ def run_all():
     train_recurrent_exam_survival_delta(data_dir)
     
     # =========================================================================
-    # STUFE 8: Oracle-Modelle & Kalibrierung
+    # STUFE 8: Deep Transformer Regression & Survival (Enlarged Capacity)
     # =========================================================================
-    print("\n>>> [20/20] Trainiere Oracle-Modelle & Kalibrierungskurven ...")
+    print("\n>>> [20/21] Trainiere Deep Transformer Regression & Survival (d_model=128, Attention Pooling) ...")
+    from deep_transformer_regression import train_deep_transformer_regression
+    train_deep_transformer_regression(data_dir, data_dir)
+    
+    # =========================================================================
+    # STUFE 9: Oracle-Modelle & Kalibrierung
+    # =========================================================================
+    print("\n>>> [21/21] Trainiere Oracle-Modelle & Kalibrierungskurven ...")
     from train_oracle_models import train_oracle_models
     train_oracle_models(data_dir)
     

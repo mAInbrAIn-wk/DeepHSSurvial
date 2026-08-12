@@ -1,0 +1,25 @@
+Gesamt exmatrikulierte G1 Studierende: 73
+G1 Studierende mit 3. Versuch Fehlschlag in A: 73
+Verbleibende G1 exmatrikulierte Studierende: 0
+
+--- Wie haben die in A durchgefallenen 3. Versuche in Welt C geendet? ---
+outcome_in_C
+Bestanden in Versuch 3 (Note 4.0)    16
+Bestanden in Versuch 3 (Note 3.7)    10
+Bestanden in Versuch 3 (Note 3.0)     9
+Bestanden in Versuch 2 (Note 4.0)     7
+Bestanden in Versuch 3 (Note 3.3)     6
+Bestanden in Versuch 2 (Note 3.7)     5
+Bestanden in Versuch 2 (Note 3.3)     5
+Bestanden in Versuch 1 (Note 4.0)     3
+Bestanden in Versuch 3 (Note 2.7)     3
+Bestanden in Versuch 3 (Note 2.3)     2
+Bestanden in Versuch 1 (Note 3.7)     2
+Bestanden in Versuch 2 (Note 3.0)     2
+Bestanden in Versuch 1 (Note 3.0)     2
+Bestanden in Versuch 2 (Note 2.3)     1
+Bestanden in Versuch 1 (Note 3.3)     1
+Bestanden in Versuch 1 (Note 2.3)     1
+Bestanden in Versuch 2 (Note 2.7)     1
+Bestanden in Versuch 3 (Note 2.0)     1
+Bestanden in Versuch 3 (Note 1.7)     1

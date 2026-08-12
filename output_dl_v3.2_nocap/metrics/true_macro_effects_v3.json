@@ -1,0 +1,34 @@
+{
+    "universe_A": {
+        "label": "Alle Support-Typen erlaubt",
+        "dropout_rate": 0.31158
+    },
+    "universe_B": {
+        "label": "Kein Support (komplett blockiert)",
+        "dropout_rate": 0.3867,
+        "vs_A_absolute_diff": 0.07512,
+        "vs_A_relative_risk": 1.24109,
+        "vs_A_relative_reduction_pct": -24.10938
+    },
+    "universe_C": {
+        "label": "Kein fachlicher Support",
+        "dropout_rate": 0.3282,
+        "vs_A_absolute_diff": 0.01662,
+        "vs_A_relative_risk": 1.05334,
+        "vs_A_relative_reduction_pct": -5.3341
+    },
+    "universe_D": {
+        "label": "Kein ueberfachlicher Support",
+        "dropout_rate": 0.34152,
+        "vs_A_absolute_diff": 0.02994,
+        "vs_A_relative_risk": 1.09609,
+        "vs_A_relative_reduction_pct": -9.60909
+    },
+    "universe_E": {
+        "label": "Kein psychosozialer Support",
+        "dropout_rate": 0.33238,
+        "vs_A_absolute_diff": 0.0208,
+        "vs_A_relative_risk": 1.06676,
+        "vs_A_relative_reduction_pct": -6.67565
+    }
+}

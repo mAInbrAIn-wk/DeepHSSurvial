@@ -1,0 +1,96 @@
+================================================================================
+ANALYSE DER OVERLOAD-VICTIMS (GRUPPE 1: DROPOUT IN A, GERETTET IN C)
+================================================================================
+
+--- Gruppengr÷▀en ---
+  G3_Immer_Erfolg: 33690 Studierende (67.38%)
+  G4_Immer_Dropout: 13906 Studierende (27.81%)
+  G2_Gerettete: 1340 Studierende (2.68%)
+  G1_Geschaedigte: 1064 Studierende (2.13%)
+
+================================================================================
+DEMOGRAFISCHES UND INITIALES PROFIL PRO GRUPPE
+================================================================================
+                 erwerbstaetigkeit_std                   hzb_note                  motivation_initial                   soziale_integration_initial                   hidden_erwartete_note_initial                 
+                                  mean median       std      mean median       std               mean  median       std                        mean  median       std                          mean median       std
+gruppe                                                                                                                                                                                                              
+G1_Geschaedigte              17.984023   20.0  8.491639  2.544643    2.6  0.466618           0.534587  0.5255  0.232525                    0.537914  0.5370  0.235938                      2.426504    2.5  0.476141
+G2_Gerettete                 15.597015   15.0  9.169078  2.703731    2.7  0.433029           0.535108  0.5310  0.227791                    0.535796  0.5375  0.240542                      2.601716    2.7  0.439877
+G3_Immer_Erfolg               9.248590   10.0  8.239371  2.235604    2.3  0.463240           0.668218  0.6770  0.220411                    0.598520  0.6030  0.234486                      2.107717    2.1  0.467225
+G4_Immer_Dropout             13.713145   15.0  9.632763  2.772012    2.8  0.543887           0.494852  0.4870  0.238304                    0.535518  0.5380  0.240698                      2.670301    2.7  0.560135
+
+--- Erwerbstõtigkeit Quantile (Std/Woche) ---
+  G1_Geschaedigte: Mean=17.98, Median=20.00, 75%=25.00, 90%=30.00
+  G2_Gerettete: Mean=15.60, Median=15.00, 75%=20.00, 90%=25.00
+  G3_Immer_Erfolg: Mean=9.25, Median=10.00, 75%=15.00, 90%=20.00
+  G4_Immer_Dropout: Mean=13.71, Median=15.00, 75%=20.00, 90%=25.00
+
+================================================================================
+NOTEN, SUPPORT-NUTZUNG UND PR▄FUNGSLEISTUNG IN UNIVERSUM A vs C
+================================================================================
+
+--- Support-Nutzung (Anzahl fachliche Support-Angebote in A) ---
+                      mean  median   max
+gruppe                                  
+G1_Geschaedigte   1.039474     1.0  10.0
+G2_Gerettete      2.370149     2.0  11.0
+G3_Immer_Erfolg   0.771178     0.0  10.0
+G4_Immer_Dropout  0.511290     0.0  10.0
+
+--- Pr³fungs-Anzahl & Bestehensraten in A vs C ---
+                  n_pruefungen_A  n_pruefungen_C  failed_A  failed_C  avg_note_A  avg_note_C
+gruppe                                                                                      
+G1_Geschaedigte        16.050752       23.767857  4.923872  6.307331    3.214462    3.166240
+G2_Gerettete           23.911940       17.725373  6.620149  7.324627    3.246945    3.708133
+G3_Immer_Erfolg        18.630187       18.737697  1.106886  1.214604    2.204860    2.250167
+G4_Immer_Dropout       11.589242       11.598734  5.660147  5.857903    3.831368    3.873085
+
+================================================================================
+DYNAMISCHE HIDDEN-VARIABLES (MOTIVATION, SOZIALE INTEGRATION, ERWARTETE NOTE)
+================================================================================
+                  delta_motivation_A  delta_motivation_C  delta_soz_int_A  delta_soz_int_C  delta_erwartete_note_A  delta_erwartete_note_C
+gruppe                                                                                                                                    
+G1_Geschaedigte             0.009322            0.097512         0.143382         0.217862               -0.194417               -0.301795
+G2_Gerettete                0.085860           -0.110200         0.214443         0.144086               -0.440873               -0.113649
+G3_Immer_Erfolg             0.167587            0.161521         0.114248         0.114272               -0.422653               -0.380275
+G4_Immer_Dropout           -0.102919           -0.112015         0.075631         0.074452               -0.082546               -0.066750
+
+================================================================================
+DETAILED PR▄FUNGS-VERGLEICH F▄R G1_GESCH─DIGTE (A vs C)
+================================================================================
+Gematchte Pr³fungen f³r G1 (Geschõdigte): 16528
+Davon Pr³fungen mit fachlichem Support in A: 1039
+  Mittlere Note in A (mit Support): 2.83
+  Mittlere Note in C (ohne Support): 3.79
+  Bestehensquote in A (mit Support): 88.07%
+  Bestehensquote in C (ohne Support): 60.06%
+
+================================================================================
+DML DISKREPANZ: ARTEFAKT-BILDUNG UND INTERAKTIONSEFFEKTE
+================================================================================
+Decision Tree zum Dropout in Universum A (Max Depth 3):
+|--- hzb_note <= 2.85
+|   |--- erwerbstaetigkeit_std <= 17.50
+|   |   |--- motivation_initial <= 0.45
+|   |   |   |--- class: False
+|   |   |--- motivation_initial >  0.45
+|   |   |   |--- class: False
+|   |--- erwerbstaetigkeit_std >  17.50
+|   |   |--- n_fach_support_A <= 0.50
+|   |   |   |--- class: False
+|   |   |--- n_fach_support_A >  0.50
+|   |   |   |--- class: False
+|--- hzb_note >  2.85
+|   |--- n_fach_support_A <= 0.50
+|   |   |--- motivation_initial <= 0.71
+|   |   |   |--- class: True
+|   |   |--- motivation_initial >  0.71
+|   |   |   |--- class: True
+|   |--- n_fach_support_A >  0.50
+|   |   |--- motivation_initial <= 0.60
+|   |   |   |--- class: True
+|   |   |--- motivation_initial >  0.60
+|   |   |   |--- class: False
+
+
+Zusammenfassung exportiert nach: c:\GitHub_public\Abschlussprojekt\output_dl\analysis\overload_victims_summary.csv

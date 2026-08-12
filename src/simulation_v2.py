@@ -133,7 +133,13 @@ def generiere_studierende(stammdaten: Dict[str, pd.DataFrame], rng: np.random.Ge
 
 # ---- Simulation Logic ----
 
-def simuliere_pruefung(schwierigkeit: float, erwartete_note: float, motivation: float, soz_int: float, fachlicher_boost: float, versuch: int, overload_penalty: float, rng: np.random.Generator) -> Tuple[float, bool, float]:
+def simuliere_pruefung(schwierigkeit: float, erwartete_note: float, motivation: float, soz_int: float, fachlicher_boost: float, versuch: int, overload_penalty: float, rng: np.random.Generator = None, exam_noise: float = None) -> Tuple[float, bool, float]:
+    if exam_noise is None:
+        if rng is not None:
+            exam_noise = float(rng.normal(0, CONFIG["gewicht_rauschen"]))
+        else:
+            exam_noise = 0.0
+            
     # Berechne latente Leistung ohne Support
     leistung_base = (
         CONFIG["leistung_startwert"] +
@@ -143,7 +149,7 @@ def simuliere_pruefung(schwierigkeit: float, erwartete_note: float, motivation: 
         schwierigkeit * CONFIG["gewicht_schwierigkeit"] +
         (versuch - 1) * CONFIG["gewicht_lerneffekt"] -
         overload_penalty +
-        rng.normal(0, CONFIG["gewicht_rauschen"])
+        exam_noise
     )
     
     leistung_mit_support = leistung_base + fachlicher_boost

@@ -1,0 +1,38 @@
+================================================================================
+1. ZEIT-AMORTISATION: LOHNEN SICH DIE 30H SUPPORT?
+================================================================================
+
+--- Zeitbilanz f³r G1 (Geschõdigte) vs G2 (Gerettete) ---
+                 n_students  avg_support_teilnahmen  avg_gerettete_pruefungen  avg_zeitkosten  avg_zeitgewinn  avg_netto_bilanz pct_amortisiert
+gruppe                                                                                                                                         
+G1_Geschaedigte        1064                0.910714                  0.283835       27.321429       42.575188         15.253759        0.222744
+G2_Gerettete           1340                1.323134                  0.550000       39.694030       82.500000         42.805970        0.402985
+
+================================================================================
+2. DIE EXKLUSIVIT─TS-FRAGE: GRENZWERTE F▄R ERWERBST─TIGKEIT
+================================================================================
+G1 Studierende mit >= 10h Erwerbstõtigkeit: 916 (86.1%)
+G1 Studierende mit >= 15h Erwerbstõtigkeit: 809 (76.0%)
+G1 Studierende mit >= 17.5h Erwerbstõtigkeit: 670 (63.0%)
+G1 Studierende mit >= 20h Erwerbstõtigkeit: 670 (63.0%)
+G1 Studierende mit >= 25h Erwerbstõtigkeit: 317 (29.8%)
+
+Zum Vergleich f³r G2 (Gerettete):
+G2 Studierende mit >= 10h Erwerbstõtigkeit: 1049 (78.3%)
+G2 Studierende mit >= 15h Erwerbstõtigkeit: 873 (65.1%)
+G2 Studierende mit >= 17.5h Erwerbstõtigkeit: 648 (48.4%)
+G2 Studierende mit >= 20h Erwerbstõtigkeit: 648 (48.4%)
+G2 Studierende mit >= 25h Erwerbstõtigkeit: 333 (24.9%)
+
+================================================================================
+3. ML-DISKREPANZ: DIE 'BLIND' MODELLE
+================================================================================
+MLP Baseline (Mit Noten):
+  PR-AUC: N/A
+
+MLP Baseline BLIND (Ohne Noten, keine Hidden Vars):
+  PR-AUC: N/A
+
+-> Wenn das BLIND-Modell viel schlechter performt, bedeutet das, dass das normale Modell
+   seine 'Treffer' fast ausschlie▀lich aus den Noten zieht (welche in der Simulation
+   zwar durch Support k³nstlich verbessert werden, aber nicht vor Dropout sch³tzen).

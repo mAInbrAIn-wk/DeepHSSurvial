@@ -1,0 +1,31 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1786495656.831196   18824 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: SSE3 SSE4.1 SSE4.2 AVX AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING:tensorflow:From C:\Users\wilfr\OneDrive\Dokumente\Data Science\.venv\Lib\site-packages\keras\src\backend\tensorflow\core.py:233: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+WARNING:tensorflow:TensorFlow GPU support is not available on native Windows for TensorFlow >= 2.11. Even if CUDA/cuDNN are installed, GPU will not be used. Please use WSL2 or the TensorFlow-DirectML plugin.
+================================================================================
+TRANSFORMER-DML BENCHMARK: ORTHOGONALIZED CAUSAL SURVIVAL (V2 DATA)
+================================================================================
+Lade Daten f³r Recurrent Survival Model (blind=False) ...
+Erstelle 3D Sequence Array (N_studis, T_max, N_features) ...
+3D Tensor erfolgreich aufgebaut (blind=False): X=(50000, 16, 8), y=(50000, 16, 1)
+Dataset Form: Samples=50000, Sequence Length=16, Features=8
+
+[Stage 1] Pretraining Causal Transformer Reprõsentations-Encoder...
+Lade Datensõtze f³r Extended Cox Delta Modell ...
+Erstelle semesterweise Support-Aktivitõt und Leistungs-Deltas ...
+Baue Person-Semester Lõngsschnitt-Panel mit Delta-Features auf ...
+Delta-Panel erfolgreich erstellt: 345968 Person-Semester Zeilen von 50000 Studierenden.
+Valid Flatted Semester Rows: 345968
+
+[Stage 2] Double Machine Learning (Orthogonalisierung via Transformer Embeddings)...
+
+================================================================================
+TRANSFORMER-DML ERGEBNISSE:
+================================================================================
+Empirische Event-Rate (Dropout per Semester): 0.0433
+Geschõtzter Kausaler Effekt (Beta):            -0.004036
+Geschõtztes Relatives Risiko (RR):            0.9067
+================================================================================
+Ergebnisse gespeichert in: c:\GitHub_public\Abschlussprojekt\output_dl\analysis\transformer_dml_results.json

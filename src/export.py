@@ -37,6 +37,7 @@ def as_dataframe(studierende: List[Student], stammdaten: Dict[str, pd.DataFrame]
             "soziale_integration_final": round(s.soziale_integration, 3),
             "hidden_erwartete_note_initial": s.erwartete_note_initial,
             "hidden_erwartete_note_final": round(s.erwartete_note, 3),
+            "hidden_zeit_puffer": round(getattr(s, 'hidden_zeit_puffer', 60.0), 1),
         })
         
         for e in s.einschreibungen:
@@ -60,6 +61,10 @@ def as_dataframe(studierende: List[Student], stammdaten: Dict[str, pd.DataFrame]
                 "hidden_motivation": round(p.hidden_motivation, 3) if p.hidden_motivation is not None else None,
                 "hidden_soziale_integration": round(p.hidden_soziale_integration, 3) if p.hidden_soziale_integration is not None else None,
                 "hidden_erwartete_note": round(p.hidden_erwartete_note, 3) if p.hidden_erwartete_note is not None else None,
+                "hidden_overload": round(p.hidden_overload, 1) if p.hidden_overload is not None else 0.0,
+                "hidden_zeit_puffer": round(p.hidden_zeit_puffer, 1) if p.hidden_zeit_puffer is not None else 60.0,
+                "hidden_penalty_capped": bool(p.hidden_penalty_capped) if p.hidden_penalty_capped is not None else False,
+                "hidden_support_capped": bool(p.hidden_support_capped) if p.hidden_support_capped is not None else False,
             })
             
         status = "abgeschlossen" if s.abschluss_erreicht else ("exmatrikuliert" if s.exmatrikuliert else ("abgebrochen" if s.abgebrochen else "zeitueberschreitung"))
