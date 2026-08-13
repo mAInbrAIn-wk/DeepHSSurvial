@@ -2,5 +2,5 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **ROC-AUC_Exam** | 0.5043 |
-| **PR-AUC_Exam** | 0.0193 |
+| **ROC-AUC_Exam** | 0.4991 |
+| **PR-AUC_Exam** | 0.0208 |

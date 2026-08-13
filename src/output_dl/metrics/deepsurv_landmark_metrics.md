@@ -2,7 +2,7 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **C-Index** | 0.7405 |
-| **Support_HR_Fach** | 1.1349 |
-| **Support_HR_Uebf** | 1.1493 |
-| **Support_HR_Psych** | 1.1035 |
+| **C-Index** | 0.7410 |
+| **Support_HR_Fach** | 1.0921 |
+| **Support_HR_Uebf** | 1.0534 |
+| **Support_HR_Psych** | 0.9323 |

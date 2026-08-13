@@ -33,15 +33,12 @@ class AttentionPooling(Layer):
         self.d_model = d_model
         self.score_dense = Dense(1, activation='tanh')
 
-    def call(self, inputs, mask=None):
+    def call(self, inputs):
         # inputs: (batch, T, d_model)
         scores = self.score_dense(inputs)  # (batch, T, 1)
-        if mask is not None:
-            # mask: (batch, T)
-            mask_expanded = tf.expand_dims(mask, -1)  # (batch, T, 1)
-            padding_mask = tf.cast(tf.logical_not(mask_expanded), tf.float32) * -1e9
-            scores += padding_mask
-        
+        is_padded = tf.reduce_all(tf.equal(inputs, PADDING_VALUE), axis=-1, keepdims=True)  # (batch, T, 1)
+        padding_mask = tf.cast(is_padded, tf.float32) * -1e9
+        scores = scores + padding_mask
         weights = tf.nn.softmax(scores, axis=1)  # (batch, T, 1)
         pooled = tf.reduce_sum(inputs * weights, axis=1)  # (batch, d_model)
         return pooled
@@ -50,12 +47,8 @@ def build_deep_transformer_backbone(input_shape, d_model=128, num_heads=8, num_b
     """Erzeugt das hochkapazitäre Transformer Backbone mit Positional Embedding & Attention Pooling."""
     inputs = Input(shape=input_shape)
     
-    # Masking für Padding-Werte
-    masked = Masking(mask_value=PADDING_VALUE)(inputs)
-    mask = masked._keras_mask
-    
     # Lineare Projektion in den d_model Raum
-    x = Dense(d_model, activation='relu')(masked)
+    x = Dense(d_model, activation='relu')(inputs)
     x = LayerNormalization()(x)
     x = Dropout(dropout_rate)(x)
     
@@ -74,7 +67,7 @@ def build_deep_transformer_backbone(input_shape, d_model=128, num_heads=8, num_b
         x = LayerNormalization()(x)
         
     # Attention-Weighted Pooling über die Zeitschritte T
-    pooled = AttentionPooling(d_model=d_model)(x, mask=mask)
+    pooled = AttentionPooling(d_model=d_model)(x)
     
     # Dense Projection Head
     head = Dense(64, activation='relu')(pooled)
@@ -82,6 +75,7 @@ def build_deep_transformer_backbone(input_shape, d_model=128, num_heads=8, num_b
     head = Dropout(dropout_rate)(head)
     
     return inputs, head
+
 
 def train_deep_transformer_regression(data_dir: Path, output_dir: Path):
     print("\n================================================================================")
@@ -97,6 +91,9 @@ def train_deep_transformer_regression(data_dir: Path, output_dir: Path):
     df_studis = pd.read_csv(studis_file)
     df_sem = pd.read_csv(data_dir / "einschreibungen.csv")
     df_pr = pd.read_csv(data_dir / "pruefungen.csv")
+    df_mod = pd.read_csv(data_dir / "module.csv")
+    if "cp" not in df_pr.columns:
+        df_pr = df_pr.merge(df_mod[["modul_id", "cp", "schwierigkeit"]], on="modul_id", how="left")
     
     # Noten-Target pro Student
     valid_pr = df_pr[df_pr["bestanden"] == True]
@@ -151,7 +148,7 @@ def train_deep_transformer_regression(data_dir: Path, output_dir: Path):
     history_sem = model_sem.fit(X_tr, y_tr, validation_data=(X_va, y_va), epochs=60, batch_size=256, callbacks=[es], verbose=0)
     
     y_pred_sem = model_sem.predict(X_te, verbose=0).flatten()
-    rmse_sem = mean_squared_error(y_te, y_pred_sem, squared=False)
+    rmse_sem = float(np.sqrt(mean_squared_error(y_te, y_pred_sem)))
     mae_sem = mean_absolute_error(y_te, y_pred_sem)
     r2_sem = r2_score(y_te, y_pred_sem)
     print(f"   [OK] Semester-Transformer Regressor (R²: {r2_sem:.4f}, RMSE: {rmse_sem:.4f}, MAE: {mae_sem:.4f})")
@@ -192,7 +189,7 @@ def train_deep_transformer_regression(data_dir: Path, output_dir: Path):
     history_ex = model_ex.fit(X_tr_e, y_tr_e, validation_data=(X_va_e, y_va_e), epochs=60, batch_size=256, callbacks=[es], verbose=0)
     
     y_pred_ex = model_ex.predict(X_te_e, verbose=0).flatten()
-    rmse_ex = mean_squared_error(y_te_e, y_pred_ex, squared=False)
+    rmse_ex = float(np.sqrt(mean_squared_error(y_te_e, y_pred_ex)))
     mae_ex = mean_absolute_error(y_te_e, y_pred_ex)
     r2_ex = r2_score(y_te_e, y_pred_ex)
     print(f"   [OK] Deep Exam-Transformer Regressor (R²: {r2_ex:.4f}, RMSE: {rmse_ex:.4f}, MAE: {mae_ex:.4f})")
@@ -203,7 +200,7 @@ def train_deep_transformer_regression(data_dir: Path, output_dir: Path):
     print("\n>>> [3/3] Trainiere Deep Exam-Transformer Survival (Dropout Prediction) ...")
     
     df_abs = pd.read_csv(data_dir / "abschluesse.csv")
-    dropout_dict = (df_abs["status"] != "abgeschlossen").astype(int).to_dict()
+    dropout_dict = df_abs.set_index("studierenden_id")["status"].apply(lambda s: 1 if s != "abgeschlossen" else 0).to_dict()
     y_surv = np.array([dropout_dict.get(s, 0) for s in studis])
     
     X_tr_s, X_temp_s, y_tr_s, y_temp_s = train_test_split(X_exam_3d, y_surv, test_size=0.30, random_state=42, stratify=y_surv)

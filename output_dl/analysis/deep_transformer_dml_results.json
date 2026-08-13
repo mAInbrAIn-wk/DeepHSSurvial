@@ -1,0 +1,22 @@
+{
+    "empirische_event_rate": 0.042432721704244614,
+    "treatments": {
+        "fachlich": {
+            "beta": 0.0007281713860067648,
+            "relative_risk": 1.0171606099434798,
+            "treatment_rate": 0.18594333491225945
+        },
+        "ueberfachlich": {
+            "beta": -0.00018389256291398185,
+            "relative_risk": 0.9956662557684677,
+            "treatment_rate": 0.29986009980281786
+        },
+        "psychosozial": {
+            "beta": -0.001827324963254,
+            "relative_risk": 0.9569359473099457,
+            "treatment_rate": 0.2676252216922416
+        }
+    },
+    "deep_transformer_dml_rr": 1.0171606099434798,
+    "deep_transformer_beta": 0.0007281713860067648
+}

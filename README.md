@@ -17,78 +17,85 @@ Alle Inhalte dieses Projekts (Code-Architektur, Datengenerierungs-Engine, Modell
 
 ---
 
-## Projektübersicht & Kausaler Durchbruch
+## Projektübersicht & Kausale Herausforderung
 
 Dieses Projekt analysiert datengetrieben die Wirksamkeit von Unterstützungsangeboten (z. B. fachliche Tutorien, überfachliche Workshops, psychosoziale Beratung) an Hochschulen.
 
 Die Kernherausforderung liegt in der Auflösung des **Selektionsbias**, des **Time Availability Confoundings** und des **Immortal-Time-Bias**:
 Da leistungsschwächere Studierende oder Studierende mit viel Erwerbstätigkeit (20h/Woche) an Supportmaßnahmen teilnehmen, kommen naive Machine-Learning-Modelle oft zu dem fehlerhaften Schluss, dass Support das Studienabbruch-Risiko erhöht (*Dropout-Paradoxon*).
 
-### Die Lösung in diesem Projekt:
-1. **5-Universen Counterfactual Simulator (V3.2):** Stochastische Simulation von 50.000 Studierenden, deren identische Klone in 5 parallelen Universen (A: Alle Angebote, B: Kein Support, C: Kein fachlicher Support, D: Kein überfachlicher Support, E: Kein psychosozialer Support) simuliert werden. V3.2 integriert einen **Carry-over-Mechanismus** (fachlicher Support aus früheren Semestern wirkt mit ⅔ Stärke) und einen verdoppelten Support-Boost (`gewicht_support_boost = 0.08`).
+### Methodischer Ansatz:
+1. **5-Universen Counterfactual Simulator (V3.3):** Stochastische Simulation von 50.000 Studierenden, deren identische Klone in 5 parallelen Universen (A: Alle Angebote, B: Kein Support, C: Kein fachlicher Support, D: Kein überfachlicher Support, E: Kein psychosozialer Support) simuliert werden. In Version V3.3 wurde die Stochastik über **dedizierte RNG-Streams und index-basiertes Prüfungsrauschen** entkoppelt, um eine exakte kontrafaktische Vergleichbarkeit der Universen zu gewährleisten.
 2. **Kausale Survival-Analyse (Longitudinal Panels):** Überführung der Studienverläufe in Person-Semester-Panels (Counting Process Format) mit zeitvariablen Vorsemester-Deltas (`fails_prev`, `delta_cp_prev`, `cp_rueckstand`).
-3. **Deep Causal Transformer-DML:** Einsatz eines gestapelten Causal Masked Transformers ($d_{model}=64$, 2 Blöcke, 4 Attention-Heads) mit Double Machine Learning (DML) Orthogonalisierung. Das Modell erlernt den unbeobachteten Workload-Zustand aus der Sequenzhistorie und **eliminiert den Confounding Bias vollständig** (Abweichung zur Makro Ground Truth $< 0.15 \text{ \%-Punkte}$).
+3. **Double Machine Learning (DML) & Causal Transformer Benchmark:** Systematischer Vergleich von Standard-DML (Tabular Cox) und Causal Masked Transformer-DML zur Schätzung der kausalen Treatment-Effekte.
 
 ---
 
-## Die Kern-Ergebnisse der Simulation V3.2
+## Ergebnisse der Simulation & Modell-Evaluierung (V3.3)
 
-### 1. Makroskopische Kausaleffekte (5 Universen × 50.000 Studierende)
-| Universum | Konfiguration | Dropout-Rate | Netto-Gerettete | Kausale Wirkung |
-| :--- | :--- | :---: | :---: | :--- |
-| **Universum A** | Baseline (Alle Support-Typen) | **30,32 %** | — | Ausgangslage |
-| **Universum B** | Kein Support (komplett blockiert) | **38,66 %** | **+4.168** | **-21,6 % Risikoreduktion** |
-| **Universum C** | Kein fachlicher Support | **32,77 %** | **+1.227** | **-7,5 % Risikoreduktion** |
-| **Universum D** | Kein überfachlicher Support | **33,01 %** | **+1.346** | **-8,1 % Risikoreduktion** |
-| **Universum E** | Kein psychosozialer Support | **32,27 %** | **+976** | **-6,0 % Risikoreduktion** |
-
-### 2. Carry-over-Wirkung (V3.2 vs. V3.1)
-Der Carry-over-Mechanismus hat die Reichweite des fachlichen Supports mehr als verdoppelt:
-- **Prüfungen mit Support-Boost:** 35.643 (4,37 %) → **80.301 (9,86 %)** (+125 %)
-- **G1-Geschädigte (fachlich):** 278 → **261** (−6 %)
-- **G2-Gerettete (fachlich):** 1.108 → **1.488** (+34 %)
-
-### 3. Causal Machine Learning Benchmark
-* **Standard DML (Tabular Cox):** $RR_{fach} = 0.7899$, $RR_{uebf} = 1.0460$, $RR_{psych} = 0.9589$ (residuales Confounding).
-* **Deep Causal Transformer-DML (2 Blöcke):** **$RR_{fach} = 1.0023$** (vs. Ground Truth $RR = 0.9574$).
+### 1. Makroskopische Ground Truth (5 Universen × 50.000 Studierende)
+| Universum | Konfiguration | Dropout-Rate | Relatives Risiko (RR) vs. A | Netto-Gerettete vs. A | Kausale Wirkung auf Makro-Ebene |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| **Universum A** | Baseline (Alle Support-Typen) | **27,37 %** | **1,0000** | — | Ausgangslage |
+| **Universum B** | Kein Support (komplett blockiert) | **32,35 %** | **0,8462** | **+2.488** | **-15,38 % Risikoreduktion** (Support-Gesamtsystem schützt) |
+| **Universum C** | Kein fachlicher Support | **28,57 %** | **0,9579** | **+601** | **-4,21 % Risikoreduktion** (Fachlicher Support schützt) |
+| **Universum D** | Kein überfachlicher Support | **29,16 %** | **0,9387** | **+893** | **-6,13 % Risikoreduktion** (Überfachlicher Support schützt) |
+| **Universum E** | Kein psychosozialer Support | **28,77 %** | **0,9514** | **+699** | **-4,86 % Risikoreduktion** (Psychosozialer Support schützt) |
 
 ---
 
-## Modell-Portfolio Performance (V3.2 Datensatz)
+### 2. Kausalschätzer Benchmark vs. Realität (Realistischer Befund)
 
-### Survival- & Abbruchvorhersage
-| Modell | ROC-AUC | PR-AUC | Brier Score |
-| :--- | :---: | :---: | :---: |
-| **Logistic Hazard Landmark** | **0,8578** | **0,7093** | — |
-| Recurrent Exam Survival GRU | 0,8437 | 0,1340 | 0,0174 |
-| Transformer Exam Survival | 0,8225 | 0,1102 | 0,0176 |
-| Dynamic DeepHit Delta (Dropout) | 0,7898 | 0,2233 | 0,0366 |
-| Recurrent Survival GRU | 0,7861 | 0,2155 | 0,0368 |
-| DML Orthogonal Survival | 0,7687 | 0,2030 | 0,0358 |
+Das Training der Kausalschätzer zeigt deutliche methodische Grenzen und Herausforderungen:
+
+| Evaluierter Support-Typ | Ground Truth RR (V3.3) | Standard DML (Tabular Cox) | Deep Causal Transformer-DML | Methodische Bewertung |
+| :--- | :---: | :---: | :---: | :--- |
+| **Fachlicher Support (`fach`)** | **0,9579** | **0,7899** (Starke Überschätzung) | **1,0172** (Kollabiert nahe 1.0) | **Herausforderung:** Fachlicher Support ist der stärkste Noteneffekt im Modell, wird aber von ML-Kausalschätzern schwer erfasst. Standard-DML überschätzt massiv; Transformer-DML dämpft den Bias, schätzt den Effekt aber leicht negativ/neutral. |
+| **Überfachlicher Support (`uebf`)** | **0,9387** | **1,0460** (Falsche Richtung) | **0,9957** (Nahe Neutralität) | Standard-DML kehrt das Vorzeichen um (Schädlichkeits-Paradoxon). Transformer-DML korrigiert das Vorzeichen, unterschätzt aber die Effektstärke. |
+| **Psychosozialer Support (`psych`)** | **0,9514** | **0,9078** | **0,9569** | Akzeptable Schätzung nahe am Ground-Truth-Wert. |
+
+> [!WARNING]
+> **Kritische Erkenntnis:** Die Kausalmodelle kommen mit den komplexen Zeitkosten- und Noten-Interaktionen im datengenerierenden Prozess noch nicht optimal zurecht. Während Standard-DML zu extremer Überschätzung neigt, dämpft der Deep Transformer-DML die Effekte zu stark ab ($RR \approx 1,00$). Dies zeigt, dass reine Observational-ML-Verfahren ohne kontrolliertes Experiment noch Grenzen aufweisen.
+
+---
+
+## Modell-Portfolio Performance (V3.3 Datensatz)
+
+### Abbruch- & Survival-Vorhersage
+| Modell | Level / Typ | ROC-AUC | PR-AUC | Brier Score |
+| :--- | :--- | :---: | :---: | :---: |
+| **Extended Logistic Hazard Exam Delta** | Exam Level Panel | **0,8636** | 0,1757 | 0,0169 |
+| **Logistic Hazard Landmark** | Static Landmark | **0,8597** | **0,7146** | — |
+| Recurrent Exam Survival GRU Delta | Exam Sequence | 0,8504 | 0,1389 | 0,0175 |
+| Recurrent Exam Survival GRU (Base) | Exam Sequence | 0,8453 | 0,1420 | 0,0174 |
+| Transformer Exam Survival | Exam Sequence | 0,8318 | 0,1268 | 0,0176 |
+| Transformer Survival (Semester) | Semester Sequence | 0,7909 | 0,2284 | 0,0365 |
+| Recurrent Survival GRU (Semester) | Semester Sequence | 0,7898 | 0,2234 | 0,0368 |
+| Dynamic DeepHit Delta (Dropout) | Multi-Task Competing | 0,7898 | 0,2234 | 0,0366 |
+| Extended Logistic Hazard Delta | Semester Panel | 0,7694 | 0,2081 | 0,0370 |
+| DML Orthogonal Survival | Causal Panel | 0,7694 | 0,2081 | 0,0370 |
 
 ### Noten- & GPA-Regression
-| Modell | $R^2$ Score | RMSE | MAE |
-| :--- | :---: | :---: | :---: |
-| **Semester-LSTM Regressor** | **0,9140** | 0,3097 | 0,2327 |
-| Semester-Transformer | 0,9069 | 0,3223 | 0,2425 |
-| Exam-GRU Regressor | 0,9038 | 0,3258 | 0,2449 |
-| Keras MLP Regression | 0,8649 | **0,2267** | **0,1735** |
-
-### Erwerbstätigkeit als verborgene Variable
-Modelle kompensieren das Fehlen des Merkmals `erwerbstaetigkeit_std` über Proxy-Variablen fast vollständig (Performance-Verlust < 0,2 %). → **Erwerbstätigkeit muss in der Praxis nicht erhoben werden.**
-
-### Oracle-Modell Lift
-AUC-Gewinn durch verborgene Variablen (Motivation, Integration, Zeitpuffer): nur **+0,91 %**. → **Beobachtbare Verlaufsdaten genügen.**
+| Modell | Typ | $R^2$ Score | RMSE | MAE |
+| :--- | :--- | :---: | :---: | :---: |
+| **Deep Exam-Transformer Regressor** | Exam Sequence ($d=128$, Attn) | **0,9993** | **0,0199** | **0,0124** |
+| **Semester-LSTM Regressor** | Semester Sequence (T=16) | **0,9144** | 0,3108 | 0,2352 |
+| Semester-Transformer Regressor | Semester Sequence (T=16) | 0,9084 | 0,3215 | 0,2448 |
+| Exam-GRU Regressor | Exam Sequence (T=40) | 0,9029 | 0,3289 | 0,2480 |
+| Keras MLP Regression | Static Tabular | 0,8694 | 0,2272 | 0,1731 |
+| SVR (Support Vector Regression) | Static Tabular | 0,8668 | 0,2294 | 0,1752 |
+| Random Forest Regression | Static Tabular | 0,8484 | 0,2448 | 0,1857 |
+| Linear Ridge Regression | Static Linear | 0,8461 | 0,2466 | 0,1914 |
 
 ---
 
 ## Methodik & Modell-Stufen
 
-Das Projekt implementiert und vergleicht über **20 Modellarchitekturen**:
+Das Projekt implementiert und vergleicht über **21 Modellarchitekturen**:
 
 ### Stufe 0: Statische Baselines & Noten-Regression
-- **Klassifikation:** Naive Bayes, Random Forest (79,43 % Acc), SVM (74,45 % Acc), Keras MLP Classifier (79,40 % Acc).
-- **Noten-Regression:** Linear Ridge ($R^2=0.8458$), SVR ($R^2=0.8617$), Keras MLP Regressor ($R^2=0.8649$, MAE=0.1735).
+- **Klassifikation:** Naive Bayes, Random Forest (79,25 % Acc), SVM (72,29 % Acc), Keras MLP Classifier (79,29 % Acc).
+- **Noten-Regression:** Linear Ridge ($R^2=0.8461$), SVR ($R^2=0.8668$), Keras MLP Regressor ($R^2=0.8694$, MAE=0.1731).
 
 ### Stufe 1: Landmark Survival (Statisch)
 - **Modelle:** DeepSurv (Keras Cox-Partial-Likelihood) und Discrete-Time Logistic (DTL) Hazard.
@@ -110,7 +117,7 @@ Das Projekt implementiert und vergleicht über **20 Modellarchitekturen**:
 ```mermaid
 flowchart TD
     subgraph Data Pipeline
-        A["run_overnight.py\n(Master-Nachtlauf)"] --> B["simulation_v3.py\n(5-Universen Stochastik\nmit Carry-over)"]
+        A["run_overnight.py\n(Master-Nachtlauf V3.3)"] --> B["simulation_v3.py\n(5-Universen Stochastik)"]
         B --> C["export.py\n(CSV-Export & hidden Logging)"]
         C --> D["aggregate.py\n(Delta Feature Engineering)"]
         D --> E["validate.py\n(Prüfung & Doku-Generierung)"]
@@ -118,14 +125,14 @@ flowchart TD
 
     subgraph Causal ML Pipeline
         E --> F["calculate_true_effect.py\n(Ground Truth ATT)"]
-        F --> G["run_all_experiments.py\n(20+ Modelle Training)"]
+        F --> G["run_all_experiments.py\n(21 Modelle Training)"]
         G --> H["train_transformer_dml.py\n(Deep Transformer-DML)"]
     end
 ```
 
 ### Die wichtigsten Skripte im `src/` Ordner:
-- `simulation_v3.py`: Core-Engine des 5-Universen-Simulators mit stochastischem Puffer $B_i \sim \mathcal{N}(60, 30)$, gedeckelter Overload Penalty und Carry-over-Mechanismus (⅔ Wirkung aus früheren Semestern).
-- `calculate_true_effect.py`: Berechnet den reinen Mikro-Treatment-Effekt (ATT) auf Prüfungsebene.
-- `train_transformer_dml.py`: Gestapelter Deep Causal Transformer-DML für unbiassierte kausale Effektschätzung.
-- `train_erwerb_blind_models.py`: Evaluation des Confounder-Einflusses der Erwerbstätigkeit.
+- `simulation_v3.py`: Core-Engine des 5-Universen-Simulators mit dekoppelten RNG-Streams und index-basiertem Prüfungsrauschen.
+- `calculate_true_effect.py`: Berechnet die empirische Makro Ground Truth über alle 5 Universen.
+- `train_transformer_dml.py`: Deep Causal Transformer-DML für kausale Effektschätzung über alle 3 Support-Typen.
+- `deep_transformer_regression.py`: Hochkapazitäre Transformer mit Attention-Weighted Pooling.
 - `analyze_grade_effects.py`: Detaillierte Noteneffekt-Analyse nach Prüfungsversuchen.
