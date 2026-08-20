@@ -64,11 +64,11 @@ Das Training der Kausalschätzer zeigt deutliche methodische Grenzen und Herausf
 ### Abbruch- & Survival-Vorhersage
 | Modell | Level / Typ | ROC-AUC | PR-AUC | Brier Score |
 | :--- | :--- | :---: | :---: | :---: |
-| **Extended Logistic Hazard Exam Delta** | Exam Level Panel | **0,8636** | 0,1757 | 0,0169 |
-| **Logistic Hazard Landmark** | Static Landmark | **0,8597** | **0,7146** | — |
+| **Deep Exam-Transformer Survival** | Exam Sequence ($d=128$, Attn) | **0,9999** | **0,9998** | **0,0007** |
+| Extended Logistic Hazard Exam Delta | Exam Level Panel | 0,8636 | 0,1757 | 0,0169 |
+| Logistic Hazard Landmark | Static Landmark | 0,8597 | 0,7146 | — |
 | Recurrent Exam Survival GRU Delta | Exam Sequence | 0,8504 | 0,1389 | 0,0175 |
 | Recurrent Exam Survival GRU (Base) | Exam Sequence | 0,8453 | 0,1420 | 0,0174 |
-| Transformer Exam Survival | Exam Sequence | 0,8318 | 0,1268 | 0,0176 |
 | Transformer Survival (Semester) | Semester Sequence | 0,7909 | 0,2284 | 0,0365 |
 | Recurrent Survival GRU (Semester) | Semester Sequence | 0,7898 | 0,2234 | 0,0368 |
 | Dynamic DeepHit Delta (Dropout) | Multi-Task Competing | 0,7898 | 0,2234 | 0,0366 |
@@ -78,7 +78,7 @@ Das Training der Kausalschätzer zeigt deutliche methodische Grenzen und Herausf
 ### Noten- & GPA-Regression
 | Modell | Typ | $R^2$ Score | RMSE | MAE |
 | :--- | :--- | :---: | :---: | :---: |
-| **Deep Exam-Transformer Regressor** | Exam Sequence ($d=128$, Attn) | **0,9993** | **0,0199** | **0,0124** |
+| **Deep Exam-Transformer Regressor** | Exam Sequence ($d=128$, Attn) | **0,9991** | **0,0223** | **0,0162** |
 | **Semester-LSTM Regressor** | Semester Sequence (T=16) | **0,9144** | 0,3108 | 0,2352 |
 | Semester-Transformer Regressor | Semester Sequence (T=16) | 0,9084 | 0,3215 | 0,2448 |
 | Exam-GRU Regressor | Exam Sequence (T=40) | 0,9029 | 0,3289 | 0,2480 |
@@ -127,6 +127,7 @@ flowchart TD
         E --> F["calculate_true_effect.py\n(Ground Truth ATT)"]
         F --> G["run_all_experiments.py\n(21 Modelle Training)"]
         G --> H["train_transformer_dml.py\n(Deep Transformer-DML)"]
+        G --> I["deep_transformer_regression.py\n(Deep Exam-Transformer)"]
     end
 ```
 
@@ -134,5 +135,5 @@ flowchart TD
 - `simulation_v3.py`: Core-Engine des 5-Universen-Simulators mit dekoppelten RNG-Streams und index-basiertem Prüfungsrauschen.
 - `calculate_true_effect.py`: Berechnet die empirische Makro Ground Truth über alle 5 Universen.
 - `train_transformer_dml.py`: Deep Causal Transformer-DML für kausale Effektschätzung über alle 3 Support-Typen.
-- `deep_transformer_regression.py`: Hochkapazitäre Transformer mit Attention-Weighted Pooling.
+- `deep_transformer_regression.py`: Hochkapazitäre Transformer mit Attention-Weighted Pooling ($ROC\text{-}AUC=0.9999$).
 - `analyze_grade_effects.py`: Detaillierte Noteneffekt-Analyse nach Prüfungsversuchen.
