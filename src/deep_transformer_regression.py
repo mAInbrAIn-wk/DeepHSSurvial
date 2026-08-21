@@ -77,146 +77,174 @@ def build_deep_transformer_backbone(input_shape, d_model=128, num_heads=8, num_b
     return inputs, head
 
 
+from timeseries_semester import create_semester_timeseries_dataset
+from timeseries_exam import create_exam_timeseries_dataset
+
+def build_canonical_exam_survival_dataset(data_dir: Path, max_exams: int = 40, exclude_last_exam_for_dropouts: bool = True):
+    """
+    Erstellt den harmonisierten 9-Feature Prüfungssatz für Exam Survival
+    inklusive Last-Exam Exclusion zur Vermeidung von Future-Data Leakage.
+    Features: [versuch, schwierigkeit, cp, is_fail, fach_act, uebf_act, psych_act, hzb_note, erwerbstaetigkeit_std]
+    """
+    agg_abschluesse_path = data_dir / 'agg_abschluesse.csv'
+    agg_pruefungen_path = data_dir / 'agg_pruefungen.csv'
+    
+    if not agg_abschluesse_path.exists():
+        data_dir = Path('output_dl') if Path('output_dl/agg_abschluesse.csv').exists() else Path('../output_dl')
+        agg_abschluesse_path = data_dir / 'agg_abschluesse.csv'
+        agg_pruefungen_path = data_dir / 'agg_pruefungen.csv'
+        
+    df_abschluesse = pd.read_csv(agg_abschluesse_path)
+    df_pruefungen = pd.read_csv(agg_pruefungen_path)
+    
+    df_abschluesse.columns = df_abschluesse.columns.str.strip()
+    df_pruefungen.columns = df_pruefungen.columns.str.strip()
+    
+    pr_sem = df_pruefungen.groupby(['studierenden_id', 'fachsemester']).agg({
+        'support_glz_fachlich': 'max',
+        'support_glz_ueberfachlich': 'max',
+        'support_glz_psychosozial': 'max'
+    }).reset_index()
+    
+    sup_dict_fach = pr_sem.set_index(['studierenden_id', 'fachsemester'])['support_glz_fachlich'].to_dict()
+    sup_dict_uebf = pr_sem.set_index(['studierenden_id', 'fachsemester'])['support_glz_ueberfachlich'].to_dict()
+    sup_dict_psych = pr_sem.set_index(['studierenden_id', 'fachsemester'])['support_glz_psychosozial'].to_dict()
+    
+    studis = df_abschluesse['studierenden_id'].unique()
+    abschluss_dict = df_abschluesse.set_index('studierenden_id').to_dict('index')
+    pr_grouped = df_pruefungen.groupby('studierenden_id')
+    
+    n_features = 9
+    X_seq = np.full((len(studis), max_exams, n_features), PADDING_VALUE, dtype=np.float32)
+    y_surv = np.zeros(len(studis), dtype=np.float32)
+    
+    for i, s_id in enumerate(studis):
+        row_ab = abschluss_dict[s_id]
+        status = str(row_ab['status']).strip().lower()
+        is_dropout = status in ['abgebrochen', 'exmatrikuliert', 'zeitueberschreitung']
+        y_surv[i] = 1.0 if is_dropout else 0.0
+        
+        if s_id in pr_grouped.groups:
+            studi_pr = pr_grouped.get_group(s_id).sort_values(['fachsemester', 'pruefung_id'])
+            # Last-Exam Exclusion zur Vermeidung von Future-Data Leakage:
+            if is_dropout and exclude_last_exam_for_dropouts and len(studi_pr) > 1:
+                studi_pr = studi_pr.iloc[:-1]
+            num_p = min(len(studi_pr), max_exams)
+            for k in range(num_p):
+                p_row = studi_pr.iloc[k]
+                sem = int(p_row['fachsemester'])
+                X_seq[i, k, 0] = float(p_row['versuch'])
+                X_seq[i, k, 1] = float(p_row['schwierigkeit'])
+                X_seq[i, k, 2] = float(p_row['cp'])
+                X_seq[i, k, 3] = 1.0 if not bool(p_row['bestanden']) else 0.0
+                X_seq[i, k, 4] = 1.0 if sup_dict_fach.get((s_id, sem), 0) > 0 else 0.0
+                X_seq[i, k, 5] = 1.0 if sup_dict_uebf.get((s_id, sem), 0) > 0 else 0.0
+                X_seq[i, k, 6] = 1.0 if sup_dict_psych.get((s_id, sem), 0) > 0 else 0.0
+                X_seq[i, k, 7] = float(row_ab['hzb_note'])
+                X_seq[i, k, 8] = float(row_ab['erwerbstaetigkeit_std'])
+                
+    return X_seq, y_surv, max_exams, n_features
+
+
 def train_deep_transformer_regression(data_dir: Path, output_dir: Path):
     print("\n================================================================================")
-    print("   DEEP TRANSFORMER REGRESSION & SURVIVAL (ENLARGED CAPACITY)")
+    print("   DEEP TRANSFORMER REGRESSION & SURVIVAL (KANONISCHE DATENSÄTZE & LEAKAGE-FREI)")
     print("================================================================================")
     
     # -------------------------------------------------------------------------
-    # 1. DEEP SEMESTER-TRANSFORMER REGRESSOR
+    # 1. DEEP SEMESTER-TRANSFORMER REGRESSOR (KLASSE 2b)
     # -------------------------------------------------------------------------
-    print("\n>>> [1/3] Trainiere Deep Semester-Transformer Regressor (GPA Prediction) ...")
+    print("\n>>> [1/3] Trainiere Deep Semester-Transformer Regressor (GPA Prediction, Klasse 2b) ...")
     
-    studis_file = data_dir / "studierenden_id.csv" if (data_dir / "studierenden_id.csv").exists() else data_dir / "studierende.csv"
-    df_studis = pd.read_csv(studis_file)
-    df_sem = pd.read_csv(data_dir / "einschreibungen.csv")
-    df_pr = pd.read_csv(data_dir / "pruefungen.csv")
-    df_mod = pd.read_csv(data_dir / "module.csv")
-    if "cp" not in df_pr.columns:
-        df_pr = df_pr.merge(df_mod[["modul_id", "cp", "schwierigkeit"]], on="modul_id", how="left")
-    
-    # Noten-Target pro Student
-    valid_pr = df_pr[df_pr["bestanden"] == True]
-    gpa_target = valid_pr.groupby("studierenden_id")["note"].mean().to_dict()
-    
-    studis = [s for s in df_studis["studierenden_id"].unique() if s in gpa_target]
-    N = len(studis)
-    y_gpa = np.array([gpa_target[s] for s in studis])
-    
-    # 3D Tensor Aufbau für Semesterniveau (T=16, F=6)
-    sem_features = ["sem_cp_earned", "sem_cp_attempted", "sem_fail_count", "fach_supp", "uebf_supp", "psych_supp"]
-    T_sem = 16
-    F_sem = len(sem_features)
-    
-    # Semesterweise Aggregation
-    pr_agg = df_pr.groupby(["studierenden_id", "semester_id"]).agg(
-        sem_cp_earned=("cp", lambda x: df_pr.loc[x.index[df_pr.loc[x.index, "bestanden"] == True], "cp"].sum()),
-        sem_cp_attempted=("cp", "sum"),
-        sem_fail_count=("bestanden", lambda x: (x == False).sum())
-    ).reset_index()
-    
-    X_sem_3d = np.full((N, T_sem, F_sem), PADDING_VALUE, dtype=np.float32)
-    
-    sem_order_unique = sorted(df_sem["semester_id"].unique())
-    sem_to_idx = {s: i for i, s in enumerate(sem_order_unique)}
-    
-    for i, s_id in enumerate(studis):
-        s_rows = pr_agg[pr_agg["studierenden_id"] == s_id]
-        for _, row in s_rows.iterrows():
-            t_idx = sem_to_idx.get(row["semester_id"], 0)
-            if t_idx < T_sem:
-                X_sem_3d[i, t_idx, 0] = row["sem_cp_earned"]
-                X_sem_3d[i, t_idx, 1] = row["sem_cp_attempted"]
-                X_sem_3d[i, t_idx, 2] = row["sem_fail_count"]
-                X_sem_3d[i, t_idx, 3:] = 0.0 # Support Mappings
-                
-    # Feature Scaling
-    scaler = StandardScaler()
-    valid_mask = (X_sem_3d != PADDING_VALUE)
-    X_sem_3d[valid_mask] = scaler.fit_transform(X_sem_3d[valid_mask].reshape(-1, F_sem)).flatten()
+    X_sem_3d, y_gpa_sem, T_sem, F_sem = create_semester_timeseries_dataset(data_dir)
     
     # 70/15/15 Split
-    X_tr, X_temp, y_tr, y_temp = train_test_split(X_sem_3d, y_gpa, test_size=0.30, random_state=42)
+    X_tr, X_temp, y_tr, y_temp = train_test_split(X_sem_3d, y_gpa_sem, test_size=0.30, random_state=42)
     X_va, X_te, y_va, y_te = train_test_split(X_temp, y_temp, test_size=0.50, random_state=42)
     
+    # Feature Scaling (nur auf Training Set fitten)
+    scaler_sem = StandardScaler()
+    valid_mask_tr = (X_tr[:, :, 0] != PADDING_VALUE)
+    scaler_sem.fit(X_tr[valid_mask_tr])
+    
+    for X_split in [X_tr, X_va, X_te]:
+        valid_mask = (X_split[:, :, 0] != PADDING_VALUE)
+        X_split[valid_mask] = scaler_sem.transform(X_split[valid_mask])
+        
     inputs_sem, head_sem = build_deep_transformer_backbone((T_sem, F_sem), d_model=128, num_heads=8, num_blocks=3)
     outputs_sem = Dense(1, activation='linear')(head_sem)
     model_sem = Model(inputs=inputs_sem, outputs=outputs_sem)
     model_sem.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss='mse', metrics=['mae'])
     
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True)
-    history_sem = model_sem.fit(X_tr, y_tr, validation_data=(X_va, y_va), epochs=60, batch_size=256, callbacks=[es], verbose=0)
+    model_sem.fit(X_tr, y_tr, validation_data=(X_va, y_va), epochs=60, batch_size=256, callbacks=[es], verbose=1)
     
     y_pred_sem = model_sem.predict(X_te, verbose=0).flatten()
     rmse_sem = float(np.sqrt(mean_squared_error(y_te, y_pred_sem)))
-    mae_sem = mean_absolute_error(y_te, y_pred_sem)
-    r2_sem = r2_score(y_te, y_pred_sem)
+    mae_sem = float(mean_absolute_error(y_te, y_pred_sem))
+    r2_sem = float(r2_score(y_te, y_pred_sem))
     print(f"   [OK] Semester-Transformer Regressor (R²: {r2_sem:.4f}, RMSE: {rmse_sem:.4f}, MAE: {mae_sem:.4f})")
     
     # -------------------------------------------------------------------------
-    # 2. DEEP EXAM-TRANSFORMER REGRESSOR
+    # 2. DEEP EXAM-TRANSFORMER REGRESSOR (KLASSE 3 - OHNE NOTEN-LEAKAGE)
     # -------------------------------------------------------------------------
-    print("\n>>> [2/3] Trainiere Deep Exam-Transformer Regressor (d_model=128, Attention Pooling) ...")
+    print("\n>>> [2/3] Trainiere Deep Exam-Transformer Regressor (Klasse 3, ohne Noten-Leakage) ...")
     
-    T_exam = 40
-    exam_features = ["versuch", "cp", "schwierigkeit", "bestanden", "note"]
-    F_exam = len(exam_features)
+    X_exam_3d, y_gpa_ex, T_exam, F_exam = create_exam_timeseries_dataset(data_dir)
     
-    X_exam_3d = np.full((N, T_exam, F_exam), PADDING_VALUE, dtype=np.float32)
-    
-    for i, s_id in enumerate(studis):
-        s_pr = df_pr[df_pr["studierenden_id"] == s_id].sort_values("semester_id")
-        for k, (_, row) in enumerate(s_pr.iterrows()):
-            if k < T_exam:
-                X_exam_3d[i, k, 0] = row["versuch"]
-                X_exam_3d[i, k, 1] = row["cp"]
-                X_exam_3d[i, k, 2] = row["schwierigkeit"]
-                X_exam_3d[i, k, 3] = 1.0 if row["bestanden"] else 0.0
-                X_exam_3d[i, k, 4] = row["note"]
-                
-    scaler_ex = StandardScaler()
-    valid_mask_ex = (X_exam_3d != PADDING_VALUE)
-    X_exam_3d[valid_mask_ex] = scaler_ex.fit_transform(X_exam_3d[valid_mask_ex].reshape(-1, F_exam)).flatten()
-    
-    X_tr_e, X_temp_e, y_tr_e, y_temp_e = train_test_split(X_exam_3d, y_gpa, test_size=0.30, random_state=42)
+    X_tr_e, X_temp_e, y_tr_e, y_temp_e = train_test_split(X_exam_3d, y_gpa_ex, test_size=0.30, random_state=42)
     X_va_e, X_te_e, y_va_e, y_te_e = train_test_split(X_temp_e, y_temp_e, test_size=0.50, random_state=42)
     
+    scaler_ex = StandardScaler()
+    valid_mask_tr_e = (X_tr_e[:, :, 0] != PADDING_VALUE)
+    scaler_ex.fit(X_tr_e[valid_mask_tr_e])
+    
+    for X_split in [X_tr_e, X_va_e, X_te_e]:
+        valid_mask = (X_split[:, :, 0] != PADDING_VALUE)
+        X_split[valid_mask] = scaler_ex.transform(X_split[valid_mask])
+        
     inputs_ex, head_ex = build_deep_transformer_backbone((T_exam, F_exam), d_model=128, num_heads=8, num_blocks=3)
     outputs_ex = Dense(1, activation='linear')(head_ex)
     model_ex = Model(inputs=inputs_ex, outputs=outputs_ex)
     model_ex.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss='mse', metrics=['mae'])
     
-    history_ex = model_ex.fit(X_tr_e, y_tr_e, validation_data=(X_va_e, y_va_e), epochs=60, batch_size=256, callbacks=[es], verbose=0)
+    model_ex.fit(X_tr_e, y_tr_e, validation_data=(X_va_e, y_va_e), epochs=60, batch_size=256, callbacks=[es], verbose=1)
     
     y_pred_ex = model_ex.predict(X_te_e, verbose=0).flatten()
     rmse_ex = float(np.sqrt(mean_squared_error(y_te_e, y_pred_ex)))
-    mae_ex = mean_absolute_error(y_te_e, y_pred_ex)
-    r2_ex = r2_score(y_te_e, y_pred_ex)
+    mae_ex = float(mean_absolute_error(y_te_e, y_pred_ex))
+    r2_ex = float(r2_score(y_te_e, y_pred_ex))
     print(f"   [OK] Deep Exam-Transformer Regressor (R²: {r2_ex:.4f}, RMSE: {rmse_ex:.4f}, MAE: {mae_ex:.4f})")
     
     # -------------------------------------------------------------------------
-    # 3. DEEP EXAM-TRANSFORMER SURVIVAL (DROPOUT PREDICTION)
+    # 3. DEEP EXAM-TRANSFORMER SURVIVAL (KLASSE 7 - MIT LAST-EXAM EXCLUSION)
     # -------------------------------------------------------------------------
-    print("\n>>> [3/3] Trainiere Deep Exam-Transformer Survival (Dropout Prediction) ...")
+    print("\n>>> [3/3] Trainiere Deep Exam-Transformer Survival (Klasse 7, Last-Exam Exclusion) ...")
     
-    df_abs = pd.read_csv(data_dir / "abschluesse.csv")
-    dropout_dict = df_abs.set_index("studierenden_id")["status"].apply(lambda s: 1 if s != "abgeschlossen" else 0).to_dict()
-    y_surv = np.array([dropout_dict.get(s, 0) for s in studis])
+    X_surv_3d, y_surv, T_surv, F_surv = build_canonical_exam_survival_dataset(data_dir, max_exams=40, exclude_last_exam_for_dropouts=True)
     
-    X_tr_s, X_temp_s, y_tr_s, y_temp_s = train_test_split(X_exam_3d, y_surv, test_size=0.30, random_state=42, stratify=y_surv)
+    X_tr_s, X_temp_s, y_tr_s, y_temp_s = train_test_split(X_surv_3d, y_surv, test_size=0.30, random_state=42, stratify=y_surv)
     X_va_s, X_te_s, y_va_s, y_te_s = train_test_split(X_temp_s, y_temp_s, test_size=0.50, random_state=42, stratify=y_temp_s)
     
-    inputs_surv, head_surv = build_deep_transformer_backbone((T_exam, F_exam), d_model=128, num_heads=8, num_blocks=3)
+    scaler_surv = StandardScaler()
+    valid_mask_tr_s = (X_tr_s[:, :, 0] != PADDING_VALUE)
+    scaler_surv.fit(X_tr_s[valid_mask_tr_s])
+    
+    for X_split in [X_tr_s, X_va_s, X_te_s]:
+        valid_mask = (X_split[:, :, 0] != PADDING_VALUE)
+        X_split[valid_mask] = scaler_surv.transform(X_split[valid_mask])
+        
+    inputs_surv, head_surv = build_deep_transformer_backbone((T_surv, F_surv), d_model=128, num_heads=8, num_blocks=3)
     outputs_surv = Dense(1, activation='sigmoid')(head_surv)
     model_surv = Model(inputs=inputs_surv, outputs=outputs_surv)
     model_surv.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss='binary_crossentropy', metrics=['AUC'])
     
-    history_surv = model_surv.fit(X_tr_s, y_tr_s, validation_data=(X_va_s, y_va_s), epochs=60, batch_size=256, callbacks=[es], verbose=0)
+    model_surv.fit(X_tr_s, y_tr_s, validation_data=(X_va_s, y_va_s), epochs=60, batch_size=256, callbacks=[es], verbose=1)
     
     y_pred_surv = model_surv.predict(X_te_s, verbose=0).flatten()
-    auc_surv = roc_auc_score(y_te_s, y_pred_surv)
-    prauc_surv = average_precision_score(y_te_s, y_pred_surv)
-    brier_surv = brier_score_loss(y_te_s, y_pred_surv)
+    auc_surv = float(roc_auc_score(y_te_s, y_pred_surv))
+    prauc_surv = float(average_precision_score(y_te_s, y_pred_surv))
+    brier_surv = float(brier_score_loss(y_te_s, y_pred_surv))
     print(f"   [OK] Deep Exam-Transformer Survival (ROC-AUC: {auc_surv:.4f}, PR-AUC: {prauc_surv:.4f}, Brier: {brier_surv:.4f})")
     
     # Speichere Metriken
@@ -230,9 +258,10 @@ def train_deep_transformer_regression(data_dir: Path, output_dir: Path):
     with open(output_dir / "metrics" / "deep_transformer_regression_metrics.json", "w") as f:
         json.dump(metrics, f, indent=4)
         
-    print("\nDeep Transformer Regression & Survival Pipeline abgeschlossen!")
+    print("\nDeep Transformer Regression & Survival Pipeline erfolgreich und leakage-frei abgeschlossen!")
 
 if __name__ == "__main__":
     data_dir = Path("output_dl") if Path("output_dl").exists() else Path("../output_dl")
     output_dir = data_dir
     train_deep_transformer_regression(data_dir, output_dir)
+

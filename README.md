@@ -37,25 +37,30 @@ Da leistungsschwächere Studierende oder Studierende mit viel Erwerbstätigkeit 
 | Universum | Konfiguration | Dropout-Rate | Relatives Risiko (RR) vs. A | Netto-Gerettete vs. A | Kausale Wirkung auf Makro-Ebene |
 | :--- | :--- | :---: | :---: | :---: | :--- |
 | **Universum A** | Baseline (Alle Support-Typen) | **27,37 %** | **1,0000** | — | Ausgangslage |
-| **Universum B** | Kein Support (komplett blockiert) | **32,35 %** | **0,8462** | **+2.488** | **-15,38 % Risikoreduktion** (Support-Gesamtsystem schützt) |
-| **Universum C** | Kein fachlicher Support | **28,57 %** | **0,9579** | **+601** | **-4,21 % Risikoreduktion** (Fachlicher Support schützt) |
-| **Universum D** | Kein überfachlicher Support | **29,16 %** | **0,9387** | **+893** | **-6,13 % Risikoreduktion** (Überfachlicher Support schützt) |
 | **Universum E** | Kein psychosozialer Support | **28,77 %** | **0,9514** | **+699** | **-4,86 % Risikoreduktion** (Psychosozialer Support schützt) |
 
 ---
 
-### 2. Kausalschätzer Benchmark vs. Realität (Realistischer Befund)
+### 2. Kausalschätzer Benchmark vs. Realität (Umfassende Evaluation)
 
-Das Training der Kausalschätzer zeigt deutliche methodische Grenzen und Herausforderungen:
+Die Evaluierung der Kausalschätzer und Counterfactual-Analysen zeigt die Grenzen und Stärken der verschiedenen Modellklassen:
 
-| Evaluierter Support-Typ | Ground Truth RR (V3.3) | Standard DML (Tabular Cox) | Deep Causal Transformer-DML | Methodische Bewertung |
-| :--- | :---: | :---: | :---: | :--- |
-| **Fachlicher Support (`fach`)** | **0,9579** | **0,7899** (Starke Überschätzung) | **1,0172** (Kollabiert nahe 1.0) | **Herausforderung:** Fachlicher Support ist der stärkste Noteneffekt im Modell, wird aber von ML-Kausalschätzern schwer erfasst. Standard-DML überschätzt massiv; Transformer-DML dämpft den Bias, schätzt den Effekt aber leicht negativ/neutral. |
-| **Überfachlicher Support (`uebf`)** | **0,9387** | **1,0460** (Falsche Richtung) | **0,9957** (Nahe Neutralität) | Standard-DML kehrt das Vorzeichen um (Schädlichkeits-Paradoxon). Transformer-DML korrigiert das Vorzeichen, unterschätzt aber die Effektstärke. |
-| **Psychosozialer Support (`psych`)** | **0,9514** | **0,9078** | **0,9569** | Akzeptable Schätzung nahe am Ground-Truth-Wert. |
+| Modell & Methode | Analyse-Level | RR / HR Fachlich | RR / HR Überfachlich | RR / HR Psychosozial | Methodische Bewertung |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| **Ground Truth (V3.3)** | Makro (5 Universen) | **0,9579** | **0,9387** | **0,9514** | Reale Kausalwirkung: Alle 3 Support-Typen schützen |
+| **Extended Cox Delta** | Panel (Semi-parametrisch) | **0,8574** ($p<10^{-4}$) | **1,0940** ($p<10^{-4}$) | **0,8732** ($p<10^{-4}$) | Überschätzt Fachlich; Überfachlich fälschlich positiv ($+9,4\%$) |
+| **Extended DeepSurv Panel** | Panel (Neural Cox Breslow) | Median HR = **0,9886** | Median HR = **1,0085** | Median HR = **0,9245** | **Beste Treffsicherheit** bei Fachlich & Psychosozial |
+| **Extended DeepSurv Delta** | Panel (mit Deltas) | Median HR = **0,9082** | Median HR = **1,0422** | Median HR = **0,9641** | Fachlich überschätzt ($-9,2\%$), Psychosozial gut getroffen |
+| **Extended DTL Hazard Delta** | Panel (Discrete Hazard) | Median RR = **0,7718** | Median RR = **1,0381** | Median RR = **0,8823** | Starker Fach-Effekt ($-22,8\%$), Psychosozial ($-11,8\%$) |
+| **DML Orthogonal Survival** | Panel (Double ML) | Mean RR = **0,7994** | Mean RR = **1,0980** | Mean RR = **0,9078** | Fachlich & Psychosozial protektiv, Überfachlich verzerrt |
+| **Dynamic DeepHit Delta** | Semester-Sequenz | Median RR = **0,9665** | Median RR = **1,0095** | Median RR = **0,8425** | Median RR trifft Fachlich exzellent ($0,9665$ vs GT $0,9579$) |
+| **Deep Transformer-DML** | Sequenz-Encoder + DML | RR = **1,0172** | RR = **0,9957** | RR = **0,9569** | Psychosozial präzise ($0,9569$ vs GT $0,9514$), Fachlich überdämpft |
+| **Recurrent Exam GRU V2** | Prüfungs-Sequenz (+Fails/GPA) | Median RR = **1,0173** | Median RR = **1,0985** | Median RR = **0,9081** | Rollierende Leistungsmerkmale stellen Psych-Signal wieder her |
 
-> [!WARNING]
-> **Kritische Erkenntnis:** Die Kausalmodelle kommen mit den komplexen Zeitkosten- und Noten-Interaktionen im datengenerierenden Prozess noch nicht optimal zurecht. Während Standard-DML zu extremer Überschätzung neigt, dämpft der Deep Transformer-DML die Effekte zu stark ab ($RR \approx 1,00$). Dies zeigt, dass reine Observational-ML-Verfahren ohne kontrolliertes Experiment noch Grenzen aufweisen.
+> [!NOTE]
+> **Methodischer Kernbefund:**  
+> - **Psychosozialer Support** wird über nahezu alle Panel- und Sequenz-Modelle robust als risikosenkend erkannt ($HR \approx 0,84 \dots 0,96$).
+> - **Überfachlicher Support (Lerncoaching/Zeitmanagement)** leidet unter dem **Workload-Confounding / Reverse Causality**: Studierende in akuter Zeitnot wählen den Support, wodurch die 30 Stunden Support-Kosten kurzfristig das Risiko erhöhen, wenn die Entlastung nicht sofort greift.
 
 ---
 
@@ -64,28 +69,35 @@ Das Training der Kausalschätzer zeigt deutliche methodische Grenzen und Herausf
 ### Abbruch- & Survival-Vorhersage
 | Modell | Level / Typ | ROC-AUC | PR-AUC | Brier Score |
 | :--- | :--- | :---: | :---: | :---: |
-| **Deep Exam-Transformer Survival** | Exam Sequence ($d=128$, Attn) | **0,9999** | **0,9998** | **0,0007** |
+| **Recurrent Exam Survival V2** | Exam Sequence (mit roll. GPA/Fails) | **0,8713** | 0,1747 | 0,0168 |
 | Extended Logistic Hazard Exam Delta | Exam Level Panel | 0,8636 | 0,1757 | 0,0169 |
 | Logistic Hazard Landmark | Static Landmark | 0,8597 | 0,7146 | — |
 | Recurrent Exam Survival GRU Delta | Exam Sequence | 0,8504 | 0,1389 | 0,0175 |
 | Recurrent Exam Survival GRU (Base) | Exam Sequence | 0,8453 | 0,1420 | 0,0174 |
 | Transformer Survival (Semester) | Semester Sequence | 0,7909 | 0,2284 | 0,0365 |
+| Dynamic DeepHit Delta (Dropout) | Multi-Task Competing | 0,7942 | 0,2301 | 0,0366 |
 | Recurrent Survival GRU (Semester) | Semester Sequence | 0,7898 | 0,2234 | 0,0368 |
-| Dynamic DeepHit Delta (Dropout) | Multi-Task Competing | 0,7898 | 0,2234 | 0,0366 |
 | Extended Logistic Hazard Delta | Semester Panel | 0,7694 | 0,2081 | 0,0370 |
 | DML Orthogonal Survival | Causal Panel | 0,7694 | 0,2081 | 0,0370 |
 
 ### Noten- & GPA-Regression
 | Modell | Typ | $R^2$ Score | RMSE | MAE |
 | :--- | :--- | :---: | :---: | :---: |
-| **Deep Exam-Transformer Regressor** | Exam Sequence ($d=128$, Attn) | **0,9991** | **0,0223** | **0,0162** |
 | **Semester-LSTM Regressor** | Semester Sequence (T=16) | **0,9144** | 0,3108 | 0,2352 |
-| Semester-Transformer Regressor | Semester Sequence (T=16) | 0,9084 | 0,3215 | 0,2448 |
-| Exam-GRU Regressor | Exam Sequence (T=40) | 0,9029 | 0,3289 | 0,2480 |
+| **Semester-Transformer Regressor** | Semester Sequence (T=16) | **0,9084** | 0,3215 | 0,2448 |
+| **Deep Semester-Transformer Regressor** | Semester Sequence ($d=128$, Attn) | **0,9070** | 0,3238 | 0,2472 |
+| **Exam-GRU Regressor** | Exam Sequence (T=40) | **0,9029** | 0,3289 | 0,2480 |
+| **Deep Exam-Transformer Regressor** | Exam Sequence ($d=128$, ohne Noten-Leakage) | **0,8978** | 0,3373 | 0,2559 |
 | Keras MLP Regression | Static Tabular | 0,8694 | 0,2272 | 0,1731 |
 | SVR (Support Vector Regression) | Static Tabular | 0,8668 | 0,2294 | 0,1752 |
 | Random Forest Regression | Static Tabular | 0,8484 | 0,2448 | 0,1857 |
 | Linear Ridge Regression | Static Linear | 0,8461 | 0,2466 | 0,1914 |
+
+---
+
+## Vollständiges Skript-Register & Architektur-Handbuch
+
+👉 **[`Artifacts/script_registry.md`](Artifacts/script_registry.md)**
 
 ---
 

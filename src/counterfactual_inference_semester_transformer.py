@@ -19,11 +19,12 @@ from transformer_survival_model import PositionalEncoding
 def run_counterfactual_transformer():
     print("Starte Counterfactual Inference für Transformer (Semester-Ebene)...")
     
-    base_dir = Path(__file__).resolve().parent.parent
-    data_dir = base_dir / 'output_dl'
-    models_dir = data_dir / 'models'
-    
-    model_path = models_dir / 'transformer_survival.keras'
+    data_dir = Path('output_dl') if (Path('output_dl/models/transformer_survival.keras').exists() or Path('output_dl/agg_abschluesse.csv').exists()) else Path('../output_dl')
+    model_path = data_dir / 'models' / 'transformer_survival.keras'
+    if not model_path.exists():
+        model_path = Path('../output_dl/models/transformer_survival.keras')
+    if not model_path.exists():
+        model_path = Path('output_dl/transformer_survival.keras')
     
     custom_obj = {
         'masked_binary_crossentropy': masked_binary_crossentropy,

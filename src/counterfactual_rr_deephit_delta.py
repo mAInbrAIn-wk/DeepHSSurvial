@@ -23,9 +23,13 @@ def main():
     print("   COUNTERFACTUAL RELATIVE RISK ANALYSIS (DYNAMIC DEEPHIT DELTA)")
     print("==========================================================================")
     
-    data_dir = Path('../output_dl') if Path('../output_dl').exists() else Path('output_dl')
+    data_dir = Path('output_dl') if (Path('output_dl/models/dynamic_deephit_delta.keras').exists() or Path('output_dl/agg_abschluesse.csv').exists()) else Path('../output_dl')
     model_path = data_dir / 'models' / 'dynamic_deephit_delta.keras'
-    
+    if not model_path.exists():
+        model_path = Path('../output_dl/models/dynamic_deephit_delta.keras')
+    if not model_path.exists():
+        model_path = Path('output_dl/dynamic_deephit_delta.keras')
+        
     if not model_path.exists():
         print(f"Modell nicht gefunden: {model_path}")
         return

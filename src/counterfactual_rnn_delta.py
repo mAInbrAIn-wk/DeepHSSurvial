@@ -23,10 +23,12 @@ def main():
     print("   COUNTERFACTUAL INFERENCE: RECURRENT GRU V2 (EXAM LEVEL)")
     print("==========================================================================")
     
-    data_dir = Path('../output_dl') if Path('../output_dl').exists() else Path('output_dl')
+    data_dir = Path('output_dl') if (Path('output_dl/models/recurrent_exam_survival_v2.keras').exists() or Path('output_dl/agg_abschluesse.csv').exists()) else Path('../output_dl')
     model_path = data_dir / 'models' / 'recurrent_exam_survival_v2.keras'
     if not model_path.exists():
         model_path = data_dir / 'recurrent_exam_survival_v2.keras'
+    if not model_path.exists():
+        model_path = Path('../output_dl/models/recurrent_exam_survival_v2.keras')
         
     if not model_path.exists():
         print(f"Modell nicht gefunden: {model_path}")
