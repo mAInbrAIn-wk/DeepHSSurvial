@@ -56,15 +56,6 @@ def build_recurrent_exam_dataset_v2(data_dir: Path, max_exams: int = 50):
     
     df_pruefungen = df_pruefungen.sort_values(['studierenden_id', 'pruefung_id']).reset_index(drop=True)
     
-    df_pruefungen['fach_any'] = (df_pruefungen['support_vorher_fachlich'] > 0) | (df_pruefungen['support_glz_fachlich'] > 0)
-    df_pruefungen['uebf_any'] = (df_pruefungen['support_vorher_ueberfachlich'] > 0) | (df_pruefungen['support_glz_ueberfachlich'] > 0)
-    df_pruefungen['psych_any'] = (df_pruefungen['support_vorher_psychosozial'] > 0) | (df_pruefungen['support_glz_psychosozial'] > 0)
-    
-    df_pruefungen['fach_supp_cum'] = df_pruefungen.groupby('studierenden_id')['fach_any'].cummax().astype(float)
-    df_pruefungen['uebf_supp_cum'] = df_pruefungen.groupby('studierenden_id')['uebf_any'].cummax().astype(float)
-    df_pruefungen['psych_supp_cum'] = df_pruefungen.groupby('studierenden_id')['psych_any'].cummax().astype(float)
-    
-    # NEU IN V2: Kumulative Fehlversuche und GPA berechnen
     # NEU IN V2: Kumulative Fehlversuche, CP-Konto und GPA berechnen
     df_pruefungen['bestanden'] = df_pruefungen['bestanden']
     df_pruefungen['is_fail'] = (~df_pruefungen['bestanden']).astype(int)
@@ -79,8 +70,9 @@ def build_recurrent_exam_dataset_v2(data_dir: Path, max_exams: int = 50):
     studis = df_abschluesse['studierenden_id'].unique()
     num_studis = len(studis)
     
-    # 9 Features pro Prüfungsschritt in V2:
-    n_features = 9
+    # 12 Features pro Prüfungsschritt in V2:
+    # [versuch, schwierigkeit, cp, fach_vorher, fach_glz, uebf_vorher, uebf_glz, psych_vorher, psych_glz, fails_cum, cp_cum, gpa_cum]
+    n_features = 12
     
     X_seq = np.full((num_studis, max_exams, n_features), PADDING_VALUE, dtype=np.float32)
     y_seq = np.full((num_studis, max_exams, 1), PADDING_VALUE, dtype=np.float32)
@@ -88,7 +80,7 @@ def build_recurrent_exam_dataset_v2(data_dir: Path, max_exams: int = 50):
     
     pr_grouped = df_pruefungen.groupby('studierenden_id')
     
-    print("Erstelle 3D Sequence Array auf Prüfungs-Ebene (V2) ...")
+    print("Erstelle 3D Sequence Array auf Prüfungs-Ebene (V2 mit Zähl-Exposition) ...")
     for i, s_id in enumerate(studis):
         if s_id not in pr_grouped.groups:
             continue
@@ -107,9 +99,12 @@ def build_recurrent_exam_dataset_v2(data_dir: Path, max_exams: int = 50):
                 float(row.versuch),
                 float(row.schwierigkeit),
                 float(row.cp),
-                float(row.fach_supp_cum),
-                float(row.uebf_supp_cum),
-                float(row.psych_supp_cum),
+                float(row.support_vorher_fachlich),
+                float(row.support_glz_fachlich),
+                float(row.support_vorher_ueberfachlich),
+                float(row.support_glz_ueberfachlich),
+                float(row.support_vorher_psychosozial),
+                float(row.support_glz_psychosozial),
                 float(row.fails_cum),  # V2 FEATURE
                 float(row.cp_cum),     # V2 FEATURE
                 float(row.gpa_cum)     # V2 FEATURE

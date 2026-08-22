@@ -20,15 +20,17 @@ from metrics_logger import save_metrics
 
 def main():
     print("\n==========================================================================")
-    print("   COUNTERFACTUAL RELATIVE RISK ANALYSIS (RECURRENT EXAM DELTA)")
+    print("   COUNTERFACTUAL RELATIVE RISK ANALYSIS (RECURRENT EXAM DELTA - DUAL STRAND)")
     print("==========================================================================")
     
-    data_dir = Path('output_dl') if (Path('output_dl/models/recurrent_exam_survival_delta.keras').exists() or Path('output_dl/agg_abschluesse.csv').exists()) else Path('../output_dl')
+    data_dir = Path('src/output_dl') if Path('src/output_dl').exists() else (Path('output_dl') if Path('output_dl').exists() else Path('../output_dl'))
     model_path = data_dir / 'models' / 'recurrent_exam_survival_delta.keras'
     if not model_path.exists():
-        model_path = Path('../output_dl/models/recurrent_exam_survival_delta.keras')
-    if not model_path.exists():
-        model_path = Path('output_dl/recurrent_exam_survival_delta.keras')
+        for candidate in [Path('output_dl/models/recurrent_exam_survival_delta.keras'), Path('../output_dl/models/recurrent_exam_survival_delta.keras'), Path('src/output_dl/models/recurrent_exam_survival_delta.keras')]:
+            if candidate.exists():
+                model_path = candidate
+                data_dir = candidate.parent.parent
+                break
         
     if not model_path.exists():
         print(f"Modell nicht gefunden: {model_path}")
@@ -55,67 +57,81 @@ def main():
     model = tf.keras.models.load_model(model_path, custom_objects={'masked_binary_crossentropy': masked_binary_crossentropy})
     valid_mask_test = (X_test[:, :, 0] != PADDING_VALUE)
     
-    # Control: Support = 0 für alle 3 Typen
-    # Features: 0:note, 1:cp, 2:is_fail, 3:fach_act, 4:uebf_act, 5:psych_act, 6:hzb, 7:erwerb
-    X_control = X_test.copy()
-    X_control[valid_mask_test, 3] = 0.0 # fach
-    X_control[valid_mask_test, 4] = 0.0 # uebf
-    X_control[valid_mask_test, 5] = 0.0 # psych
-    X_control[valid_mask_test] = scaler.transform(X_control[valid_mask_test])
-    
-    preds_control = model.predict(X_control, verbose=0)
-    
-    risk_control_last = []
     last_step_indices = []
     for i in range(len(test_idx)):
         steps = np.where(X_test[i, :, 0] != PADDING_VALUE)[0]
-        if len(steps) > 0:
-            last_step_indices.append(steps[-1])
-            risk_control_last.append(preds_control[i, steps[-1], 0])
-        else:
-            last_step_indices.append(-1)
-            risk_control_last.append(0.0)
-            
-    risk_control_last = np.clip(np.array(risk_control_last), 1e-7, 1.0)
+        last_step_indices.append(steps[-1] if len(steps) > 0 else -1)
+    
+    ALL_SUPP_IDXS = [4, 5, 6, 7, 8, 9]
     
     metrics_all = {}
     
-    for feature_idx, supp_name in [(3, 'fach'), (4, 'uebf'), (5, 'psych')]:
-        X_treated = X_test.copy()
-        X_treated[valid_mask_test, 3] = 0.0
-        X_treated[valid_mask_test, 4] = 0.0
-        X_treated[valid_mask_test, 5] = 0.0
-        X_treated[valid_mask_test, feature_idx] = 1.0
-        X_treated[valid_mask_test] = scaler.transform(X_treated[valid_mask_test])
+    for (idx_vor, idx_glz), prefix, label in [
+        ((4, 5), 'fach',  'Fachlicher Support'),
+        ((6, 7), 'uebf',  'Überfachlicher Support'),
+        ((8, 9), 'psych', 'Psychosozialer Support'),
+    ]:
+        # 1. PARTIELL (≙ A vs C/D/E): Ziel-Support 0 vs. beobachtet, andere beobachtet
+        X_c_p = X_test.copy()
+        X_t_p = X_test.copy()
+        X_c_p[valid_mask_test, idx_vor] = 0.0
+        X_c_p[valid_mask_test, idx_glz] = 0.0
         
-        preds_treated = model.predict(X_treated, verbose=0)
-        risk_treated_last = []
-        for i, last_step in enumerate(last_step_indices):
-            if last_step >= 0:
-                risk_treated_last.append(preds_treated[i, last_step, 0])
-            else:
-                risk_treated_last.append(0.0)
-                
-        risk_treated_last = np.array(risk_treated_last)
-        rrs = risk_treated_last / risk_control_last
+        X_c_p[valid_mask_test] = scaler.transform(X_c_p[valid_mask_test])
+        X_t_p[valid_mask_test] = scaler.transform(X_t_p[valid_mask_test])
         
-        mean_rr = float(np.mean(rrs))
-        median_rr = float(np.median(rrs))
-        q05 = float(np.quantile(rrs, 0.05))
-        q95 = float(np.quantile(rrs, 0.95))
+        preds_c_p = model.predict(X_c_p, verbose=0)
+        preds_t_p = model.predict(X_t_p, verbose=0)
         
-        print(f"\n--- Support-Typ: {supp_name.upper()} ---")
-        print(f"  Mean Relative Risk (RR)  : {mean_rr:.4f}")
-        print(f"  Median Relative Risk (RR): {median_rr:.4f}")
-        print(f"  5%-95% KI                : [{q05:.4f}, {q95:.4f}]")
+        r_c_p = np.array([preds_c_p[i, ls, 0] if ls >= 0 else 0.0 for i, ls in enumerate(last_step_indices)])
+        r_t_p = np.array([preds_t_p[i, ls, 0] if ls >= 0 else 0.0 for i, ls in enumerate(last_step_indices)])
+        rrs_p = r_t_p / np.clip(r_c_p, 1e-7, 1.0)
         
-        metrics_all[f"Mean_RR_{supp_name}"] = mean_rr
-        metrics_all[f"Median_RR_{supp_name}"] = median_rr
-        metrics_all[f"Q05_RR_{supp_name}"] = q05
-        metrics_all[f"Q95_RR_{supp_name}"] = q95
+        mean_rr_p   = float(np.mean(rrs_p))
+        median_rr_p = float(np.median(rrs_p))
+        q05_p       = float(np.quantile(rrs_p, 0.05))
+        q95_p       = float(np.quantile(rrs_p, 0.95))
+        
+        # 2. ISOLIERT REALISTISCH (≙ B vs F/G/H): Alle 0 vs. nur Ziel beobachtet, andere 0
+        X_c_i = X_test.copy()
+        X_t_i = X_test.copy()
+        for idx in ALL_SUPP_IDXS:
+            X_c_i[valid_mask_test, idx] = 0.0
+            X_t_i[valid_mask_test, idx] = 0.0
+        X_t_i[valid_mask_test, idx_vor] = X_test[valid_mask_test, idx_vor]
+        X_t_i[valid_mask_test, idx_glz] = X_test[valid_mask_test, idx_glz]
+        
+        X_c_i[valid_mask_test] = scaler.transform(X_c_i[valid_mask_test])
+        X_t_i[valid_mask_test] = scaler.transform(X_t_i[valid_mask_test])
+        
+        preds_c_i = model.predict(X_c_i, verbose=0)
+        preds_t_i = model.predict(X_t_i, verbose=0)
+        
+        r_c_i = np.array([preds_c_i[i, ls, 0] if ls >= 0 else 0.0 for i, ls in enumerate(last_step_indices)])
+        r_t_i = np.array([preds_t_i[i, ls, 0] if ls >= 0 else 0.0 for i, ls in enumerate(last_step_indices)])
+        rrs_i = r_t_i / np.clip(r_c_i, 1e-7, 1.0)
+        
+        mean_rr_i   = float(np.mean(rrs_i))
+        median_rr_i = float(np.median(rrs_i))
+        q05_i       = float(np.quantile(rrs_i, 0.05))
+        q95_i       = float(np.quantile(rrs_i, 0.95))
+        
+        print(f"\n--- Support-Typ: {label.upper()} ({prefix}) ---")
+        print(f"  PARTIELL:           Mean RR = {mean_rr_p:.4f}, Median RR = {median_rr_p:.4f} [{q05_p:.4f}, {q95_p:.4f}]")
+        print(f"  ISOLIERT (realist): Mean RR = {mean_rr_i:.4f}, Median RR = {median_rr_i:.4f} [{q05_i:.4f}, {q95_i:.4f}]")
+        
+        metrics_all[f"{prefix}_partial"] = {"mean_rr": mean_rr_p, "median_rr": median_rr_p, "q05": q05_p, "q95": q95_p}
+        metrics_all[f"{prefix}_isolated"] = {"mean_rr": mean_rr_i, "median_rr": median_rr_i, "q05": q05_i, "q95": q95_i}
+        
+        # Abwärtskompatible Keys
+        metrics_all[f"Mean_RR_{prefix}"]   = mean_rr_p
+        metrics_all[f"Median_RR_{prefix}"] = median_rr_p
+        metrics_all[f"Q05_RR_{prefix}"]    = q05_p
+        metrics_all[f"Q95_RR_{prefix}"]    = q95_p
 
+    print("\n" + "=" * 74)
     save_metrics("counterfactual_rr_exam_rnn_delta", metrics_all, data_dir)
-    print("\nCounterfactual Analysis für Recurrent Exam Delta abgeschlossen.")
+    print("Counterfactual Analysis für Recurrent Exam Delta abgeschlossen.")
 
 if __name__ == '__main__':
     main()

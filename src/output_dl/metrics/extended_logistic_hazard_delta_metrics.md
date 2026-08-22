@@ -2,6 +2,6 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **ROC-AUC_Panel** | 0.7615 |
-| **PR-AUC_Panel** | 0.2011 |
-| **Brier_Score** | 0.0367 |
+| **ROC-AUC_Panel** | 0.7612 |
+| **PR-AUC_Panel** | 0.1966 |
+| **Brier_Score** | 0.0369 |

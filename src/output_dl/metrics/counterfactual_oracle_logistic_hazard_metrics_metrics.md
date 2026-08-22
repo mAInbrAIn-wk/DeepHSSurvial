@@ -1,0 +1,22 @@
+# Metriken: counterfactual_oracle_logistic_hazard_metrics
+
+| Metrik | Wert |
+| :--- | :---: |
+| **fach_partial** | {'mean_rr': 0.9879995584487915, 'median_rr': 1.0, 'q05': 0.9056028127670288, 'q95': 1.0} |
+| **fach_isolated** | {'mean_rr': 0.987984836101532, 'median_rr': 1.0, 'q05': 0.9053389430046082, 'q95': 1.0} |
+| **Mean_RR_fach** | 0.9880 |
+| **Median_RR_fach** | 1.0000 |
+| **Q05_RR_fach** | 0.9056 |
+| **Q95_RR_fach** | 1.0000 |
+| **uebf_partial** | {'mean_rr': 0.9914551377296448, 'median_rr': 1.0, 'q05': 0.942102313041687, 'q95': 1.0} |
+| **uebf_isolated** | {'mean_rr': 0.9914529919624329, 'median_rr': 1.0, 'q05': 0.9431362152099609, 'q95': 1.0} |
+| **Mean_RR_uebf** | 0.9915 |
+| **Median_RR_uebf** | 1.0000 |
+| **Q05_RR_uebf** | 0.9421 |
+| **Q95_RR_uebf** | 1.0000 |
+| **psych_partial** | {'mean_rr': 0.992594301700592, 'median_rr': 1.0, 'q05': 0.9885056018829346, 'q95': 1.0} |
+| **psych_isolated** | {'mean_rr': 0.9924784898757935, 'median_rr': 1.0, 'q05': 0.9878782033920288, 'q95': 1.0} |
+| **Mean_RR_psych** | 0.9926 |
+| **Median_RR_psych** | 1.0000 |
+| **Q05_RR_psych** | 0.9885 |
+| **Q95_RR_psych** | 1.0000 |

@@ -46,16 +46,16 @@ def build_competing_risks_dataset_delta(data_dir: Path, max_semesters: int = 16)
         sem_gpa=('note', 'mean'),
         sem_cp=('cp_earned', 'sum'),
         sem_fails=('is_fail', 'sum'),
-        fach_supp_active=('support_glz_fachlich', lambda x: int((x > 0).any())),
-        uebf_supp_active=('support_glz_ueberfachlich', lambda x: int((x > 0).any())),
-        psych_supp_active=('support_glz_psychosozial', lambda x: int((x > 0).any()))
+        fach_supp_count=('support_glz_fachlich', 'max'),
+        uebf_supp_count=('support_glz_ueberfachlich', 'max'),
+        psych_supp_count=('support_glz_psychosozial', 'max')
     ).reset_index()
     
     demog_df = df_abschluesse[['studierenden_id', 'hzb_note', 'erwerbstaetigkeit_std', 'erstakademiker', 'stg_name', 'status', 'studiendauer_semester']].copy()
     
     studis = demog_df['studierenden_id'].unique()
     num_studis = len(studis)
-    n_features = 9 # sem_gpa, sem_cp, sem_fails, cp_rueckstand, fach_act, uebf_act, psych_act, hzb_note, erwerb_std
+    n_features = 9 # sem_gpa, sem_cp, sem_fails, cp_rueckstand, fach_count, uebf_count, psych_count, hzb_note, erwerb_std
     
     X_seq = np.full((num_studis, max_semesters, n_features), PADDING_VALUE, dtype=np.float32)
     y_dropout = np.full((num_studis, max_semesters, 1), PADDING_VALUE, dtype=np.float32)
@@ -82,18 +82,18 @@ def build_competing_risks_dataset_delta(data_dir: Path, max_semesters: int = 16)
                 gpa = float(s_data['sem_gpa']) if not np.isnan(s_data['sem_gpa']) else 3.0
                 cp = float(s_data['sem_cp'])
                 fails = float(s_data['sem_fails'])
-                fach_act = float(s_data['fach_supp_active'])
-                uebf_act = float(s_data['uebf_supp_active'])
-                psych_act = float(s_data['psych_supp_active'])
+                fach_cnt = float(s_data['fach_supp_count'])
+                uebf_cnt = float(s_data['uebf_supp_count'])
+                psych_cnt = float(s_data['psych_supp_count'])
             else:
                 gpa, cp, fails = 3.0, 0.0, 0.0
-                fach_act, uebf_act, psych_act = 0.0, 0.0, 0.0
+                fach_cnt, uebf_cnt, psych_cnt = 0.0, 0.0, 0.0
                 
             cp_rueckstand = max(0.0, (sem - 1) * 30.0 - cum_cp_vorher)
             
             X_seq[i, t_idx, :] = [
                 gpa, cp, fails, cp_rueckstand,
-                fach_act, uebf_act, psych_act,
+                fach_cnt, uebf_cnt, psych_cnt,
                 float(row.hzb_note), float(row.erwerbstaetigkeit_std)
             ]
             
@@ -101,7 +101,7 @@ def build_competing_risks_dataset_delta(data_dir: Path, max_semesters: int = 16)
             y_dropout[i, t_idx, 0] = 1.0 if (sem == max_sem and is_dropout) else 0.0
             y_grad[i, t_idx, 0] = 1.0 if (sem == max_sem and is_grad) else 0.0
 
-    print(f"DeepHit Delta Tensor aufgebaut: X={X_seq.shape}")
+    print(f"DeepHit Delta Tensor aufgebaut (mit Zählung): X={X_seq.shape}")
     return studis, X_seq, y_dropout, y_grad, studi_events
 
 def train_dynamic_deephit_delta_model(data_dir: Path):

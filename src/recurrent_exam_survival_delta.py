@@ -39,20 +39,9 @@ def build_recurrent_exam_dataset_delta(data_dir: Path, max_exams: int = 50):
     df_abschluesse.columns = df_abschluesse.columns.str.strip()
     df_pruefungen.columns = df_pruefungen.columns.str.strip()
     
-    # Semester-lokale Support-Aktivität
-    pr_sem = df_pruefungen.groupby(['studierenden_id', 'fachsemester']).agg({
-        'support_glz_fachlich': 'max',
-        'support_glz_ueberfachlich': 'max',
-        'support_glz_psychosozial': 'max'
-    }).reset_index()
-    
-    sup_dict_fach = pr_sem.set_index(['studierenden_id', 'fachsemester'])['support_glz_fachlich'].to_dict()
-    sup_dict_uebf = pr_sem.set_index(['studierenden_id', 'fachsemester'])['support_glz_ueberfachlich'].to_dict()
-    sup_dict_psych = pr_sem.set_index(['studierenden_id', 'fachsemester'])['support_glz_psychosozial'].to_dict()
-    
     studis = df_abschluesse['studierenden_id'].unique()
     num_studis = len(studis)
-    n_features = 8 # note, cp, is_fail, fach_act, uebf_act, psych_act, hzb_note, erwerb_std
+    n_features = 12 # versuch, schwierigkeit, cp, is_fail, 6 count features, hzb, erwerb
     
     X_seq = np.full((num_studis, max_exams, n_features), PADDING_VALUE, dtype=np.float32)
     y_seq = np.full((num_studis, max_exams, 1), PADDING_VALUE, dtype=np.float32)
@@ -70,24 +59,29 @@ def build_recurrent_exam_dataset_delta(data_dir: Path, max_exams: int = 50):
         studi_events[i] = 1 if is_dropout else 0
         
         if s_id in df_pr_grouped.groups:
-            studi_pr = df_pr_grouped.get_group(s_id).copy()
+            studi_pr = df_pr_grouped.get_group(s_id).sort_values(['fachsemester', 'pruefung_id']).copy()
             num_p = min(len(studi_pr), max_exams)
             
             for k in range(num_p):
                 p_row = studi_pr.iloc[k]
-                sem = int(p_row['fachsemester'])
                 
-                note = float(p_row['note']) if not np.isnan(p_row['note']) else 3.0
-                cp = float(p_row['cp']) if bool(p_row['bestanden']) else 0.0
+                versuch = float(p_row['versuch'])
+                schwierigkeit = float(p_row['schwierigkeit'])
+                cp = float(p_row['cp'])
                 is_fail = 1.0 if not bool(p_row['bestanden']) else 0.0
                 
-                fach_act = 1.0 if sup_dict_fach.get((s_id, sem), 0) > 0 else 0.0
-                uebf_act = 1.0 if sup_dict_uebf.get((s_id, sem), 0) > 0 else 0.0
-                psych_act = 1.0 if sup_dict_psych.get((s_id, sem), 0) > 0 else 0.0
+                fach_vor = float(p_row['support_vorher_fachlich'])
+                fach_glz = float(p_row['support_glz_fachlich'])
+                uebf_vor = float(p_row['support_vorher_ueberfachlich'])
+                uebf_glz = float(p_row['support_glz_ueberfachlich'])
+                psych_vor = float(p_row['support_vorher_psychosozial'])
+                psych_glz = float(p_row['support_glz_psychosozial'])
                 
                 X_seq[i, k, :] = [
-                    note, cp, is_fail,
-                    fach_act, uebf_act, psych_act,
+                    versuch, schwierigkeit, cp, is_fail,
+                    fach_vor, fach_glz,
+                    uebf_vor, uebf_glz,
+                    psych_vor, psych_glz,
                     float(row_ab['hzb_note']), float(row_ab['erwerbstaetigkeit_std'])
                 ]
                 

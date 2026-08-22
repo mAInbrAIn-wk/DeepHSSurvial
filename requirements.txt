@@ -9,7 +9,7 @@ tensorflow==2.21.0
 
 # Survival Analysis & Statistics
 statsmodels==0.14.6
-lifelines==0.30.3
+#lifelines==0.30.3
 
 # Dashboard & Visualisierung
 dash==4.4.1

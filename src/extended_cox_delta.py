@@ -52,15 +52,10 @@ def build_delta_panel(data_dir: Path):
         'hidden_erwartete_note': 'mean'
     }).reset_index()
     
-    pr_sem['fachlich_act'] = (pr_sem['support_vorher_fachlich'] > 0) | (pr_sem['support_glz_fachlich'] > 0)
-    pr_sem['ueberfachlich_act'] = (pr_sem['support_vorher_ueberfachlich'] > 0) | (pr_sem['support_glz_ueberfachlich'] > 0)
-    pr_sem['psychosozial_act'] = (pr_sem['support_vorher_psychosozial'] > 0) | (pr_sem['support_glz_psychosozial'] > 0)
-    pr_sem['support_act'] = pr_sem['fachlich_act'] | pr_sem['ueberfachlich_act'] | pr_sem['psychosozial_act']
-    
-    sup_dict_fach = pr_sem.set_index(['studierenden_id', 'fachsemester'])['fachlich_act'].to_dict()
-    sup_dict_uebf = pr_sem.set_index(['studierenden_id', 'fachsemester'])['ueberfachlich_act'].to_dict()
-    sup_dict_psych = pr_sem.set_index(['studierenden_id', 'fachsemester'])['psychosozial_act'].to_dict()
-    sup_dict_any = pr_sem.set_index(['studierenden_id', 'fachsemester'])['support_act'].to_dict()
+    # Semester-lokale Zählvariablen (0, 1, 2, 3...)
+    sup_dict_fach = pr_sem.set_index(['studierenden_id', 'fachsemester'])['support_glz_fachlich'].to_dict()
+    sup_dict_uebf = pr_sem.set_index(['studierenden_id', 'fachsemester'])['support_glz_ueberfachlich'].to_dict()
+    sup_dict_psych = pr_sem.set_index(['studierenden_id', 'fachsemester'])['support_glz_psychosozial'].to_dict()
     
     cp_dict = pr_sem.set_index(['studierenden_id', 'fachsemester'])['cp_earned'].to_dict()
     fails_dict = pr_sem.set_index(['studierenden_id', 'fachsemester'])['is_fail'].to_dict()
@@ -69,7 +64,7 @@ def build_delta_panel(data_dir: Path):
     hsint_dict = pr_sem.set_index(['studierenden_id', 'fachsemester'])['hidden_soziale_integration'].to_dict()
     hen_dict = pr_sem.set_index(['studierenden_id', 'fachsemester'])['hidden_erwartete_note'].to_dict()
 
-    print("Baue Person-Semester Längsschnitt-Panel mit Delta-Features auf ...")
+    print("Baue Person-Semester Längsschnitt-Panel mit Delta-Features & Zählvariablen auf ...")
     panel_rows = []
     
     for idx, row in df_abschluesse.iterrows():
@@ -86,11 +81,11 @@ def build_delta_panel(data_dir: Path):
             t_stop = sem
             event_t = 1 if (sem == max_sem and is_event_final) else 0
             
-            # Semester-aktiver Support (lokale Exposition im Zeitfenster (t_start, t_stop])
-            fach_act = int(sup_dict_fach.get((s_id, sem), False))
-            uebf_act = int(sup_dict_uebf.get((s_id, sem), False))
-            psych_act = int(sup_dict_psych.get((s_id, sem), False))
-            any_act = int(sup_dict_any.get((s_id, sem), False))
+            # Semester-lokale Support-Zählung (Dosis im Zeitfenster (t_start, t_stop])
+            fach_cnt = int(sup_dict_fach.get((s_id, sem), 0))
+            uebf_cnt = int(sup_dict_uebf.get((s_id, sem), 0))
+            psych_cnt = int(sup_dict_psych.get((s_id, sem), 0))
+            any_cnt = fach_cnt + uebf_cnt + psych_cnt
             
             # Dynamische Deltas / Vorsemester-Werte (t-1)
             fails_prev = fails_dict.get((s_id, sem - 1), 0) if sem > 1 else 0
@@ -107,10 +102,14 @@ def build_delta_panel(data_dir: Path):
                 't_start': t_start,
                 't_stop': t_stop,
                 'event': event_t,
-                'fach_supp_active': fach_act,
-                'uebf_supp_active': uebf_act,
-                'psych_supp_active': psych_act,
-                'any_supp_active': any_act,
+                'fach_supp_count': fach_cnt,
+                'uebf_supp_count': uebf_cnt,
+                'psych_supp_count': psych_cnt,
+                'any_supp_count': any_cnt,
+                # Alias für Rückwärtskompatibilität
+                'fach_supp_active': fach_cnt,
+                'uebf_supp_active': uebf_cnt,
+                'psych_supp_active': psych_cnt,
                 'fails_prev': fails_prev,
                 'delta_cp_prev': delta_cp_prev,
                 'cp_rueckstand': cp_rueckstand,
@@ -134,13 +133,13 @@ def build_delta_panel(data_dir: Path):
 
 def fit_extended_cox_delta(panel_df, base_dir=None):
     print("\n==========================================================================")
-    print("   EXTENDED COX MODEL (DELTA & ACTIVE SUPPORT FEATURES)")
+    print("   EXTENDED COX MODEL (DELTA & SUPPORT COUNT FEATURES)")
     print("==========================================================================")
     
     model_df = panel_df.dropna(subset=['hzb_note', 'erwerbstaetigkeit_std', 'erstakademiker', 'fails_prev', 'delta_cp_prev', 'cp_rueckstand']).copy()
     print(f"Schätze Modell mit {len(model_df)} Zeilen...")
     
-    formel = "t_stop ~ fach_supp_active + uebf_supp_active + psych_supp_active + fails_prev + delta_cp_prev + cp_rueckstand + hzb_note + erwerbstaetigkeit_std + erstakademiker"
+    formel = "t_stop ~ fach_supp_count + uebf_supp_count + psych_supp_count + fails_prev + delta_cp_prev + cp_rueckstand + hzb_note + erwerbstaetigkeit_std + erstakademiker"
     
     try:
         cox_mod = smf.phreg(
@@ -161,14 +160,13 @@ def fit_extended_cox_delta(panel_df, base_dir=None):
     params_s = pd.Series(results.params, index=results.model.exog_names)
     hr = np.exp(params_s)
     
-    print("\nExtrahierte Hazard Ratios:")
+    print("\nExtrahierte Hazard Ratios (pro Teilnahme):")
     for var_name, value in hr.items():
         print(f"  • {var_name:<20}: HR = {value:.4f}")
         
     print("\n--- DIAGNOSE: PROPORTIONAL HAZARDS ANNAHME (SCHOENFELD RESIDUEN) ---")
     try:
         schoenfeld = results.schoenfeld_residuals
-        # Filtere NaNs (Schoenfeld-Residuen sind nur an Event-Zeiten definiert)
         valid_mask = ~np.isnan(schoenfeld[:, 0])
         sch_valid = schoenfeld[valid_mask]
         print(f"Schoenfeld-Residuen erfolgreich berechnet ({sch_valid.shape[0]} Ereignis-Zeitpunkte x {sch_valid.shape[1]} Prädiktoren).")
@@ -181,9 +179,12 @@ def fit_extended_cox_delta(panel_df, base_dir=None):
         
     if base_dir:
         metrics_dict = {
-            "Support_HR_Fach_active": float(hr.get('fach_supp_active', 1.0)),
-            "Support_HR_Uebf_active": float(hr.get('uebf_supp_active', 1.0)),
-            "Support_HR_Psych_active": float(hr.get('psych_supp_active', 1.0)),
+            "Support_HR_Fach_count": float(hr.get('fach_supp_count', 1.0)),
+            "Support_HR_Uebf_count": float(hr.get('uebf_supp_count', 1.0)),
+            "Support_HR_Psych_count": float(hr.get('psych_supp_count', 1.0)),
+            "Support_HR_Fach_active": float(hr.get('fach_supp_count', 1.0)),
+            "Support_HR_Uebf_active": float(hr.get('uebf_supp_count', 1.0)),
+            "Support_HR_Psych_active": float(hr.get('psych_supp_count', 1.0)),
             "HR_fails_prev": float(hr.get('fails_prev', 1.0)),
             "HR_delta_cp_prev": float(hr.get('delta_cp_prev', 1.0)),
             "HR_cp_rueckstand": float(hr.get('cp_rueckstand', 1.0))

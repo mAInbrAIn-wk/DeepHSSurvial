@@ -66,7 +66,7 @@ def train_extended_deep_survival(data_dir: Path):
     # Feature-Auswahl für neuronale Modelle
     num_cols = ['hzb_note', 'erwerbstaetigkeit_std', 't_stop', 't_start', 'cum_cp', 'cum_fails']
     cat_cols = ['stg_name', 'erstakademiker']
-    treatment_cols = ['fach_supp_tv', 'uebf_supp_tv', 'psych_supp_tv']
+    treatment_cols = ['fach_supp_count', 'uebf_supp_count', 'psych_supp_count']
     
     feature_cols = num_cols + cat_cols + treatment_cols
     

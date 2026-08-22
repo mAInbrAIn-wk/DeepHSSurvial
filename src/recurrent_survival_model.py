@@ -57,26 +57,32 @@ def build_recurrent_survival_dataset(data_dir: Path, max_semesters: int = 16, bl
     df_abschluesse.columns = df_abschluesse.columns.str.strip()
     df_pruefungen.columns = df_pruefungen.columns.str.strip()
     
-    # Semesterweise Aggregation pro Student & Semester
+    df_pruefungen['cp_earned'] = np.where(df_pruefungen['bestanden'], df_pruefungen['cp'], 0)
+    df_pruefungen['is_fail'] = np.where(~df_pruefungen['bestanden'], 1, 0)
+    
+    # Semesterweise Aggregation pro Student & Semester (mit Summen für Dosis-Zählung)
     sem_agg = df_pruefungen.groupby(['studierenden_id', 'fachsemester']).agg(
         sem_gpa=('note', 'mean'),
-        sem_cp=('cp', lambda x: df_pruefungen.loc[x.index[df_pruefungen.loc[x.index, 'bestanden']], 'cp'].sum()),
-        sem_fails=('bestanden', lambda x: (~x).sum()),
-        fach_supp=('support_glz_fachlich', 'max'),
-        uebf_supp=('support_glz_ueberfachlich', 'max'),
-        psych_supp=('support_glz_psychosozial', 'max')
+        sem_cp=('cp_earned', 'sum'),
+        sem_fails=('is_fail', 'sum'),
+        fach_supp=('support_glz_fachlich', 'sum'),
+        uebf_supp=('support_glz_ueberfachlich', 'sum'),
+        psych_supp=('support_glz_psychosozial', 'sum')
     ).reset_index()
     
     # Preprocessor für 2D Feature-Matrix
-    demog_df = df_abschluesse[['studierenden_id', 'hzb_note', 'erwerbstaetigkeit_std', 'erstakademiker', 'stg_name', 'status', 'studiendauer_semester']].copy()
+    demog_cols = ['studierenden_id', 'hzb_note', 'erwerbstaetigkeit_std', 'erstakademiker', 'stg_name', 'status', 'studiendauer_semester']
+    if 'migrationshintergrund' in df_abschluesse.columns:
+        demog_cols.append('migrationshintergrund')
+    demog_df = df_abschluesse[demog_cols].copy()
     
-    print("Erstelle 3D Sequence Array (N_studis, T_max, N_features) ...")
+    print("Erstelle 3D Sequence Array (N_studis, T_max, N_features=13) ...")
     studis = demog_df['studierenden_id'].unique()
     num_studis = len(studis)
     
-    # 8 Features pro Semesterschritt:
-    # [sem_gpa, sem_cp, sem_fails, fach_supp_cum, uebf_supp_cum, psych_supp_cum, hzb_note, erwerb_std]
-    n_features = 8
+    # 13 Features pro Semesterschritt:
+    # [gpa, cp, fails, cp_rueckstand, fach_cnt, uebf_cnt, psych_cnt, hzb, erw, erst, cum_fails_vor, delta_gpa, mig]
+    n_features = 13
     
     X_seq = np.full((num_studis, max_semesters, n_features), PADDING_VALUE, dtype=np.float32)
     y_seq = np.full((num_studis, max_semesters, 1), PADDING_VALUE, dtype=np.float32)
@@ -91,38 +97,51 @@ def build_recurrent_survival_dataset(data_dir: Path, max_semesters: int = 16, bl
         is_dropout = status in ['abgebrochen', 'exmatrikuliert', 'zeitueberschreitung']
         studi_events[i] = 1 if is_dropout else 0
         
-        cum_fach, cum_uebf, cum_psych = 0.0, 0.0, 0.0
+        cum_cp_vorher = 0.0
+        cum_fails_vorher = 0.0
         
         for sem in range(1, max_sem + 1):
             t_idx = sem - 1
             
-            # Hole Semester-Features
+            # Hole Semester-Features (lokale Zählungen)
             if (s_id, sem) in sem_lookup.index:
                 s_data = sem_lookup.loc[(s_id, sem)]
                 gpa = float(s_data['sem_gpa']) if not np.isnan(s_data['sem_gpa']) else 3.0
                 cp = float(s_data['sem_cp'])
                 fails = float(s_data['sem_fails'])
-                if s_data['fach_supp'] > 0: cum_fach = 1.0
-                if s_data['uebf_supp'] > 0: cum_uebf = 1.0
-                if s_data['psych_supp'] > 0: cum_psych = 1.0
+                fach_cnt = float(s_data['fach_supp'])
+                uebf_cnt = float(s_data['uebf_supp'])
+                psych_cnt = float(s_data['psych_supp'])
             else:
                 gpa, cp, fails = 3.0, 0.0, 0.0
+                fach_cnt, uebf_cnt, psych_cnt = 0.0, 0.0, 0.0
                 
+            cp_rueckstand = max(0.0, (sem - 1) * 30.0 - cum_cp_vorher)
             hzb = float(row.hzb_note)
+            erw = float(row.erwerbstaetigkeit_std)
+            erst = 1.0 if bool(row.erstakademiker) else 0.0
+            delta_gpa = gpa - hzb
+            mig = 1.0 if ('migrationshintergrund' in demog_df.columns and bool(getattr(row, 'migrationshintergrund', False))) else 0.0
+            
             if blind:
                 gpa = 0.0
                 hzb = 0.0
+                delta_gpa = 0.0
                 
             X_seq[i, t_idx, :] = [
-                gpa, cp, fails, cum_fach, cum_uebf, cum_psych,
-                hzb, float(row.erwerbstaetigkeit_std)
+                gpa, cp, fails, cp_rueckstand,
+                fach_cnt, uebf_cnt, psych_cnt,
+                hzb, erw, erst, cum_fails_vorher, delta_gpa, mig
             ]
+            
+            cum_cp_vorher += cp
+            cum_fails_vorher += fails
             
             # Target: 1 im letzten Semester des Dropouts, sonst 0
             event_val = 1.0 if (sem == max_sem and is_dropout) else 0.0
             y_seq[i, t_idx, 0] = event_val
 
-    print(f"3D Tensor erfolgreich aufgebaut (blind={blind}): X={X_seq.shape}, y={y_seq.shape}")
+    print(f"3D Tensor erfolgreich aufgebaut (13 Features, blind={blind}): X={X_seq.shape}, y={y_seq.shape}")
     return studis, X_seq, y_seq, studi_events
 
 def train_recurrent_survival_model(data_dir: Path, blind: bool = False):

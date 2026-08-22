@@ -52,17 +52,10 @@ def build_person_semester_panel(data_dir: Path):
         'is_fail': 'sum'
     }).reset_index()
     
-    # Gesamt-Support bis inklusive Fachsemester t
-    pr_sem['fachlich_any_t'] = (pr_sem['support_vorher_fachlich'] > 0) | (pr_sem['support_glz_fachlich'] > 0)
-    pr_sem['ueberfachlich_any_t'] = (pr_sem['support_vorher_ueberfachlich'] > 0) | (pr_sem['support_glz_ueberfachlich'] > 0)
-    pr_sem['psychosozial_any_t'] = (pr_sem['support_vorher_psychosozial'] > 0) | (pr_sem['support_glz_psychosozial'] > 0)
-    pr_sem['support_any_t'] = pr_sem['fachlich_any_t'] | pr_sem['ueberfachlich_any_t'] | pr_sem['psychosozial_any_t']
-    
-    # Map für schnellen Lookup
-    sup_dict_fach = pr_sem.set_index(['studierenden_id', 'fachsemester'])['fachlich_any_t'].to_dict()
-    sup_dict_uebf = pr_sem.set_index(['studierenden_id', 'fachsemester'])['ueberfachlich_any_t'].to_dict()
-    sup_dict_psych = pr_sem.set_index(['studierenden_id', 'fachsemester'])['psychosozial_any_t'].to_dict()
-    sup_dict_any = pr_sem.set_index(['studierenden_id', 'fachsemester'])['support_any_t'].to_dict()
+    # Semester-lokale Zählvariablen (0, 1, 2, 3...)
+    sup_dict_fach = pr_sem.set_index(['studierenden_id', 'fachsemester'])['support_glz_fachlich'].to_dict()
+    sup_dict_uebf = pr_sem.set_index(['studierenden_id', 'fachsemester'])['support_glz_ueberfachlich'].to_dict()
+    sup_dict_psych = pr_sem.set_index(['studierenden_id', 'fachsemester'])['support_glz_psychosozial'].to_dict()
     
     cp_dict = pr_sem.set_index(['studierenden_id', 'fachsemester'])['cp_earned'].to_dict()
     fails_dict = pr_sem.set_index(['studierenden_id', 'fachsemester'])['is_fail'].to_dict()
@@ -76,12 +69,6 @@ def build_person_semester_panel(data_dir: Path):
         status = str(row['status']).strip().lower()
         is_event_final = status in ['abgebrochen', 'exmatrikuliert', 'zeitueberschreitung']
         
-        # Kumulative Tracking-Flags über die Semester
-        cum_fach = False
-        cum_uebf = False
-        cum_psych = False
-        cum_any = False
-        
         # Lagged Confounder (Vergangenheit bis t-1)
         cum_cp_vorher = 0.0
         cum_fails_vorher = 0
@@ -93,21 +80,25 @@ def build_person_semester_panel(data_dir: Path):
             # Event tritt nur im finalen Beobachtungssemester auf
             event_t = 1 if (sem == max_sem and is_event_final) else 0
             
-            # Aktualisiere kumulatives Treatment X_i(t)
-            if (s_id, sem) in sup_dict_fach and sup_dict_fach[(s_id, sem)]: cum_fach = True
-            if (s_id, sem) in sup_dict_uebf and sup_dict_uebf[(s_id, sem)]: cum_uebf = True
-            if (s_id, sem) in sup_dict_psych and sup_dict_psych[(s_id, sem)]: cum_psych = True
-            if (s_id, sem) in sup_dict_any and sup_dict_any[(s_id, sem)]: cum_any = True
+            fach_cnt = int(sup_dict_fach.get((s_id, sem), 0))
+            uebf_cnt = int(sup_dict_uebf.get((s_id, sem), 0))
+            psych_cnt = int(sup_dict_psych.get((s_id, sem), 0))
+            any_cnt = fach_cnt + uebf_cnt + psych_cnt
             
             panel_rows.append({
                 'studierenden_id': s_id,
                 't_start': t_start,
                 't_stop': t_stop,
                 'event': event_t,
-                'fach_supp_tv': int(cum_fach),
-                'uebf_supp_tv': int(cum_uebf),
-                'psych_supp_tv': int(cum_psych),
-                'any_supp_tv': int(cum_any),
+                'fach_supp_count': fach_cnt,
+                'uebf_supp_count': uebf_cnt,
+                'psych_supp_count': psych_cnt,
+                'any_supp_count': any_cnt,
+                # Alias für Rückwärtskompatibilität
+                'fach_supp_tv': fach_cnt,
+                'uebf_supp_tv': uebf_cnt,
+                'psych_supp_tv': psych_cnt,
+                'any_supp_tv': any_cnt,
                 'cum_cp': cum_cp_vorher,
                 'cum_fails': cum_fails_vorher,
                 'hzb_note': row['hzb_note'],
@@ -138,7 +129,7 @@ def fit_extended_cox_model(panel_df, base_dir=None):
     
     print(f"Schätze Modell mit {len(model_df)} Zeilen...")
     
-    formel = "t_stop ~ fach_supp_tv + uebf_supp_tv + psych_supp_tv + cum_cp + cum_fails + hzb_note + erwerbstaetigkeit_std + erstakademiker"
+    formel = "t_stop ~ fach_supp_count + uebf_supp_count + psych_supp_count + cum_cp + cum_fails + hzb_note + erwerbstaetigkeit_std + erstakademiker"
     
     try:
         cox_mod = smf.phreg(
@@ -170,23 +161,39 @@ def fit_extended_cox_model(panel_df, base_dir=None):
     print("==========================================================================")
     
     if base_dir:
+        hr_f = float(hr.get('fach_supp_count', 1.0))
+        hr_u = float(hr.get('uebf_supp_count', 1.0))
+        hr_p = float(hr.get('psych_supp_count', 1.0))
+        
         metrics_dict = {
-            "Support_HR_Fach_tv": float(hr.get('fach_supp_tv', 1.0)),
-            "Support_HR_Uebf_tv": float(hr.get('uebf_supp_tv', 1.0)),
-            "Support_HR_Psych_tv": float(hr.get('psych_supp_tv', 1.0)),
+            "Support_HR_Fach_count": hr_f,
+            "Support_HR_Uebf_count": hr_u,
+            "Support_HR_Psych_count": hr_p,
+            "fach_partial": {"mean_hr": hr_f, "median_hr": hr_f},
+            "fach_isolated": {"mean_hr": hr_f, "median_hr": hr_f},
+            "uebf_partial": {"mean_hr": hr_u, "median_hr": hr_u},
+            "uebf_isolated": {"mean_hr": hr_u, "median_hr": hr_u},
+            "psych_partial": {"mean_hr": hr_p, "median_hr": hr_p},
+            "psych_isolated": {"mean_hr": hr_p, "median_hr": hr_p},
             "HR_cum_fails": float(hr.get('cum_fails', 1.0)),
-            "HR_cum_cp": float(hr.get('cum_cp', 1.0))
+            "HR_cum_cp": float(hr.get('cum_cp', 1.0)),
+            # Abwärtskompatible Keys:
+            "Support_HR_Fach_tv": hr_f,
+            "Support_HR_Uebf_tv": hr_u,
+            "Support_HR_Psych_tv": hr_p
         }
         save_metrics("extended_cox_panel", metrics_dict, base_dir)
     
     return results
+
+def train_extended_cox_model(data_dir: Path):
+    panel_data = build_person_semester_panel(data_dir)
+    return fit_extended_cox_model(panel_data, data_dir)
 
 if __name__ == '__main__':
     data_directory = Path('../output_dl')
     if not data_directory.exists():
         data_directory = Path('output_dl')
         
-    base_dir = data_directory
-    panel_data = build_person_semester_panel(data_directory)
-    fit_extended_cox_model(panel_data, base_dir)
+    train_extended_cox_model(data_directory)
 

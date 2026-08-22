@@ -30,7 +30,7 @@ def analyze_counterfactual_rr_logistic_hazard_delta(data_dir: Path):
     
     num_cols = ['hzb_note', 'erwerbstaetigkeit_std', 't_stop', 't_start', 'fails_prev', 'delta_cp_prev', 'cp_rueckstand']
     cat_cols = ['stg_name', 'erstakademiker']
-    treatment_cols = ['fach_supp_active', 'uebf_supp_active', 'psych_supp_active']
+    treatment_cols = ['fach_supp_count', 'uebf_supp_count', 'psych_supp_count']
     
     feature_cols = num_cols + cat_cols + treatment_cols
     
@@ -57,53 +57,58 @@ def analyze_counterfactual_rr_logistic_hazard_delta(data_dir: Path):
 
     metrics_all = {}
 
-    for supp_col, label in [
-        ('fach_supp_active',  'Fachlicher Support (aktives Semester)'),
-        ('uebf_supp_active',  'Überfachlicher Support (aktives Semester)'),
-        ('psych_supp_active', 'Psychosozialer Support (aktives Semester)'),
+    for supp_col, prefix, label in [
+        ('fach_supp_count',  'fach',  'Fachlicher Support'),
+        ('uebf_supp_count',  'uebf',  'Überfachlicher Support'),
+        ('psych_supp_count', 'psych', 'Psychosozialer Support'),
     ]:
-        control = test_panel.copy()
-        treated = test_panel.copy()
-        control['fach_supp_active'] = 0.0
-        control['uebf_supp_active'] = 0.0
-        control['psych_supp_active'] = 0.0
+        # 1. PARTIELL (≙ A vs C/D/E): Ziel-Support 0 vs. beobachtet, andere beobachtet
+        control_part = test_panel.copy()
+        treated_part = test_panel.copy()
+        control_part[supp_col] = 0
         
-        treated['fach_supp_active'] = 0.0
-        treated['uebf_supp_active'] = 0.0
-        treated['psych_supp_active'] = 0.0
-        treated[supp_col] = 1.0
-
-        X_c = preprocessor.transform(control[feature_cols])
-        X_t = preprocessor.transform(treated[feature_cols])
-
-        p0 = model.predict(X_c, verbose=0).flatten()
-        p1 = model.predict(X_t, verbose=0).flatten()
-
-        p0_safe = np.clip(p0, 1e-7, 1.0)
-        rrs = p1 / p0_safe
+        X_c_p = preprocessor.transform(control_part[feature_cols])
+        X_t_p = preprocessor.transform(treated_part[feature_cols])
+        p0_p = model.predict(X_c_p, verbose=0).flatten()
+        p1_p = model.predict(X_t_p, verbose=0).flatten()
+        rrs_p = p1_p / np.clip(p0_p, 1e-7, 1.0)
         
-        mean_rr   = float(np.mean(rrs))
-        median_rr = float(np.median(rrs))
-        min_rr    = float(np.min(rrs))
-        max_rr    = float(np.max(rrs))
-        q05       = float(np.quantile(rrs, 0.05))
-        q95       = float(np.quantile(rrs, 0.95))
+        mean_rr_p   = float(np.mean(rrs_p))
+        median_rr_p = float(np.median(rrs_p))
+        q05_p       = float(np.quantile(rrs_p, 0.05))
+        q95_p       = float(np.quantile(rrs_p, 0.95))
+        
+        # 2. ISOLIERT REALISTISCH (≙ B vs F/G/H): Alle 0 vs. nur Ziel beobachtet, andere 0
+        control_iso = test_panel.copy()
+        treated_iso = test_panel.copy()
+        for c in treatment_cols:
+            control_iso[c] = 0
+            treated_iso[c] = 0
+        treated_iso[supp_col] = test_panel[supp_col] # beobachtete Dosis
+        
+        X_c_i = preprocessor.transform(control_iso[feature_cols])
+        X_t_i = preprocessor.transform(treated_iso[feature_cols])
+        p0_i = model.predict(X_c_i, verbose=0).flatten()
+        p1_i = model.predict(X_t_i, verbose=0).flatten()
+        rrs_i = p1_i / np.clip(p0_i, 1e-7, 1.0)
+        
+        mean_rr_i   = float(np.mean(rrs_i))
+        median_rr_i = float(np.median(rrs_i))
+        q05_i       = float(np.quantile(rrs_i, 0.05))
+        q95_i       = float(np.quantile(rrs_i, 0.95))
 
         print(f"\n--- {label} ({supp_col}) ---")
-        print(f"  Mean RR:     {mean_rr:.4f}")
-        print(f"  Median RR:   {median_rr:.4f}")
-        print(f"  Min / Max:   {min_rr:.4f} / {max_rr:.4f}")
-        print(f"  5%–95% CI:   [{q05:.4f}, {q95:.4f}]")
-        direction = "senkt" if median_rr < 1.0 else "ERHÖHT"
-        print(f"  -> Median RR {direction} das Abbruchrisiko {'um ' + f'{(1-median_rr)*100:.1f}%' if median_rr < 1.0 else 'um ' + f'{(median_rr-1)*100:.1f}%'}.")
+        print(f"  PARTIELL:           Mean RR = {mean_rr_p:.4f}, Median RR = {median_rr_p:.4f} [{q05_p:.4f}, {q95_p:.4f}]")
+        print(f"  ISOLIERT (realist): Mean RR = {mean_rr_i:.4f}, Median RR = {median_rr_i:.4f} [{q05_i:.4f}, {q95_i:.4f}]")
 
-        prefix = supp_col.replace('_supp_active', '')
-        metrics_all[f"Mean_RR_{prefix}"]   = mean_rr
-        metrics_all[f"Median_RR_{prefix}"] = median_rr
-        metrics_all[f"Min_RR_{prefix}"]    = min_rr
-        metrics_all[f"Max_RR_{prefix}"]    = max_rr
-        metrics_all[f"Q05_RR_{prefix}"]    = q05
-        metrics_all[f"Q95_RR_{prefix}"]    = q95
+        metrics_all[f"{prefix}_partial"] = {"mean_rr": mean_rr_p, "median_rr": median_rr_p, "q05": q05_p, "q95": q95_p}
+        metrics_all[f"{prefix}_isolated"] = {"mean_rr": mean_rr_i, "median_rr": median_rr_i, "q05": q05_i, "q95": q95_i}
+        
+        # Abwärtskompatible Keys
+        metrics_all[f"Mean_RR_{prefix}"]   = mean_rr_p
+        metrics_all[f"Median_RR_{prefix}"] = median_rr_p
+        metrics_all[f"Q05_RR_{prefix}"]    = q05_p
+        metrics_all[f"Q95_RR_{prefix}"]    = q95_p
 
     print("\n" + "=" * 74)
     save_metrics("counterfactual_rr_logistic_hazard_delta", metrics_all, data_dir)

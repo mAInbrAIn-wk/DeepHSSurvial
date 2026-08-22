@@ -29,5 +29,41 @@
         "vs_A_absolute_diff": -0.013979999999999992,
         "vs_A_relative_risk": 0.9514043381535039,
         "vs_A_relative_reduction_pct": 4.85956618464961
+    },
+    "universe_F": {
+        "label": "Nur fachlicher Support (uebf & psych blockiert)",
+        "dropout_rate": 0.30788,
+        "vs_B_absolute_diff": -0.015580000000000038,
+        "vs_B_relative_risk": 0.9518333024176094,
+        "vs_B_relative_reduction_pct": 4.8166697582390565
+    },
+    "universe_G": {
+        "label": "Nur \u00fcberfachlicher Support (fach & psych blockiert)",
+        "dropout_rate": 0.30136,
+        "vs_B_absolute_diff": -0.02210000000000001,
+        "vs_B_relative_risk": 0.9316762505410251,
+        "vs_B_relative_reduction_pct": 6.83237494589749
+    },
+    "universe_H": {
+        "label": "Nur psychosozialer Support (fach & uebf blockiert)",
+        "dropout_rate": 0.30638,
+        "vs_B_absolute_diff": -0.01708000000000004,
+        "vs_B_relative_risk": 0.9471959438570455,
+        "vs_B_relative_reduction_pct": 5.2804056142954465
+    },
+    "ground_truth_summary": {
+        "partial_vs_A": {
+            "description": "Partieller Effekt des Wegnehmens (A vs. C/D/E): R_A / R_ohne",
+            "RR_fachlich_partial": 0.9579308413831724,
+            "RR_ueberfachlich_partial": 0.9387433118397586,
+            "RR_psychosozial_partial": 0.9514043381535039,
+            "RR_all_partial": 0.8461633586842268
+        },
+        "isolated_vs_B": {
+            "description": "Isolierter Effekt des Alleinseins (B vs. F/G/H): R_nur / R_B",
+            "RR_fachlich_isolated": 0.9518333024176094,
+            "RR_ueberfachlich_isolated": 0.9316762505410251,
+            "RR_psychosozial_isolated": 0.9471959438570455
+        }
     }
 }

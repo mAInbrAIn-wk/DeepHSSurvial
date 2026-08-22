@@ -223,21 +223,27 @@ Alle nachfolgenden Skripte implementieren kontrafaktische Simulationen nach dem 
 | 10 | [`counterfactual_inference.py`](file:///c:/GitHub_public/Abschlussprojekt/src/counterfactual_inference.py) | `recurrent_exam_survival.keras` | Kontrafaktische HR-Berechnung auf dem Base Prüfungs-GRU Sequenzmodell. | Evaluierung der Prüfungs-Dropout Dynamik. |
 | 11 | [`counterfactual_rr_exam_rnn_delta.py`](file:///c:/GitHub_public/Abschlussprojekt/src/counterfactual_rr_exam_rnn_delta.py) | `recurrent_exam_survival_delta.keras` | Kontrafaktische RR-Berechnung auf dem Prüfungs-GRU Delta Modell. | Speichert `counterfactual_rr_exam_rnn_delta_metrics.json`. |
 | 12 | [`counterfactual_rnn.py`](file:///c:/GitHub_public/Abschlussprojekt/src/counterfactual_rnn.py) | `recurrent_exam_survival_v2.keras` | Kontrafaktische Global-Simulation (All-Support vs. No-Support) auf Exam V2. | Konsolenausgabe des aggregierten RR. |
-| 13 | [`counterfactual_rnn_delta.py`](file:///c:/GitHub_public/Abschlussprojekt/src/counterfactual_rnn_delta.py) | `recurrent_exam_survival_v2.keras` | Differenzierte RR-Berechnung pro Support-Typ auf Exam V2. | Speichert `counterfactual_rr_rnn_delta_metrics.json`. |
+| 13 | [`counterfactual_rnn_delta.py`](file:///c:/GitHub_public/Abschlussprojekt/src/counterfactual_rnn_delta.py) | `recurrent_exam_survival_v2.keras` | Differenzierte RR-Berechnung pro Support-Typ auf Exam V2 (Dual-Strang). | Speichert `counterfactual_rnn_delta_metrics.json`. |
+| 14 | [`counterfactual_oracle_logistic_hazard.py`](file:///c:/GitHub_public/Abschlussprojekt/src/counterfactual_oracle_logistic_hazard.py) | `oracle_logistic_hazard.keras` | Kontrafaktische RR-Analyse mit latenten Variablen (Motivation, Integration, Erwartete Note). | Speichert `counterfactual_oracle_logistic_hazard_metrics.json`. |
+| 15 | [`counterfactual_oracle_deepsurv.py`](file:///c:/GitHub_public/Abschlussprojekt/src/counterfactual_oracle_deepsurv.py) | `oracle_deepsurv.keras` | Kontrafaktische HR-Analyse mit latenten Variablen (Dual-Strang). | Speichert `counterfactual_oracle_deepsurv_metrics.json`. |
+| 16 | [`counterfactual_grade_transformer.py`](file:///c:/GitHub_public/Abschlussprojekt/src/counterfactual_grade_transformer.py) | `deep_exam_transformer_regressor.keras` | Kontrafaktische Noteneffekt-Evaluation ($\Delta\text{Note}$) auf dem Exam Transformer Regressor. | Speichert `counterfactual_grade_transformer_metrics.json`. |
 
 ---
 
 ## 4. Detailliertes Register: Simulation, Analyse & Hilfsmodule (Kategorien C, D, E)
 
 ### C. Simulation & Universen-Generierung
-- [`simulation_v3.py`](file:///c:/GitHub_public/Abschlussprojekt/src/simulation_v3.py): **Aktueller Simulationskern (V3.3)** mit 4 isolierten RNG-Streams (`rng_init`, `rng_support`, `rng_social`, `rng_dropout`), positionsunabhängigem Prüfungs-Noise Hash, Carry-Over Support-Mechanik und 5 parallelen Universen (A = Baseline, B = Kein Support, C = Kein Fach-Support, D = Kein ÜF-Support, E = Kein Psych-Support).
+- [`simulation_v3.py`](file:///c:/GitHub_public/Abschlussprojekt/src/simulation_v3.py): **Aktueller Simulationskern (V3.3)** mit 4 isolierten RNG-Streams (`rng_init`, `rng_support`, `rng_social`, `rng_dropout`), positionsunabhängigem Prüfungs-Noise Hash, Carry-Over Support-Mechanik und 8 parallelen Universen (A bis H für Dual-Strang Benchmark).
 - [`simulation_v2.py`](file:///c:/GitHub_public/Abschlussprojekt/src/simulation_v2.py) & [`simulation.py`](file:///c:/GitHub_public/Abschlussprojekt/src/simulation.py): Frühere Simulationskerne (V2 und V1) zur Reproduktion historischer Benchmark-Läufe.
-- [`calculate_true_effect.py`](file:///c:/GitHub_public/Abschlussprojekt/src/calculate_true_effect.py): Berechnet die exakte Ground Truth (ATE, ATT, RR) durch kontrafaktischen Abgleich identischer Studierender zwischen Universum A und B/C/D/E.
+- [`calculate_true_effect.py`](file:///c:/GitHub_public/Abschlussprojekt/src/calculate_true_effect.py): Berechnet die exakte Ground Truth (ATE, ATT, RR) durch kontrafaktischen Abgleich identischer Studierender zwischen Universum A und B/C/D/E sowie F/G/H.
+- [`extract_grade_duration_gt.py`](file:///c:/GitHub_public/Abschlussprojekt/src/extract_grade_duration_gt.py): Extrahiert die Ground Truth für Noteneffekte, Bestehensquoten und Dropout-Studiendauern über alle Universen A–H.
 - [`export.py`](file:///c:/GitHub_public/Abschlussprojekt/src/export.py): Konvertiert simulierte Objektstrukturen in relationale Pandas DataFrames und CSV-Dateien.
 - [`aggregate.py`](file:///c:/GitHub_public/Abschlussprojekt/src/aggregate.py): Erzeugt aggregierte Analyse- und Featuretabellen (`agg_abschluesse.csv`, `agg_pruefungen.csv`, `agg_einschreibungen.csv`).
 - [`validate.py`](file:///c:/GitHub_public/Abschlussprojekt/src/validate.py): Umfassende Integritätsprüfung aller exportierten CSV-Dateien auf Konsistenz, Wertebereiche und fehlende Werte.
 
 ### D. Spezialisierte Analyseskripte
+- [`grade_effect_linear.py`](file:///c:/GitHub_public/Abschlussprojekt/src/grade_effect_linear.py): Cluster-robuste OLS-Regression auf Prüfungsebene zur Schätzung des Kausaleffekts auf Noten.
+- [`pass_rate_analysis.py`](file:///c:/GitHub_public/Abschlussprojekt/src/pass_rate_analysis.py): Logistische Regression auf Prüfungsebene zur Schätzung des Kausaleffekts auf Bestehensquoten (Odds Ratios + pp-Lift).
 - [`analyze_support_effects.py`](file:///c:/GitHub_public/Abschlussprojekt/src/analyze_support_effects.py): Tiefenanalyse der Support-Nutzung, Selektionseffekte und Teilnahmewahrscheinlichkeiten.
 - [`analyze_grade_effects.py`](file:///c:/GitHub_public/Abschlussprojekt/src/analyze_grade_effects.py): Empirische Überprüfung des Noten-Lifts durch fachlichen Support.
 - [`plot_breakeven.py`](file:///c:/GitHub_public/Abschlussprojekt/src/plot_breakeven.py) & [`analyze_time_amortization.py`](file:///c:/GitHub_public/Abschlussprojekt/src/analyze_time_amortization.py): Analyse des Trade-Offs zwischen investierter Support-Zeit (30h) und ersparter Prüfungswiederholungszeit.

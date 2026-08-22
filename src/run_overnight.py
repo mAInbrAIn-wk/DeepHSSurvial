@@ -81,6 +81,9 @@ def main():
             "C": {"label": "Kein fachlicher Support",           "block_fach": True,  "block_uebf": False, "block_psych": False},
             "D": {"label": "Kein ueberfachlicher Support",      "block_fach": False, "block_uebf": True,  "block_psych": False},
             "E": {"label": "Kein psychosozialer Support",       "block_fach": False, "block_uebf": False, "block_psych": True},
+            "F": {"label": "Nur fachlicher Support",            "block_fach": False, "block_uebf": True,  "block_psych": True},
+            "G": {"label": "Nur ueberfachlicher Support",       "block_fach": True,  "block_uebf": False, "block_psych": True},
+            "H": {"label": "Nur psychosozialer Support",        "block_fach": True,  "block_uebf": True,  "block_psych": False},
         }
         
         results = {}
@@ -113,24 +116,44 @@ def main():
         
         # Makro-Effekte speichern
         rate_A = results["A"]["dropout_rate"]
-        macro_effects = {"universe_A_baseline": {"dropout_rate": rate_A}}
-        for uni_key in ["B", "C", "D", "E"]:
-            rate_X = results[uni_key]["dropout_rate"]
-            rr = rate_A / rate_X if rate_X > 0 else 1.0
-            macro_effects[f"universe_{uni_key}"] = {
-                "label": results[uni_key]["label"],
-                "dropout_rate": rate_X,
-                "vs_A_absolute_diff": rate_A - rate_X,
-                "vs_A_relative_risk": rr,
-                "vs_A_relative_reduction_pct": (1 - rr) * 100
+        rate_B = results["B"]["dropout_rate"]
+        rate_C = results["C"]["dropout_rate"]
+        rate_D = results["D"]["dropout_rate"]
+        rate_E = results["E"]["dropout_rate"]
+        rate_F = results["F"]["dropout_rate"]
+        rate_G = results["G"]["dropout_rate"]
+        rate_H = results["H"]["dropout_rate"]
+        
+        macro_effects = {
+            "universe_A_baseline": {"dropout_rate": rate_A},
+            "universe_B": {"label": results["B"]["label"], "dropout_rate": rate_B, "vs_A_relative_risk": rate_A / rate_B},
+            "universe_C": {"label": results["C"]["label"], "dropout_rate": rate_C, "vs_A_relative_risk": rate_A / rate_C},
+            "universe_D": {"label": results["D"]["label"], "dropout_rate": rate_D, "vs_A_relative_risk": rate_A / rate_D},
+            "universe_E": {"label": results["E"]["label"], "dropout_rate": rate_E, "vs_A_relative_risk": rate_A / rate_E},
+            "universe_F": {"label": results["F"]["label"], "dropout_rate": rate_F, "vs_B_relative_risk": rate_F / rate_B},
+            "universe_G": {"label": results["G"]["label"], "dropout_rate": rate_G, "vs_B_relative_risk": rate_G / rate_B},
+            "universe_H": {"label": results["H"]["label"], "dropout_rate": rate_H, "vs_B_relative_risk": rate_H / rate_B},
+            "ground_truth_summary": {
+                "partial_vs_A": {
+                    "RR_fachlich_partial": rate_A / rate_C,
+                    "RR_ueberfachlich_partial": rate_A / rate_D,
+                    "RR_psychosozial_partial": rate_A / rate_E,
+                    "RR_all_partial": rate_A / rate_B
+                },
+                "isolated_vs_B": {
+                    "RR_fachlich_isolated": rate_F / rate_B,
+                    "RR_ueberfachlich_isolated": rate_G / rate_B,
+                    "RR_psychosozial_isolated": rate_H / rate_B
+                }
             }
+        }
         
         out_file = base_output / "metrics" / "true_macro_effects_v3.json"
         with open(out_file, "w") as f:
             json.dump(macro_effects, f, indent=4)
         print(f"\n  Makro-Effekte gespeichert in: {out_file}")
     
-    run_step("1. Simulation V3 (5 Universen)", run_simulation_v3)
+    run_step("1. Simulation V3 (8 Universen A-H)", run_simulation_v3)
     
     # =========================================================================
     # SCHRITT 2: Validierung

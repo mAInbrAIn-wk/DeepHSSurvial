@@ -34,7 +34,7 @@ def analyze_counterfactual_hr_delta(data_dir: Path):
     
     num_cols = ['hzb_note', 'erwerbstaetigkeit_std', 't_stop', 't_start', 'fails_prev', 'delta_cp_prev', 'cp_rueckstand']
     cat_cols = ['stg_name', 'erstakademiker']
-    treatment_cols = ['fach_supp_active', 'uebf_supp_active', 'psych_supp_active']
+    treatment_cols = ['fach_supp_count', 'uebf_supp_count', 'psych_supp_count']
     
     feature_cols = num_cols + cat_cols + treatment_cols
     
@@ -61,45 +61,58 @@ def analyze_counterfactual_hr_delta(data_dir: Path):
 
     metrics_all = {}
 
-    for supp_col, label in [
-        ('fach_supp_active',  'Fachlicher Support (aktives Semester)'),
-        ('uebf_supp_active',  'Überfachlicher Support (aktives Semester)'),
-        ('psych_supp_active', 'Psychosozialer Support (aktives Semester)'),
+    for supp_col, prefix, label in [
+        ('fach_supp_count',  'fach',  'Fachlicher Support'),
+        ('uebf_supp_count',  'uebf',  'Überfachlicher Support'),
+        ('psych_supp_count', 'psych', 'Psychosozialer Support'),
     ]:
-        control = test_panel.copy()
-        treated = test_panel.copy()
-        control[supp_col] = 0.0
-        treated[supp_col] = 1.0
-
-        X_c = preprocessor.transform(control[feature_cols])
-        X_t = preprocessor.transform(treated[feature_cols])
-
-        h0 = model.predict(X_c, verbose=0).flatten()
-        h1 = model.predict(X_t, verbose=0).flatten()
-
-        hrs = np.exp(h1 - h0)
-        mean_hr   = float(np.mean(hrs))
-        median_hr = float(np.median(hrs))
-        min_hr    = float(np.min(hrs))
-        max_hr    = float(np.max(hrs))
-        q05       = float(np.quantile(hrs, 0.05))
-        q95       = float(np.quantile(hrs, 0.95))
+        # 1. PARTIELL (≙ A vs C/D/E): Ziel-Support 0 vs. beobachtet, andere beobachtet
+        control_part = test_panel.copy()
+        treated_part = test_panel.copy()
+        control_part[supp_col] = 0
+        
+        X_c_p = preprocessor.transform(control_part[feature_cols])
+        X_t_p = preprocessor.transform(treated_part[feature_cols])
+        h0_p = model.predict(X_c_p, verbose=0).flatten()
+        h1_p = model.predict(X_t_p, verbose=0).flatten()
+        hrs_p = np.exp(h1_p - h0_p)
+        
+        mean_hr_p   = float(np.mean(hrs_p))
+        median_hr_p = float(np.median(hrs_p))
+        q05_p       = float(np.quantile(hrs_p, 0.05))
+        q95_p       = float(np.quantile(hrs_p, 0.95))
+        
+        # 2. ISOLIERT REALISTISCH (≙ B vs F/G/H): Alle 0 vs. nur Ziel beobachtet, andere 0
+        control_iso = test_panel.copy()
+        treated_iso = test_panel.copy()
+        for c in treatment_cols:
+            control_iso[c] = 0
+            treated_iso[c] = 0
+        treated_iso[supp_col] = test_panel[supp_col] # beobachtete Dosis
+        
+        X_c_i = preprocessor.transform(control_iso[feature_cols])
+        X_t_i = preprocessor.transform(treated_iso[feature_cols])
+        h0_i = model.predict(X_c_i, verbose=0).flatten()
+        h1_i = model.predict(X_t_i, verbose=0).flatten()
+        hrs_i = np.exp(h1_i - h0_i)
+        
+        mean_hr_i   = float(np.mean(hrs_i))
+        median_hr_i = float(np.median(hrs_i))
+        q05_i       = float(np.quantile(hrs_i, 0.05))
+        q95_i       = float(np.quantile(hrs_i, 0.95))
 
         print(f"\n--- {label} ({supp_col}) ---")
-        print(f"  Mean HR:     {mean_hr:.4f}")
-        print(f"  Median HR:   {median_hr:.4f}")
-        print(f"  Min / Max:   {min_hr:.4f} / {max_hr:.4f}")
-        print(f"  5%–95% CI:   [{q05:.4f}, {q95:.4f}]")
-        direction = "senkt" if median_hr < 1.0 else "ERHÖHT"
-        print(f"  -> Median HR {direction} das Risiko {'um ' + f'{(1-median_hr)*100:.1f}%' if median_hr < 1.0 else 'um ' + f'{(median_hr-1)*100:.1f}%'}.")
+        print(f"  PARTIELL:           Mean HR = {mean_hr_p:.4f}, Median HR = {median_hr_p:.4f} [{q05_p:.4f}, {q95_p:.4f}]")
+        print(f"  ISOLIERT (realist): Mean HR = {mean_hr_i:.4f}, Median HR = {median_hr_i:.4f} [{q05_i:.4f}, {q95_i:.4f}]")
 
-        prefix = supp_col.replace('_supp_active', '')
-        metrics_all[f"Mean_HR_{prefix}"]   = mean_hr
-        metrics_all[f"Median_HR_{prefix}"] = median_hr
-        metrics_all[f"Min_HR_{prefix}"]    = min_hr
-        metrics_all[f"Max_HR_{prefix}"]    = max_hr
-        metrics_all[f"Q05_HR_{prefix}"]    = q05
-        metrics_all[f"Q95_HR_{prefix}"]    = q95
+        metrics_all[f"{prefix}_partial"] = {"mean_hr": mean_hr_p, "median_hr": median_hr_p, "q05": q05_p, "q95": q95_p}
+        metrics_all[f"{prefix}_isolated"] = {"mean_hr": mean_hr_i, "median_hr": median_hr_i, "q05": q05_i, "q95": q95_i}
+        
+        # Abwärtskompatible Keys
+        metrics_all[f"Mean_HR_{prefix}"]   = mean_hr_p
+        metrics_all[f"Median_HR_{prefix}"] = median_hr_p
+        metrics_all[f"Q05_HR_{prefix}"]    = q05_p
+        metrics_all[f"Q95_HR_{prefix}"]    = q95_p
 
     print("\n" + "=" * 74)
     save_metrics("counterfactual_hr_delta", metrics_all, data_dir)

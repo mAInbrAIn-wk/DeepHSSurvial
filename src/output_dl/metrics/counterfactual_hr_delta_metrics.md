@@ -2,21 +2,21 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **Mean_HR_fach** | 0.9017 |
-| **Median_HR_fach** | 0.9082 |
-| **Min_HR_fach** | 0.2128 |
-| **Max_HR_fach** | 2.1982 |
-| **Q05_HR_fach** | 0.6072 |
-| **Q95_HR_fach** | 1.1937 |
-| **Mean_HR_uebf** | 1.0896 |
-| **Median_HR_uebf** | 1.0422 |
-| **Min_HR_uebf** | 0.4742 |
-| **Max_HR_uebf** | 2.8447 |
-| **Q05_HR_uebf** | 0.8475 |
-| **Q95_HR_uebf** | 1.4652 |
-| **Mean_HR_psych** | 0.9684 |
-| **Median_HR_psych** | 0.9641 |
-| **Min_HR_psych** | 0.4531 |
-| **Max_HR_psych** | 2.1758 |
-| **Q05_HR_psych** | 0.7247 |
-| **Q95_HR_psych** | 1.2426 |
+| **fach_partial** | {'mean_hr': 0.9933529496192932, 'median_hr': 1.0, 'q05': 0.997767448425293, 'q95': 1.0} |
+| **fach_isolated** | {'mean_hr': 0.9935963749885559, 'median_hr': 1.0, 'q05': 0.9987451434135437, 'q95': 1.0} |
+| **Mean_HR_fach** | 0.9934 |
+| **Median_HR_fach** | 1.0000 |
+| **Q05_HR_fach** | 0.9978 |
+| **Q95_HR_fach** | 1.0000 |
+| **uebf_partial** | {'mean_hr': 0.9977441430091858, 'median_hr': 1.0, 'q05': 1.0, 'q95': 1.0} |
+| **uebf_isolated** | {'mean_hr': 0.9976166486740112, 'median_hr': 1.0, 'q05': 1.0, 'q95': 1.0} |
+| **Mean_HR_uebf** | 0.9977 |
+| **Median_HR_uebf** | 1.0000 |
+| **Q05_HR_uebf** | 1.0000 |
+| **Q95_HR_uebf** | 1.0000 |
+| **psych_partial** | {'mean_hr': 0.9922670125961304, 'median_hr': 1.0, 'q05': 0.9930616021156311, 'q95': 1.0} |
+| **psych_isolated** | {'mean_hr': 0.9927152991294861, 'median_hr': 1.0, 'q05': 0.9994006156921387, 'q95': 1.0} |
+| **Mean_HR_psych** | 0.9923 |
+| **Median_HR_psych** | 1.0000 |
+| **Q05_HR_psych** | 0.9931 |
+| **Q95_HR_psych** | 1.0000 |

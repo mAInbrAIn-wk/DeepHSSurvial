@@ -40,3 +40,6 @@ ENV/
 
 # Output directories & cache
 .gemini/
+
+# Todo
+ToDo.md

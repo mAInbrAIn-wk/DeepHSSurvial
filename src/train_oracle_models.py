@@ -31,7 +31,7 @@ def train_oracle_models(data_dir: Path):
     # Standard Features
     num_cols_base = ['hzb_note', 'erwerbstaetigkeit_std', 't_stop', 't_start', 'fails_prev', 'delta_cp_prev', 'cp_rueckstand']
     cat_cols = ['stg_name', 'erstakademiker']
-    treatment_cols = ['fach_supp_active', 'uebf_supp_active', 'psych_supp_active']
+    treatment_cols = ['fach_supp_count', 'uebf_supp_count', 'psych_supp_count']
     
     # Orakel Features
     oracle_cols = ['hidden_motivation_prev', 'hidden_soziale_integration_prev', 'hidden_erwartete_note_prev']
@@ -133,14 +133,33 @@ def train_oracle_models(data_dir: Path):
     print(f"{'DeepSurv Delta':<30} | {auc_ds_base:<12.4f} | {auc_ds_oracle:<12.4f} | {+(auc_ds_oracle - auc_ds_base):<10.4f}")
     print("==========================================================================")
     
+    # Speichere Modelle
+    models_dir = data_dir / "models"
+    models_dir.mkdir(parents=True, exist_ok=True)
+    
+    lh_oracle.save(models_dir / "oracle_logistic_hazard.keras")
+    ds_oracle.save(models_dir / "oracle_deepsurv.keras")
+    lh_base.save(models_dir / "oracle_base_logistic_hazard.keras")
+    ds_base.save(models_dir / "oracle_base_deepsurv.keras")
+    print(f"Orakel-Modelle gespeichert in: {models_dir}")
+    
     import json
-    out_file = Path("output_dl/metrics/oracle_lift.json")
+    out_file = data_dir / "metrics" / "oracle_lift.json"
     out_file.parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "w") as f:
         json.dump({
             "Logistic_Hazard": {"base": auc_lh_base, "oracle": auc_lh_oracle, "lift": auc_lh_oracle - auc_lh_base},
             "DeepSurv": {"base": auc_ds_base, "oracle": auc_ds_oracle, "lift": auc_ds_oracle - auc_ds_base}
         }, f, indent=4)
+    print(f"Orakel-Lift Metriken gespeichert in: {out_file}")
         
 if __name__ == "__main__":
-    train_oracle_models(Path('output_dl'))
+    possible_dirs = [Path("src/output_dl"), Path("output_dl"), Path("../output_dl")]
+    target_dir = None
+    for p in possible_dirs:
+        if (p / "agg_abschluesse.csv").exists():
+            target_dir = p
+            break
+    if target_dir is None:
+        target_dir = Path("output_dl")
+    train_oracle_models(target_dir)

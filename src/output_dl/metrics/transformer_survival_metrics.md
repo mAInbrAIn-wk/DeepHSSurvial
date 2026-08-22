@@ -2,13 +2,13 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **ROC-AUC_Seq** | 0.7909 |
-| **PR-AUC_Seq** | 0.2284 |
-| **Brier_Score** | 0.0365 |
+| **ROC-AUC_Seq** | 0.7877 |
+| **PR-AUC_Seq** | 0.2274 |
+| **Brier_Score** | 0.0366 |
 | **Accuracy_Top5** | 0.9303 |
-| **Precision_Top5** | 0.2289 |
-| **Recall_Top5** | 0.2687 |
-| **F1_Top5** | 0.2472 |
+| **Precision_Top5** | 0.2293 |
+| **Recall_Top5** | 0.2691 |
+| **F1_Top5** | 0.2476 |
 
 ## Classification Report
 

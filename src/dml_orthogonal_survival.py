@@ -16,7 +16,7 @@ import pandas as pd
 import numpy as np
 
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -41,7 +41,7 @@ def train_dml_orthogonal_survival(data_dir: Path):
     confounder_cat = ['stg_name', 'erstakademiker']
     confounder_cols = confounder_num + confounder_cat
     
-    treatment_cols = ['fach_supp_active', 'uebf_supp_active', 'psych_supp_active']
+    treatment_cols = ['fach_supp_count', 'uebf_supp_count', 'psych_supp_count']
     
     unique_studis = np.array(panel_df['studierenden_id'].unique().tolist())
     train_ids, temp_ids = train_test_split(unique_studis, test_size=0.30, random_state=42)
@@ -63,87 +63,104 @@ def train_dml_orthogonal_survival(data_dir: Path):
     W_test  = confounder_prep.transform(test_panel[confounder_cols])
     
     # -------------------------------------------------------------------------
-    # STUFE 1: PROPENSITY MODELS & RESIDUAL-CALCULATION (ORTHOGONALISIERUNG)
+    # STUFE 1: TREATMENT CONDITIONAL EXPECTATION & RESIDUALS (ORTHOGONALISIERUNG)
     # -------------------------------------------------------------------------
-    print("\n[Stufe 1] Schätze Propensity-Modelle P(A_t = 1 | W_t) ...")
+    print("\n[Stufe 1] Schätze Treatment-Modelle E[A_t | W_t] (Ridge Regression für Zählvariablen) ...")
     
     residuals_train = []
     residuals_val = []
     residuals_test = []
+    a_hat_test_list = []
     
     for supp_col in treatment_cols:
-        y_treat_train = train_panel[supp_col].values
-        y_treat_val   = val_panel[supp_col].values
-        y_treat_test  = test_panel[supp_col].values
+        y_treat_train = train_panel[supp_col].values.astype(float)
+        y_treat_val   = val_panel[supp_col].values.astype(float)
+        y_treat_test  = test_panel[supp_col].values.astype(float)
         
-        prop_model = LogisticRegression(max_iter=500, C=1.0)
-        prop_model.fit(W_train, y_treat_train)
+        reg_model = Ridge(alpha=1.0)
+        reg_model.fit(W_train, y_treat_train)
         
-        p_hat_train = prop_model.predict_proba(W_train)[:, 1]
-        p_hat_val   = prop_model.predict_proba(W_val)[:, 1]
-        p_hat_test  = prop_model.predict_proba(W_test)[:, 1]
+        a_hat_train = reg_model.predict(W_train)
+        a_hat_val   = reg_model.predict(W_val)
+        a_hat_test  = reg_model.predict(W_test)
         
-        # Orthogonalisiertes Treatment-Residuum A_tilde = A - P_hat
-        res_train = y_treat_train - p_hat_train
-        res_val   = y_treat_val - p_hat_val
-        res_test  = y_treat_test - p_hat_test
+        # Orthogonalisiertes Treatment-Residuum A_tilde = A - E[A|W]
+        res_train = y_treat_train - a_hat_train
+        res_val   = y_treat_val - a_hat_val
+        res_test  = y_treat_test - a_hat_test
         
         residuals_train.append(res_train)
         residuals_val.append(res_val)
         residuals_test.append(res_test)
+        a_hat_test_list.append(a_hat_test)
         
     A_tilde_train = np.column_stack(residuals_train)
     A_tilde_val   = np.column_stack(residuals_val)
     A_tilde_test  = np.column_stack(residuals_test)
+    A_hat_test    = np.column_stack(a_hat_test_list)
     
     X_train_dml = np.column_stack([W_train, A_tilde_train])
     X_val_dml   = np.column_stack([W_val, A_tilde_val])
     X_test_dml  = np.column_stack([W_test, A_tilde_test])
+    
+    y_train = train_panel['event'].values
+    y_val   = val_panel['event'].values
+    y_test  = test_panel['event'].values
     
     input_dim = X_train_dml.shape[1]
     
     # -------------------------------------------------------------------------
     # STUFE 2: NEURONALES DML HAZARD-MODELL
     # -------------------------------------------------------------------------
-    print("\n[Stufe 2] Trainiere Keras DML Orthogonalized Hazard Modell ...")
+    print("\n[Stufe 2] Trainiere neuronales DML Hazard-Modell auf orthogonalisierten Residuen ...")
     tf.random.set_seed(42)
     
     dml_model = Sequential([
-        Dense(32, activation='relu', input_shape=(input_dim,)),
+        Dense(64, activation='relu', input_shape=(input_dim,)),
         BatchNormalization(),
-        Dropout(0.2),
+        Dropout(0.20),
+        Dense(32, activation='relu'),
+        BatchNormalization(),
+        Dropout(0.10),
         Dense(16, activation='relu'),
-        BatchNormalization(),
         Dense(1, activation='sigmoid')
     ])
     
-    dml_model.compile(optimizer=tf.keras.optimizers.Adam(0.005), loss='binary_crossentropy', metrics=['AUC'])
-    es_dml = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True)
-    history_dml = dml_model.fit(
-        X_train_dml, train_panel['event'].values,
-        validation_data=(X_val_dml, val_panel['event'].values),
-        epochs=60, batch_size=2048,
-        callbacks=[es_dml], verbose=0
+    dml_model.compile(
+        optimizer=tf.keras.optimizers.Adam(0.001),
+        loss='binary_crossentropy',
+        metrics=['AUC']
     )
     
-    test_p_pred = dml_model.predict(X_test_dml, verbose=0).flatten()
+    es_dml = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True)
     
-    auc_dml = roc_auc_score(test_panel['event'], test_p_pred)
-    prauc_dml = average_precision_score(test_panel['event'], test_p_pred)
-    brier_dml = brier_score_loss(test_panel['event'], test_p_pred)
+    history_dml = dml_model.fit(
+        X_train_dml, y_train,
+        validation_data=(X_val_dml, y_val),
+        epochs=80,
+        batch_size=512,
+        callbacks=[es_dml],
+        verbose=1
+    )
+    
+    # Evaluation
+    test_p_pred = dml_model.predict(X_test_dml, verbose=0).flatten()
+    auc_dml   = float(roc_auc_score(y_test, test_p_pred))
+    prauc_dml = float(average_precision_score(y_test, test_p_pred))
+    brier_dml = float(brier_score_loss(y_test, test_p_pred))
     
     print("\n==========================================================================")
-    print("   ERGEBNISSE DML ORTHOGONALIZED SURVIVAL MODELL")
+    print("   DML ORTHOGONALIZED SURVIVAL PERFORMANCE")
     print("==========================================================================")
-    print(f"    ROC-AUC                  : {auc_dml:.4f}")
-    print(f"    PR-AUC (Average Precision): {prauc_dml:.4f}")
+    print(f"    ROC-AUC (Panel-Ebene)    : {auc_dml:.4f}")
+    print(f"    PR-AUC (Panel-Ebene)     : {prauc_dml:.4f}")
     print(f"    Brier Score              : {brier_dml:.4f}")
     print("==========================================================================")
     
     # -------------------------------------------------------------------------
-    # STUFE 3: KONTRAFAKTISCHE ANALYSIS DES ENT ZERRTEN MODELLS
+    # STUFE 3: KONTRAFAKTISCHE ANALYSE (PARTIELL & ISOLIERT REALISTISCH)
     # -------------------------------------------------------------------------
-    print("\n[Stufe 3] Kontrafaktische Auswertung des DML-Modells ...")
+    print("\n[Stufe 3] Kontrafaktische Auswertung des DML-Modells (Dual-Teststrang mit Zählung) ...")
     
     metrics_all = {
         "ROC-AUC_Panel": auc_dml,
@@ -151,45 +168,57 @@ def train_dml_orthogonal_survival(data_dir: Path):
         "Brier_Score": brier_dml
     }
     
-    for i, (supp_col, label) in enumerate([
-        ('fach_supp_active',  'Fachlicher Support (aktives Semester)'),
-        ('uebf_supp_active',  'Überfachlicher Support (aktives Semester)'),
-        ('psych_supp_active', 'Psychosozialer Support (aktives Semester)'),
+    for i, (supp_col, prefix, label) in enumerate([
+        ('fach_supp_count', 'fach', 'Fachlicher Support'),
+        ('uebf_supp_count', 'uebf', 'Überfachlicher Support'),
+        ('psych_supp_count', 'psych', 'Psychosozialer Support'),
     ]):
-        # Baseline Control: A_tilde when A = 0 => A_tilde = -P_hat
-        # Treated: A_tilde when A = 1 => A_tilde = 1 - P_hat
-        A_tilde_c = A_tilde_test.copy()
-        A_tilde_t = A_tilde_test.copy()
+        # 1. PARTIELL (≙ A vs C/D/E): Ziel-Support 0 vs. beobachtet, andere beobachtet
+        A_tilde_c_part = A_tilde_test.copy()
+        A_tilde_t_part = A_tilde_test.copy() # beobachtet
+        A_tilde_c_part[:, i] = 0.0 - A_hat_test[:, i]
         
-        # P_hat is A_test - A_tilde_test
-        p_hat_col = test_panel[supp_col].values - A_tilde_test[:, i]
-        A_tilde_c[:, i] = 0.0 - p_hat_col
-        A_tilde_t[:, i] = 1.0 - p_hat_col
+        X_c_part = np.column_stack([W_test, A_tilde_c_part])
+        X_t_part = np.column_stack([W_test, A_tilde_t_part])
         
-        X_c_dml = np.column_stack([W_test, A_tilde_c])
-        X_t_dml = np.column_stack([W_test, A_tilde_t])
+        p0_part = dml_model.predict(X_c_part, verbose=0).flatten()
+        p1_part = dml_model.predict(X_t_part, verbose=0).flatten()
+        rrs_part = p1_part / np.clip(p0_part, 1e-7, 1.0)
         
-        p0 = dml_model.predict(X_c_dml, verbose=0).flatten()
-        p1 = dml_model.predict(X_t_dml, verbose=0).flatten()
+        mean_rr_p   = float(np.mean(rrs_part))
+        median_rr_p = float(np.median(rrs_part))
+        q05_p       = float(np.quantile(rrs_part, 0.05))
+        q95_p       = float(np.quantile(rrs_part, 0.95))
         
-        p0_safe = np.clip(p0, 1e-7, 1.0)
-        rrs = p1 / p0_safe
+        # 2. ISOLIERT REALISTISCH (≙ B vs F/G/H): Alle 0 vs. nur Ziel beobachtet, andere 0
+        A_tilde_c_iso = 0.0 - A_hat_test # alle 0
+        A_tilde_t_iso = 0.0 - A_hat_test # alle 0
+        A_tilde_t_iso[:, i] = test_panel[supp_col].values.astype(float) - A_hat_test[:, i] # nur Ziel beobachtet
         
-        mean_rr   = float(np.mean(rrs))
-        median_rr = float(np.median(rrs))
-        q05       = float(np.quantile(rrs, 0.05))
-        q95       = float(np.quantile(rrs, 0.95))
+        X_c_iso = np.column_stack([W_test, A_tilde_c_iso])
+        X_t_iso = np.column_stack([W_test, A_tilde_t_iso])
+        
+        p0_iso = dml_model.predict(X_c_iso, verbose=0).flatten()
+        p1_iso = dml_model.predict(X_t_iso, verbose=0).flatten()
+        rrs_iso = p1_iso / np.clip(p0_iso, 1e-7, 1.0)
+        
+        mean_rr_iso   = float(np.mean(rrs_iso))
+        median_rr_iso = float(np.median(rrs_iso))
+        q05_iso       = float(np.quantile(rrs_iso, 0.05))
+        q95_iso       = float(np.quantile(rrs_iso, 0.95))
         
         print(f"\n--- {label} ({supp_col}) [DML Entzerrt] ---")
-        print(f"  Mean Relative Risk (RR)  : {mean_rr:.4f}")
-        print(f"  Median Relative Risk (RR): {median_rr:.4f}")
-        print(f"  5%-95% KI                : [{q05:.4f}, {q95:.4f}]")
+        print(f"  PARTIELL:           Mean RR = {mean_rr_p:.4f}, Median RR = {median_rr_p:.4f} [{q05_p:.4f}, {q95_p:.4f}]")
+        print(f"  ISOLIERT (realist): Mean RR = {mean_rr_iso:.4f}, Median RR = {median_rr_iso:.4f} [{q05_iso:.4f}, {q95_iso:.4f}]")
         
-        prefix = supp_col.replace('_supp_active', '')
-        metrics_all[f"Mean_RR_{prefix}_DML"]   = mean_rr
-        metrics_all[f"Median_RR_{prefix}_DML"] = median_rr
-        metrics_all[f"Q05_RR_{prefix}_DML"]    = q05
-        metrics_all[f"Q95_RR_{prefix}_DML"]    = q95
+        metrics_all[f"{prefix}_partial"] = {"mean_rr": mean_rr_p, "median_rr": median_rr_p, "q05": q05_p, "q95": q95_p}
+        metrics_all[f"{prefix}_isolated"] = {"mean_rr": mean_rr_iso, "median_rr": median_rr_iso, "q05": q05_iso, "q95": q95_iso}
+        
+        # Abwärtskompatible Keys
+        metrics_all[f"Mean_RR_{prefix}_DML"]   = mean_rr_p
+        metrics_all[f"Median_RR_{prefix}_DML"] = median_rr_p
+        metrics_all[f"Q05_RR_{prefix}_DML"]    = q05_p
+        metrics_all[f"Q95_RR_{prefix}_DML"]    = q95_p
 
     base_dir = data_dir
     save_metrics("dml_orthogonal_survival", metrics_all, base_dir)

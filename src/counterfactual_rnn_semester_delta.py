@@ -20,10 +20,15 @@ from metrics_logger import save_metrics
 
 def main():
     print("\n==========================================================================")
-    print("   COUNTERFACTUAL RELATIVE RISK ANALYSIS (RECURRENT SEMESTER DELTA)")
+    print("   COUNTERFACTUAL RELATIVE RISK ANALYSIS (RECURRENT SEMESTER DELTA - DUAL STRAND)")
     print("==========================================================================")
     
-    data_dir = Path('../output_dl') if Path('../output_dl').exists() else Path('output_dl')
+    data_dir = Path('output_dl')
+    for candidate in [Path('output_dl'), Path('src/output_dl'), Path('../output_dl')]:
+        if (candidate / 'agg_abschluesse.csv').exists() and (candidate / 'models' / 'recurrent_survival_model_delta.keras').exists():
+            data_dir = candidate
+            break
+            
     model_path = data_dir / 'models' / 'recurrent_survival_model_delta.keras'
     
     if not model_path.exists():
@@ -51,49 +56,66 @@ def main():
     model = tf.keras.models.load_model(model_path, custom_objects={'masked_binary_crossentropy': masked_binary_crossentropy})
     valid_mask_test = (X_test[:, :, 0] != PADDING_VALUE)
     
-    # Control: Support = 0 für alle 3 Typen
-    # Features: 0:gpa, 1:cp, 2:fails, 3:cp_rueckstand, 4:fach_act, 5:uebf_act, 6:psych_act, 7:hzb, 8:erwerb
-    X_control = X_test.copy()
-    X_control[valid_mask_test, 4] = 0.0 # fach
-    X_control[valid_mask_test, 5] = 0.0 # uebf
-    X_control[valid_mask_test, 6] = 0.0 # psych
-    X_control[valid_mask_test] = scaler.transform(X_control[valid_mask_test])
-    
-    preds_control = model.predict(X_control, verbose=0).flatten()
-    preds_control = np.clip(preds_control[valid_mask_test.flatten()], 1e-7, 1.0)
-    
     metrics_all = {}
     
-    for feature_idx, supp_name in [(4, 'fach'), (5, 'uebf'), (6, 'psych')]:
-        X_treated = X_test.copy()
-        X_treated[valid_mask_test, 4] = 0.0
-        X_treated[valid_mask_test, 5] = 0.0
-        X_treated[valid_mask_test, 6] = 0.0
-        X_treated[valid_mask_test, feature_idx] = 1.0
-        X_treated[valid_mask_test] = scaler.transform(X_treated[valid_mask_test])
+    for feature_idx, prefix, supp_name in [(4, 'fach', 'Fachlicher Support'), (5, 'uebf', 'Überfachlicher Support'), (6, 'psych', 'Psychosozialer Support')]:
+        # 1. PARTIELL (≙ A vs C/D/E): Ziel-Support 0 vs. beobachtet, andere beobachtet
+        X_c_part = X_test.copy()
+        X_t_part = X_test.copy()
+        X_c_part[valid_mask_test, feature_idx] = 0.0
         
-        preds_treated = model.predict(X_treated, verbose=0).flatten()
-        preds_treated = preds_treated[valid_mask_test.flatten()]
+        X_c_part[valid_mask_test] = scaler.transform(X_c_part[valid_mask_test])
+        X_t_part[valid_mask_test] = scaler.transform(X_t_part[valid_mask_test])
         
-        rrs = preds_treated / preds_control
+        p0_p = model.predict(X_c_part, verbose=0).flatten()[valid_mask_test.flatten()]
+        p1_p = model.predict(X_t_part, verbose=0).flatten()[valid_mask_test.flatten()]
+        rrs_p = p1_p / np.clip(p0_p, 1e-7, 1.0)
         
-        mean_rr = float(np.mean(rrs))
-        median_rr = float(np.median(rrs))
-        q05 = float(np.quantile(rrs, 0.05))
-        q95 = float(np.quantile(rrs, 0.95))
+        mean_rr_p   = float(np.mean(rrs_p))
+        median_rr_p = float(np.median(rrs_p))
+        q05_p       = float(np.quantile(rrs_p, 0.05))
+        q95_p       = float(np.quantile(rrs_p, 0.95))
         
-        print(f"\n--- Support-Typ: {supp_name.upper()} ---")
-        print(f"  Mean Relative Risk (RR)  : {mean_rr:.4f}")
-        print(f"  Median Relative Risk (RR): {median_rr:.4f}")
-        print(f"  5%-95% KI                : [{q05:.4f}, {q95:.4f}]")
+        # 2. ISOLIERT REALISTISCH (≙ B vs F/G/H): Alle 0 vs. nur Ziel beobachtet, andere 0
+        X_c_iso = X_test.copy()
+        X_t_iso = X_test.copy()
+        X_c_iso[valid_mask_test, 4] = 0.0
+        X_c_iso[valid_mask_test, 5] = 0.0
+        X_c_iso[valid_mask_test, 6] = 0.0
         
-        metrics_all[f"Mean_RR_{supp_name}"] = mean_rr
-        metrics_all[f"Median_RR_{supp_name}"] = median_rr
-        metrics_all[f"Q05_RR_{supp_name}"] = q05
-        metrics_all[f"Q95_RR_{supp_name}"] = q95
+        X_t_iso[valid_mask_test, 4] = 0.0
+        X_t_iso[valid_mask_test, 5] = 0.0
+        X_t_iso[valid_mask_test, 6] = 0.0
+        X_t_iso[valid_mask_test, feature_idx] = X_test[valid_mask_test, feature_idx] # beobachtete Dosis
+        
+        X_c_iso[valid_mask_test] = scaler.transform(X_c_iso[valid_mask_test])
+        X_t_iso[valid_mask_test] = scaler.transform(X_t_iso[valid_mask_test])
+        
+        p0_i = model.predict(X_c_iso, verbose=0).flatten()[valid_mask_test.flatten()]
+        p1_i = model.predict(X_t_iso, verbose=0).flatten()[valid_mask_test.flatten()]
+        rrs_i = p1_i / np.clip(p0_i, 1e-7, 1.0)
+        
+        mean_rr_i   = float(np.mean(rrs_i))
+        median_rr_i = float(np.median(rrs_i))
+        q05_i       = float(np.quantile(rrs_i, 0.05))
+        q95_i       = float(np.quantile(rrs_i, 0.95))
+        
+        print(f"\n--- Support-Typ: {supp_name} ({prefix}) ---")
+        print(f"  PARTIELL:           Mean RR = {mean_rr_p:.4f}, Median RR = {median_rr_p:.4f} [{q05_p:.4f}, {q95_p:.4f}]")
+        print(f"  ISOLIERT (realist): Mean RR = {mean_rr_i:.4f}, Median RR = {median_rr_i:.4f} [{q05_i:.4f}, {q95_i:.4f}]")
+        
+        metrics_all[f"{prefix}_partial"] = {"mean_rr": mean_rr_p, "median_rr": median_rr_p, "q05": q05_p, "q95": q95_p}
+        metrics_all[f"{prefix}_isolated"] = {"mean_rr": mean_rr_i, "median_rr": median_rr_i, "q05": q05_i, "q95": q95_i}
+        
+        # Abwärtskompatible Keys
+        metrics_all[f"Mean_RR_{prefix}"]   = mean_rr_p
+        metrics_all[f"Median_RR_{prefix}"] = median_rr_p
+        metrics_all[f"Q05_RR_{prefix}"]    = q05_p
+        metrics_all[f"Q95_RR_{prefix}"]    = q95_p
 
+    print("\n" + "=" * 74)
     save_metrics("counterfactual_rnn_semester_delta", metrics_all, data_dir)
-    print("\nCounterfactual Analysis für Recurrent Semester Delta abgeschlossen.")
+    print("Counterfactual Analysis für Recurrent Semester Delta abgeschlossen.")
 
 if __name__ == '__main__':
     main()

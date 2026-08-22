@@ -61,7 +61,7 @@ def train_extended_deep_survival_delta(data_dir: Path):
     
     num_cols = ['hzb_note', 'erwerbstaetigkeit_std', 't_stop', 't_start', 'fails_prev', 'delta_cp_prev', 'cp_rueckstand']
     cat_cols = ['stg_name', 'erstakademiker']
-    treatment_cols = ['fach_supp_active', 'uebf_supp_active', 'psych_supp_active']
+    treatment_cols = ['fach_supp_count', 'uebf_supp_count', 'psych_supp_count']
     
     feature_cols = num_cols + cat_cols + treatment_cols
     
