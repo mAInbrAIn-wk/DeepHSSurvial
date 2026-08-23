@@ -268,27 +268,25 @@ Alle nachfolgenden Skripte implementieren kontrafaktische Simulationen nach dem 
 Zur Sicherstellung wissenschaftlicher Vergleichbarkeit werden alle Modelle strikt in folgende 8 Klassen gruppiert:
 
 ```mermaid
-graph TD
-    subgraph S1_S2_Landmark["Statisch / Landmark (S1-S2)"]
-        K1["Klasse 1: Statische Klassifikation<br>Target: status (Multiclass)<br>Modelle: NB, RF, SVM, MLP"]
-        K2a["Klasse 2a: Statische GPA-Regression<br>Target: abschlussnote<br>Modelle: Ridge, SVR, RF-Reg, MLP-Reg"]
-        K4["Klasse 4: Landmark Survival<br>Target: Survival (t_stop, event)<br>Modelle: DeepSurv, DTL Hazard"]
-    end
-
-    subgraph Semester_Level["Semester-Ebene (Längsschnitt)"]
-        K2b["Klasse 2b: Semester-Sequenz Regression<br>Target: sem_avg_note (GPA)<br>Modelle: Sem-LSTM, Sem-Transformer, Deep Sem-Transf."]
-        K5["Klasse 5: Semester-Panel Survival<br>Target: Event pro Person-Semester<br>Modelle: Ext. Cox, Ext. DeepSurv, Ext. DTL, DML-Hazard"]
-        K6["Klasse 6: Semester-Sequenz Survival<br>Target: Event am finalen Semesterschritt<br>Modelle: Recurrent GRU, Causal Transformer, DeepHit"]
-    end
-
-    subgraph Exam_Level["Prüfungs-Ebene (Trajektorie)"]
-        K3["Klasse 3: Exam-Sequenz Regression<br>Target: note (Mean)<br>Modelle: Exam-GRU, Exam-Transformer"]
-        K7["Klasse 7: Exam-Sequenz Survival<br>Target: Event am finalen Prüfungsschritt<br>Modelle: Exam-GRU (Base/V2/Delta), Exam-Transformer"]
-    end
-
-    subgraph Causal_Benchmark["Kausal-Inferenz & Causal ML"]
-        K8["Klasse 8: Kausal- & Counterfactual-Inferenz<br>Target: Unvoreingenommene Hazard Ratio / Relative Risk<br>Modelle: Ground Truth (5 Universen), Ext. Cox, DML, Deep Transf.-DML, 6x CF-Skripte"]
-    end
+flowchart TB
+    Root["Modell-Klassen & Architektur"]
+    
+    Root --> Statisch["Statisch / Landmark (S1-S2)"]
+    Statisch --> K1["Klasse 1: Klassifikation<br>(NB, RF, SVM, MLP)"]
+    Statisch --> K2a["Klasse 2a: GPA-Regression<br>(Ridge, RF, MLP)"]
+    Statisch --> K4["Klasse 4: Landmark Survival<br>(DeepSurv, DTL)"]
+    
+    Root --> Semester["Semester-Ebene (Längsschnitt)"]
+    Semester --> K2b["Klasse 2b: Sem.-Regression<br>(LSTM, Transformer)"]
+    Semester --> K5["Klasse 5: Sem.-Panel Survival<br>(Ext. Cox/DeepSurv, DML)"]
+    Semester --> K6["Klasse 6: Sem.-Seq. Survival<br>(GRU, Transf., DeepHit)"]
+    
+    Root --> Pruefung["Prüfungs-Ebene (Trajektorie)"]
+    Pruefung --> K3["Klasse 3: Exam-Seq. Regression<br>(Exam-GRU/Transformer)"]
+    Pruefung --> K7["Klasse 7: Exam-Seq. Survival<br>(Exam-GRU/Transformer)"]
+    
+    Root --> Kausal["Kausal-Inferenz & Causal ML"]
+    Kausal --> K8["Klasse 8: Counterfactual-Inferenz<br>(Oracle, DML, Ground Truth)"]
 ```
 
 ---

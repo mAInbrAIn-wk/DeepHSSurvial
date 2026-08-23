@@ -1,0 +1,171 @@
+{
+    "landmark_regression": {
+        "standard": {
+            "n_features": 16,
+            "mlp": {
+                "r2_score": 0.8633589744567871,
+                "rmse": 0.23105065381744522,
+                "mae": 0.17760643362998962,
+                "counterfactual_delta_grade": {
+                    "fach": {
+                        "ate_delta_grade_1_vs_0": 0.04619545489549637,
+                        "ate_delta_grade_obs_vs_0": 0.00699615478515625
+                    },
+                    "uebf": {
+                        "ate_delta_grade_1_vs_0": -0.009129953570663929,
+                        "ate_delta_grade_obs_vs_0": 0.0024724071845412254
+                    },
+                    "psych": {
+                        "ate_delta_grade_1_vs_0": -0.012744640931487083,
+                        "ate_delta_grade_obs_vs_0": -0.0052784462459385395
+                    }
+                }
+            },
+            "ridge": {
+                "r2_score": 0.850226640701294,
+                "rmse": 0.2418989030968869,
+                "mae": 0.18882501125335693
+            }
+        },
+        "gradeblind": {
+            "n_features": 15,
+            "mlp": {
+                "r2_score": 0.6375308036804199,
+                "rmse": 0.376315590727132,
+                "mae": 0.3020267188549042,
+                "counterfactual_delta_grade": {
+                    "fach": {
+                        "ate_delta_grade_1_vs_0": -0.13472162187099457,
+                        "ate_delta_grade_obs_vs_0": -0.029081188142299652
+                    },
+                    "uebf": {
+                        "ate_delta_grade_1_vs_0": 0.04819061979651451,
+                        "ate_delta_grade_obs_vs_0": 0.0172453373670578
+                    },
+                    "psych": {
+                        "ate_delta_grade_1_vs_0": -0.014295940287411213,
+                        "ate_delta_grade_obs_vs_0": -0.01106905285269022
+                    }
+                }
+            },
+            "ridge": {
+                "r2_score": 0.5867280960083008,
+                "rmse": 0.4018227991518882,
+                "mae": 0.3274462819099426
+            }
+        },
+        "blind": {
+            "n_features": 13,
+            "mlp": {
+                "r2_score": 0.5901356339454651,
+                "rmse": 0.40016281345977056,
+                "mae": 0.3202686011791229,
+                "counterfactual_delta_grade": {
+                    "fach": {
+                        "ate_delta_grade_1_vs_0": -0.1478065699338913,
+                        "ate_delta_grade_obs_vs_0": -0.03274231031537056
+                    },
+                    "uebf": {
+                        "ate_delta_grade_1_vs_0": 0.05047522857785225,
+                        "ate_delta_grade_obs_vs_0": 0.02293817512691021
+                    },
+                    "psych": {
+                        "ate_delta_grade_1_vs_0": -0.017256218940019608,
+                        "ate_delta_grade_obs_vs_0": -0.01007544994354248
+                    }
+                }
+            },
+            "ridge": {
+                "r2_score": 0.5644038915634155,
+                "rmse": 0.41253296835961706,
+                "mae": 0.33618417382240295
+            }
+        },
+        "oracle": {
+            "n_features": 19,
+            "mlp": {
+                "r2_score": 0.9001395106315613,
+                "rmse": 0.197521082078852,
+                "mae": 0.15016303956508636,
+                "counterfactual_delta_grade": {
+                    "fach": {
+                        "ate_delta_grade_1_vs_0": -0.0637291967868805,
+                        "ate_delta_grade_obs_vs_0": -0.013275285251438618
+                    },
+                    "uebf": {
+                        "ate_delta_grade_1_vs_0": -0.01599380001425743,
+                        "ate_delta_grade_obs_vs_0": -0.002421439392492175
+                    },
+                    "psych": {
+                        "ate_delta_grade_1_vs_0": -0.009952830150723457,
+                        "ate_delta_grade_obs_vs_0": -0.0035909232683479786
+                    }
+                }
+            },
+            "ridge": {
+                "r2_score": 0.8767520189285278,
+                "rmse": 0.21943535899533262,
+                "mae": 0.17222747206687927
+            }
+        },
+        "realistic": {
+            "n_features": 12,
+            "mlp": {
+                "r2_score": 0.8597788214683533,
+                "rmse": 0.23405799089781726,
+                "mae": 0.18124768137931824,
+                "counterfactual_delta_grade": {
+                    "fach": {
+                        "ate_delta_grade_1_vs_0": 0.007623505778610706,
+                        "ate_delta_grade_obs_vs_0": 0.0016259427648037672
+                    },
+                    "uebf": {
+                        "ate_delta_grade_1_vs_0": 0.00147591985296458,
+                        "ate_delta_grade_obs_vs_0": 0.0018328229198232293
+                    },
+                    "psych": {
+                        "ate_delta_grade_1_vs_0": null,
+                        "ate_delta_grade_obs_vs_0": null
+                    }
+                }
+            },
+            "ridge": {
+                "r2_score": 0.8442186713218689,
+                "rmse": 0.24670296904215713,
+                "mae": 0.19242988526821136
+            }
+        }
+    },
+    "semester_sequence_regression": {
+        "standard": {
+            "n_features": 36,
+            "r2_score": 0.988685131072998,
+            "rmse": 0.06648773215140936,
+            "mae": 0.047648925334215164
+        },
+        "gradeblind": {
+            "n_features": 34,
+            "r2_score": 0.7012166976928711,
+            "rmse": 0.3416605214209849,
+            "mae": 0.26949554681777954
+        },
+        "blind": {
+            "n_features": 26,
+            "r2_score": 0.6280759572982788,
+            "rmse": 0.3811920278279969,
+            "mae": 0.3026772141456604
+        },
+        "oracle": {
+            "n_features": 42,
+            "r2_score": 0.9904219508171082,
+            "rmse": 0.061172331202962935,
+            "mae": 0.044577207416296005
+        },
+        "realistic": {
+            "n_features": 28,
+            "r2_score": 0.9891139268875122,
+            "rmse": 0.0652157538499875,
+            "mae": 0.046584419906139374
+        }
+    }
+}

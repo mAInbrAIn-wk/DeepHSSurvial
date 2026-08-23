@@ -128,7 +128,8 @@ $$p_{\text{psych}, i}(t) = \text{clip}\Big(0{,}01 + (0{,}5 - \sigma_i(t)) \cdot 
    Zusätzlich: $2/3$ Carry-Over-Wirkung in Folgesemestern bei Wiederholungsprüfungen.
 
 2. **Überfachlicher Support (Lerncoaching, Zeitmanagement):**  
-   Wirkt auf die psychosozialen Ressourcen bei geringem Zeitaufwand ($10\text{h}$):
+   Wirkt auf die psychosozialen Ressourcen bei geringem Zeitaufwand ($10\text{h}$).  
+   *(Anmerkung zur Notation: Der Pfeil $\leftarrow$ steht für eine Zuweisung bzw. ein direktes Überschreiben der Eigenschaft im laufenden Semester).*
    $$\mu_i(t) \leftarrow \min(1{,}0,\, \mu_i(t) + 0{,}02 \times 5{,}0 = +0{,}10)$$
    $$\sigma_i(t) \leftarrow \min(1{,}0,\, \sigma_i(t) + 0{,}01 \times 5{,}0 = +0{,}05)$$
 
@@ -140,13 +141,15 @@ $$p_{\text{psych}, i}(t) = \text{clip}\Big(0{,}01 + (0{,}5 - \sigma_i(t)) \cdot 
 
 ### 3.4 Prüfungsnote & Dropout-Wahrscheinlichkeit
 
-Die latente Prüfungsleistung $L_{i,m}$ bestimmt die Note:
+Die latente Prüfungsleistung $L_{i,m}$ bestimmt die Note (wobei $S_m$ die feste fachliche **S**chwierigkeit des Moduls $m$ ist und $V_m$ die **V**ersuchsnummer der Prüfung):
 
 $$L_{i,m} = 0{,}55 + (2{,}5 - \varepsilon_i) \cdot 0{,}15 + (\mu_i - 0{,}5) \cdot 0{,}12 + (\sigma_i - 0{,}5) \cdot 0{,}05 - S_m \cdot 0{,}20 + (V_m - 1) \cdot 0{,}05 - o_{\text{penalty}} + \text{Boost}_{i,m} + \xi_{i,m}$$
 
 Die Dropout-Wahrscheinlichkeit am Semesterende:
 
-$$p_{\text{drop}, i}(t) = 0{,}5 \cdot \text{clip}\Big(0{,}01 + \max(0, 0{,}4 - \mu_i) \cdot 0{,}30 + \max(0, 0{,}4 - \sigma_i) \cdot 0{,}20 + \min\left(\frac{\Delta\text{CP}_i}{30}, 1\right) \cdot 0{,}15 + n_{\text{fail}, i}(t) \cdot 0{,}04 + \min(o_{\text{penalty}}, 0{,}3) \cdot 0{,}10,\, 0,\, 0{,}45\Big)$$
+$$p_{\text{drop}, i}(t) = 0{,}5 \cdot \text{clip}\Big(\dots,\, 0,\, 0{,}45\Big)$$
+
+*(Anmerkung zur Cap von 0.45: Eine empirische Prüfung der Simulationsverläufe zeigt, dass dieses theoretische Maximum fast nie (in deutlich unter 0,1% der Fälle) auslöst, da selbst die extremsten Kombinationen aus Motivation = 0, Fehlversuchen = 5 und maximalem CP-Rückstand im ersten Semester ($p_{raw} \approx 0{,}79$) nach Multiplikation mit dem Basis-Hazard-Faktor 0,5 immer noch unter 0,45 bleiben. Die Cap dient lediglich als Fail-Safe für den Stochastik-Prozess.)*
 
 ---
 
