@@ -2,9 +2,11 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **ROC-AUC_Dropout** | 0.7923 |
-| **PR-AUC_Dropout** | 0.2268 |
-| **Brier_Dropout** | 0.0367 |
-| **ROC-AUC_Graduation** | 0.9996 |
-| **PR-AUC_Graduation** | 0.9967 |
-| **Brier_Graduation** | 0.0034 |
+| **model_type** | dynamic_deephit_prev |
+| **temporal** | prev |
+| **mode** | standard |
+| **ROC-AUC_Dropout** | 0.7637 |
+| **PR-AUC_Dropout** | 0.1587 |
+| **Brier_Score_Dropout** | 0.0380 |
+| **ROC-AUC_Graduation** | 0.9979 |
+| **PR-AUC_Graduation** | 0.9806 |

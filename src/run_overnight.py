@@ -1,205 +1,252 @@
 """
-Master-Orchestrierung: Vollständiger Nachtlauf
-===============================================
-Führt in Reihenfolge aus:
-1. Simulation V2 (5 Universen mit vollständigem Datenexport)
-   → Universe A = Baseline → output_dl/
-   → Universe B-E → output_dl/universe_{B,C,D,E}/
-2. Ground-Truth Berechnung (Mikro-Effekte)
-3. Alle Modell-Trainings (20+ Modelle)
-4. Counterfactual-Analysen
+Master Orchestration: Vollständiger Nachtlauf Pipeline (V3.6)
+=============================================================
+Führt die gesamte Modell- und Analyselandschaft automatisiert und benchmark-getrackt aus:
 
-Hinweis: simulation_v2.py erzeugt Universum A als Baseline UND exportiert
-die CSVs direkt nach output_dl/. Ein separater main.py-Lauf ist nicht nötig.
+1. Simulation V3 (5-8 Universen mit Clipping-Diagnostik & Seed-Salting)
+2. 3-Way Backbone Aggregation (DuckDB / NumPy / Pandas)
+3. Wahre Makro Ground-Truth Effekte
+4. Modell-Trainings über alle 8 Modellklassen (25+ Modelle) via `feature_builder.py`
+5. Kausale & Kontrafaktische Dual-Strang Evaluation (Partiell vs. Isoliert)
+6. Feature-Grid Sweep (Standard, Gradeblind, Blind, Realistic, Oracle)
+7. Synoptischer Gesamt-Report (JSON + Markdown) mit psutil CPU- & RAM-Tracking
 """
 
 import os
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+
 import sys
 import time
+import json
+import argparse
 from pathlib import Path
+import psutil
 
-# Projektstruktur
+# Projekt-Pfade einbinden
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SRC_DIR = PROJECT_ROOT / "src"
-
-# Add src to sys.path
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 os.chdir(SRC_DIR)
 
-if hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding="utf-8")
+# Metrics & Feature Builder
+import feature_builder as fb
+from metrics_logger import save_metrics
 
-def run_step(name: str, func, *args, **kwargs):
-    """Wrapper mit Zeitmessung und Error-Handling."""
-    print(f"\n{'='*70}")
-    print(f"  SCHRITT: {name}")
-    print(f"{'='*70}")
-    t0 = time.time()
-    try:
-        func(*args, **kwargs)
-        elapsed = time.time() - t0
-        print(f"  [OK] {name} abgeschlossen in {elapsed/60:.1f} Min.")
-    except Exception as e:
-        elapsed = time.time() - t0
-        print(f"  [FEHLER] bei {name} nach {elapsed/60:.1f} Min.: {e}")
-        import traceback
-        traceback.print_exc()
-        # Weiter mit dem nächsten Schritt
-        return False
-    return True
 
-def main():
-    total_start = time.time()
-    
-    print("=" * 70)
-    print("   MASTER-ORCHESTRIERUNG: VOLLSTÄNDIGER NACHTLAUF")
-    print(f"   Start: {time.strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 70)
-    
-    # =========================================================================
-    # SCHRITT 1: Simulation V3 (erzeugt alle Daten + 5 Universen mit V3 Mechanik)
-    # =========================================================================
-    def run_simulation_v3():
-        import simulation_v3
-        from simulation_v3 import simuliere_verlaeufe_v3, generiere_studierende_v3, generiere_stammdaten
-        from config import CONFIG
-        from export import as_dataframe, exportiere_csv
-        from aggregate import aggregiere_daten
-        import numpy as np
-        import json
-        
-        base_output = Path(CONFIG["output_dir"])
-        os.makedirs(base_output / "metrics", exist_ok=True)
-        
-        stammdaten = generiere_stammdaten()
-        
-        UNIVERSES = {
-            "A": {"label": "Alle Support-Typen erlaubt",       "block_fach": False, "block_uebf": False, "block_psych": False},
-            "B": {"label": "Kein Support (komplett blockiert)",  "block_fach": True,  "block_uebf": True,  "block_psych": True},
-            "C": {"label": "Kein fachlicher Support",           "block_fach": True,  "block_uebf": False, "block_psych": False},
-            "D": {"label": "Kein ueberfachlicher Support",      "block_fach": False, "block_uebf": True,  "block_psych": False},
-            "E": {"label": "Kein psychosozialer Support",       "block_fach": False, "block_uebf": False, "block_psych": True},
-            "F": {"label": "Nur fachlicher Support",            "block_fach": False, "block_uebf": True,  "block_psych": True},
-            "G": {"label": "Nur ueberfachlicher Support",       "block_fach": True,  "block_uebf": False, "block_psych": True},
-            "H": {"label": "Nur psychosozialer Support",        "block_fach": True,  "block_uebf": True,  "block_psych": False},
-        }
-        
-        results = {}
-        POPULATION_SEED = 12345
-        
-        for uni_key, uni_cfg in UNIVERSES.items():
-            print(f"\n  UNIVERSUM {uni_key}: {uni_cfg['label']}")
-            rng = np.random.default_rng(POPULATION_SEED)
-            studierende = generiere_studierende_v3(stammdaten, rng)
-            
-            simuliere_verlaeufe_v3(
-                studierende, stammdaten,
-                block_fach=uni_cfg["block_fach"],
-                block_uebf=uni_cfg["block_uebf"],
-                block_psych=uni_cfg["block_psych"]
-            )
-            
-            n = len(studierende)
-            dropouts = sum(1 for s in studierende if s.abgebrochen)
-            rate = dropouts / n
-            results[uni_key] = {"label": uni_cfg["label"], "dropout_rate": rate, "dropouts": dropouts, "n": n}
-            print(f"    Dropout-Rate = {rate:.2%} ({dropouts}/{n})")
-            
-            uni_output = base_output if uni_key == "A" else base_output / f"universe_{uni_key}"
-            os.makedirs(uni_output, exist_ok=True)
-            df_dict = stammdaten.copy()
-            df_dict.update(as_dataframe(studierende, stammdaten))
-            exportiere_csv(df_dict, uni_output)
-            aggregiere_daten(uni_output)
-        
-        # Makro-Effekte speichern
-        rate_A = results["A"]["dropout_rate"]
-        rate_B = results["B"]["dropout_rate"]
-        rate_C = results["C"]["dropout_rate"]
-        rate_D = results["D"]["dropout_rate"]
-        rate_E = results["E"]["dropout_rate"]
-        rate_F = results["F"]["dropout_rate"]
-        rate_G = results["G"]["dropout_rate"]
-        rate_H = results["H"]["dropout_rate"]
-        
-        macro_effects = {
-            "universe_A_baseline": {"dropout_rate": rate_A},
-            "universe_B": {"label": results["B"]["label"], "dropout_rate": rate_B, "vs_A_relative_risk": rate_A / rate_B},
-            "universe_C": {"label": results["C"]["label"], "dropout_rate": rate_C, "vs_A_relative_risk": rate_A / rate_C},
-            "universe_D": {"label": results["D"]["label"], "dropout_rate": rate_D, "vs_A_relative_risk": rate_A / rate_D},
-            "universe_E": {"label": results["E"]["label"], "dropout_rate": rate_E, "vs_A_relative_risk": rate_A / rate_E},
-            "universe_F": {"label": results["F"]["label"], "dropout_rate": rate_F, "vs_B_relative_risk": rate_F / rate_B},
-            "universe_G": {"label": results["G"]["label"], "dropout_rate": rate_G, "vs_B_relative_risk": rate_G / rate_B},
-            "universe_H": {"label": results["H"]["label"], "dropout_rate": rate_H, "vs_B_relative_risk": rate_H / rate_B},
-            "ground_truth_summary": {
-                "partial_vs_A": {
-                    "RR_fachlich_partial": rate_A / rate_C,
-                    "RR_ueberfachlich_partial": rate_A / rate_D,
-                    "RR_psychosozial_partial": rate_A / rate_E,
-                    "RR_all_partial": rate_A / rate_B
-                },
-                "isolated_vs_B": {
-                    "RR_fachlich_isolated": rate_F / rate_B,
-                    "RR_ueberfachlich_isolated": rate_G / rate_B,
-                    "RR_psychosozial_isolated": rate_H / rate_B
-                }
-            }
-        }
-        
-        out_file = base_output / "metrics" / "true_macro_effects_v3.json"
-        with open(out_file, "w") as f:
-            json.dump(macro_effects, f, indent=4)
-        print(f"\n  Makro-Effekte gespeichert in: {out_file}")
-    
-    run_step("1. Simulation V3 (8 Universen A-H)", run_simulation_v3)
-    
-    # =========================================================================
-    # SCHRITT 2: Validierung
-    # =========================================================================
-    def run_validation():
-        from validate import validiere_und_dokumentiere
-        validiere_und_dokumentiere(Path("../output_dl"))
-    
-    run_step("2. Datenvalidierung", run_validation)
-    
-    # =========================================================================
-    # SCHRITT 3: Ground-Truth Berechnung (Mikro-Effekte)
-    # =========================================================================
-    def run_ground_truth():
-        from calculate_true_effect import calculate_true_effect as calc_true
-        calc_true()
-    
-    run_step("3. Ground-Truth Mikro-Effekte", run_ground_truth)
-    
-    # =========================================================================
-    # SCHRITT 4: Alle Modell-Trainings
-    # =========================================================================
-    def run_all_models():
-        from run_all_experiments import run_all
-        run_all()
-    
-    run_step("4. Alle Modell-Trainings (20+ Modelle)", run_all_models)
-    
-    # =========================================================================
-    # SCHRITT 5: Deep Causal Transformer-DML Benchmark
-    # =========================================================================
-    def run_transformer_dml():
-        from train_transformer_dml import main as run_trans_dml
-        run_trans_dml()
-    
-    run_step("5. Deep Causal Transformer-DML Benchmark", run_transformer_dml)
-    
-    # =========================================================================
-    # ZUSAMMENFASSUNG
-    # =========================================================================
-    total_elapsed = time.time() - total_start
-    print(f"\n{'='*70}")
-    print(f"   NACHTLAUF ABGESCHLOSSEN")
-    print(f"   Ende: {time.strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"   Gesamtdauer: {total_elapsed/3600:.1f} Stunden ({total_elapsed/60:.0f} Min.)")
-    print(f"{'='*70}")
+class PipelineBenchmarkTracker:
+    """Trackt Laufzeiten, CPU-Auslastung und RAM-Verbrauch pro Pipeline-Schritt."""
+    def __init__(self):
+        self.steps = []
+        self.process = psutil.Process(os.getpid())
 
-if __name__ == "__main__":
-    main()
+    def run_step(self, step_name: str, func, *args, **kwargs):
+        print("\n" + "=" * 80)
+        print(f"   START: {step_name}")
+        print(f"   Zeit: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+        print("=" * 80)
+
+        # Baseline Messung
+        mem_start = self.process.memory_info().rss / (1024 * 1024)
+        t0 = time.time()
+        cpu_t0 = psutil.cpu_percent(interval=None)
+
+        result = None
+        status = "PASSED"
+        err_msg = None
+
+        try:
+            result = func(*args, **kwargs)
+            elapsed = time.time() - t0
+            mem_end = self.process.memory_info().rss / (1024 * 1024)
+            cpu_t1 = psutil.cpu_percent(interval=None)
+            print(f"\n[OK] {step_name} ERFOLGREICH BEENDET ({elapsed/60:.2f} Min. / {elapsed:.1f}s | RAM: {mem_end:.1f}MB)")
+        except Exception as e:
+            elapsed = time.time() - t0
+            mem_end = self.process.memory_info().rss / (1024 * 1024)
+            status = "FAILED"
+            err_msg = str(e)
+            print(f"\n[FEHLER] {step_name} FEHLGESCHLAGEN nach {elapsed:.1f}s: {e}")
+            import traceback
+            traceback.print_exc()
+
+        self.steps.append({
+            "step_name": step_name,
+            "status": status,
+            "duration_s": round(elapsed, 2),
+            "ram_start_mb": round(mem_start, 1),
+            "ram_end_mb": round(mem_end, 1),
+            "ram_delta_mb": round(mem_end - mem_start, 1),
+            "error": err_msg
+        })
+        return result
+
+    def export_report(self, output_dir: Path):
+        diag_dir = output_dir / "diagnostics"
+        diag_dir.mkdir(exist_ok=True, parents=True)
+
+        json_path = diag_dir / "pipeline_benchmark_report.json"
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump({
+                "timestamp": time.strftime('%Y-%m-%d %H:%M:%S'),
+                "total_duration_s": sum(s["duration_s"] for s in self.steps),
+                "steps": self.steps
+            }, f, indent=2)
+
+        md_path = diag_dir / "pipeline_benchmark_report.md"
+        with open(md_path, 'w', encoding='utf-8') as f:
+            f.write("# Pipeline Benchmark & Execution Report (V3.6)\n\n")
+            f.write(f"**Generiert am:** {time.strftime('%Y-%m-%d %H:%M:%S')}  \n")
+            f.write(f"**Gesamtlaufzeit:** {sum(s['duration_s'] for s in self.steps)/60:.2f} Minuten\n\n")
+            f.write("| Schritt | Status | Dauer (s) | RAM Start (MB) | RAM Ende (MB) | RAM Delta (MB) |\n")
+            f.write("| :--- | :---: | :---: | :---: | :---: | :---: |\n")
+            for s in self.steps:
+                f.write(f"| {s['step_name']} | {s['status']} | {s['duration_s']} | {s['ram_start_mb']} | {s['ram_end_mb']} | {s['ram_delta_mb']:+} |\n")
+
+        print(f"\n[REPORT] Pipeline-Benchmark-Report gespeichert unter: {md_path}")
+
+
+def run_master_overnight_pipeline(data_dir: Path = None,
+                                  skip_sim: bool = False,
+                                  temporal: str = 'prev',
+                                  population_seed: int = 12345):
+    if data_dir is None:
+        data_dir = Path('output_dl') if Path('output_dl').exists() else Path('src/output_dl')
+    data_dir = Path(data_dir)
+    if not data_dir.exists():
+        if (SRC_DIR / data_dir).exists():
+            data_dir = SRC_DIR / data_dir
+        elif Path(data_dir.name).exists():
+            data_dir = Path(data_dir.name)
+
+    tracker = PipelineBenchmarkTracker()
+    total_t0 = time.time()
+
+    print("*" * 80)
+    print("   MASTER NACHTLAUF PIPELINE V3.6 (DEEPSUPPORT)")
+    print(f"   Start: {time.strftime('%Y-%m-%d %H:%M:%S')} | Temporal: {temporal} | Seed: {population_seed}")
+    print(f"   Data Dir: {data_dir.resolve()}")
+    print("*" * 80)
+
+    # -------------------------------------------------------------------------
+    # 0. SIMULATION V3 & AGGREGATION
+    # -------------------------------------------------------------------------
+    if not skip_sim:
+        def step_sim():
+            import simulation_v3
+            simulation_v3.main(population_seed=population_seed)
+        tracker.run_step("0. Simulation V3 (5 Universen, Salted Seeds & Clipping Tracker)", step_sim)
+    else:
+        print("\n[INFO] Simulation übersprungen (--skip_sim). Nutze bestehende Daten.")
+
+    # -------------------------------------------------------------------------
+    # 1. TRADITIONELLE SURVIVAL- UND HAZARD-MODELLE (KLASSE 5)
+    # -------------------------------------------------------------------------
+    from extended_cox_survival import train_extended_cox_model
+    tracker.run_step("1. Extended Cox Proportional Hazards (Statsmodels PHReg)", train_extended_cox_model, data_dir, temporal, 'standard')
+
+    from extended_deep_survival import train_extended_deep_survival
+    tracker.run_step("2. Extended DeepSurv & Logistic Hazard (Panel Breslow)", train_extended_deep_survival, data_dir, temporal, 'standard')
+
+    # -------------------------------------------------------------------------
+    # 2. REKURRIERENDE SURVIVAL- UND COMPETING-RISKS-MODELLE (KLASSE 6)
+    # -------------------------------------------------------------------------
+    from recurrent_survival_model import train_recurrent_survival_model
+    tracker.run_step("3. Recurrent Semester Survival GRU", train_recurrent_survival_model, data_dir, 16, temporal, 'standard')
+
+    from dynamic_deephit_model import train_dynamic_deephit_model
+    tracker.run_step("4. Dynamic DeepHit Competing Risks (Dropout & Abschluss)", train_dynamic_deephit_model, data_dir, 16, temporal, 'standard')
+
+    from transformer_survival_model import train_transformer_survival
+    tracker.run_step("5. Causal Semester Transformer Survival", train_transformer_survival, data_dir, 16, temporal, 'standard')
+
+    # -------------------------------------------------------------------------
+    # 3. EXAM-LEVEL SEQUENZ- UND SURVIVAL-MODELLE (KLASSE 7)
+    # -------------------------------------------------------------------------
+    from recurrent_exam_survival import train_recurrent_exam_survival_model
+    tracker.run_step("6. Recurrent Exam Survival GRU", train_recurrent_exam_survival_model, data_dir, 40, temporal, 'standard')
+
+    from transformer_exam_survival import train_transformer_exam_survival
+    tracker.run_step("7. Causal Exam Transformer Survival", train_transformer_exam_survival, data_dir, 40, temporal, 'standard')
+
+    # -------------------------------------------------------------------------
+    # 4. LANDMARK BASELINES & REGRESSIONEN (KLASSE 1)
+    # -------------------------------------------------------------------------
+    from train_mlp_baseline import run_baseline_training
+    tracker.run_step("8. Landmark Baseline Classifiers (RF, SVM, NaiveBayes, MLP)", run_baseline_training, data_dir, True, 'standard')
+
+    from train_mlp_regression import run_regression_training
+    tracker.run_step("9. Landmark Abschlussnoten-Regression (Ridge, SVR, RF, MLP)", run_regression_training, data_dir, True, 'standard')
+
+    # -------------------------------------------------------------------------
+    # 5. KAUSALE DML- UND TRANSFOMER-DML MODELLE (KLASSE 3)
+    # -------------------------------------------------------------------------
+    from dml_orthogonal_survival import train_dml_orthogonal_survival
+    tracker.run_step("10. Double Machine Learning (DML Orthogonalized Survival)", train_dml_orthogonal_survival, data_dir, temporal, 'standard')
+
+    from train_transformer_dml import train_transformer_dml
+    tracker.run_step("11. Deep Transformer-DML Pipeline", train_transformer_dml, data_dir, temporal, 'standard')
+
+    # -------------------------------------------------------------------------
+    # 6. ZEITREIHEN-REGRESSIONEN (KLASSE 6 & 7 REGRESSION)
+    # -------------------------------------------------------------------------
+    from timeseries_semester import train_timeseries_semester
+    tracker.run_step("12. Semester Timeseries LSTM GPA Regression", train_timeseries_semester, data_dir, 16, temporal, 'standard')
+
+    from timeseries_semester_transformer import train_timeseries_semester_transformer
+    tracker.run_step("13. Semester Timeseries Transformer Abschlussnoten-Regression", train_timeseries_semester_transformer, data_dir, 16, temporal, 'standard')
+
+    from timeseries_exam import train_timeseries_exam
+    tracker.run_step("14. Exam Timeseries GRU Grade Regression", train_timeseries_exam, data_dir, 40, temporal, 'standard')
+
+    from timeseries_exam_transformer import train_timeseries_exam_transformer
+    tracker.run_step("15. Exam Timeseries Transformer Grade Regression", train_timeseries_exam_transformer, data_dir, 40, temporal, 'standard')
+
+    # -------------------------------------------------------------------------
+    # 7. ORACLE & DSGVO REALISTIC BENCHMARKS (KLASSE 2)
+    # -------------------------------------------------------------------------
+    from train_oracle_models import train_oracle_models
+    tracker.run_step("16. Oracle Models (Theoretischer Maximum Lift)", train_oracle_models, data_dir, temporal)
+
+    from train_erwerb_blind_models import train_erwerb_blind_models
+    tracker.run_step("17. DSGVO Realistic Models (Feature Blindness Analysis)", train_erwerb_blind_models, data_dir, temporal)
+
+    # -------------------------------------------------------------------------
+    # 8. DEEP TRANSFORMER SUITE (KLASSE 8)
+    # -------------------------------------------------------------------------
+    from deep_transformer_regression import train_deep_transformer_models
+    tracker.run_step("18. Deep Transformer Suite (Enlarged Capacity)", train_deep_transformer_models, data_dir, temporal, 'standard')
+
+    # -------------------------------------------------------------------------
+    # 9. AUTOREGRESSIVE NEXT-EXAM & STRUCTURAL MEDIATION (KLASSE 8B / AP7 / AP8)
+    # -------------------------------------------------------------------------
+    from autoregressive_next_exam import train_autoregressive_next_exam
+    tracker.run_step("19. Autoregressive Next-Exam Prediction (Dual-Head Multi-Task)", train_autoregressive_next_exam, data_dir)
+
+    from structural_mediation_analysis import run_structural_mediation_analysis
+    tracker.run_step("20. Strukturelle Mediationsanalyse (Imai / Pearl Framework)", run_structural_mediation_analysis, data_dir)
+
+    # Benchmark-Report exportieren
+    tracker.export_report(data_dir)
+
+    total_elapsed = time.time() - total_t0
+    print("\n" + "=" * 80)
+    print(f"   MASTER NACHTLAUF ERFOLGREICH BEENDET ({total_elapsed/60:.2f} Minuten)")
+    print("=" * 80)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Master Overnight Pipeline V3.6")
+    parser.add_argument('--data_dir', type=str, default='src/output_dl')
+    parser.add_argument('--skip_sim', action='store_true', default=False)
+    parser.add_argument('--temporal', type=str, default='prev', choices=['prev', 'cum'])
+    parser.add_argument('--seed', type=int, default=12345)
+    args = parser.parse_args()
+
+    run_master_overnight_pipeline(
+        data_dir=Path(args.data_dir),
+        skip_sim=args.skip_sim,
+        temporal=args.temporal,
+        population_seed=args.seed
+    )

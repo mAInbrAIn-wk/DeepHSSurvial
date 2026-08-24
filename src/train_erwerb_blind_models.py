@@ -1,84 +1,131 @@
+"""
+Erwerb-Blind / DSGVO Realistic Model Training
+=============================================
+Trainiert Modelle ohne hochsensible oder geschützte Merkmale
+(keine Erwerbstätigkeit, kein Migrationshintergrund, kein Psychosozial-Support, keine Noten bei Bedarf).
+Vergleicht Full Baseline vs. Realistic DSGVO-Konforme Modelle.
+"""
+
 import os
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+
+import sys
+import argparse
+from pathlib import Path
 import pandas as pd
 import numpy as np
-from pathlib import Path
-from sklearn.linear_model import LogisticRegression, Ridge
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
 from sklearn.metrics import roc_auc_score, brier_score_loss, average_precision_score
 
-def main():
-    data_dir = Path(r"c:\GitHub_public\Abschlussprojekt\output_dl_v2")
-    if not data_dir.exists():
-        data_dir = Path(r"c:\GitHub_public\Abschlussprojekt\output_dl")
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 
-    print("================================================================================")
-    print("ERWERB-BLIND MODELL-BENCHMARK: CONCOUNTER EVALUATION OHNE ERWERBSTÄTIGKEIT")
-    print("================================================================================")
+# Import metrics_logger and feature_builder
+sys.path.insert(0, str(Path(__file__).parent))
+from metrics_logger import save_metrics, save_keras_model
+import feature_builder as fb
 
-    # Lade 2D Panel Daten
-    from extended_cox_delta import build_delta_panel
-    df_panel = build_delta_panel(data_dir)
 
-    print(f"Loaded Panel Rows: {len(df_panel)}")
+def build_hazard_model(input_dim: int) -> Sequential:
+    model = Sequential([
+        Dense(32, activation='relu', input_shape=(input_dim,)),
+        BatchNormalization(),
+        Dropout(0.2),
+        Dense(16, activation='relu'),
+        BatchNormalization(),
+        Dense(1, activation='sigmoid')
+    ])
+    model.compile(optimizer=tf.keras.optimizers.Adam(0.005), loss='binary_crossentropy', metrics=['AUC'])
+    return model
 
-    # Standard Features vs. Erwerb-Blind Features
-    feature_cols_all = [c for c in df_panel.select_dtypes(include=[np.number]).columns if c not in ["studierenden_id", "t_start", "t_stop", "event", "anomalie_typ"]]
-    feature_cols_standard = [c for c in feature_cols_all if c != "fach_supp_active"]
-    feature_cols_blind = [c for c in feature_cols_standard if "erwerb" not in c.lower()]
 
-    print(f"Standard Features ({len(feature_cols_standard)}): {feature_cols_standard}")
-    print(f"Erwerb-Blind Features ({len(feature_cols_blind)}): {feature_cols_blind}")
+def train_erwerb_blind_models(data_dir: Path = Path('src/output_dl'),
+                              temporal: str = 'prev',
+                              epochs: int = 30):
+    print("\n" + "=" * 74)
+    print(f"   DSGVO / REALISTIC FEATURE-BLIND SURVIVAL (temporal={temporal})")
+    print("=" * 74)
 
-    X_std = df_panel[feature_cols_standard].fillna(0).values
-    X_blind = df_panel[feature_cols_blind].fillna(0).values
-    A = df_panel["fach_supp_active"].values
-    Y = df_panel["event"].values
+    # 1. Full Standard Panel
+    panel_full, cols_full, target_col, _ = fb.build_semester_panel_df(data_dir, mode='standard', temporal=temporal)
 
-    # 1. Evaluate DML with Standard Features vs Erwerb-Blind Features
-    print("\n--- 1. DOUBLE MACHINE LEARNING COMPARISON ---")
+    # 2. Realistic Panel (DSGVO-compliant: No Erwerb, No Migrationshintergrund, No Psych Support)
+    panel_real, cols_real, _, _ = fb.build_semester_panel_df(data_dir, mode='realistic', temporal=temporal)
 
-    # Standard DML
-    p_mod_std = LogisticRegression(max_iter=1000).fit(X_std, A)
-    p_hat_std = np.clip(p_mod_std.predict_proba(X_std)[:, 1], 0.01, 0.99)
-    A_res_std = A - p_hat_std
+    print(f"Features: Full = {len(cols_full)}, Realistic/DSGVO = {len(cols_real)}")
 
-    y_mod_std = Ridge(alpha=1.0).fit(X_std, Y)
-    y_hat_std = y_mod_std.predict(X_std)
-    Y_res_std = Y - y_hat_std
+    unique_studis = np.array(panel_full['studierenden_id'].unique().tolist())
+    train_ids, test_ids = train_test_split(unique_studis, test_size=0.20, random_state=42)
 
-    beta_std = Ridge(alpha=0.001).fit(A_res_std.reshape(-1, 1), Y_res_std).coef_[0]
-    base_rate = np.mean(Y)
-    rr_std = (base_rate + beta_std) / base_rate
+    tr_mask = panel_full['studierenden_id'].isin(train_ids)
+    te_mask = panel_full['studierenden_id'].isin(test_ids)
 
-    # Erwerb-Blind DML
-    p_mod_blind = LogisticRegression(max_iter=1000).fit(X_blind, A)
-    p_hat_blind = np.clip(p_mod_blind.predict_proba(X_blind)[:, 1], 0.01, 0.99)
-    A_res_blind = A - p_hat_blind
+    scaler_full = StandardScaler()
+    scaler_real = StandardScaler()
+    imputer = SimpleImputer(strategy='median')
 
-    y_mod_blind = Ridge(alpha=1.0).fit(X_blind, Y)
-    y_hat_blind = y_mod_blind.predict(X_blind)
-    Y_res_blind = Y - y_hat_blind
+    X_tr_full = scaler_full.fit_transform(imputer.fit_transform(panel_full.loc[tr_mask, cols_full]))
+    X_te_full = scaler_full.transform(imputer.transform(panel_full.loc[te_mask, cols_full]))
 
-    beta_blind = Ridge(alpha=0.001).fit(A_res_blind.reshape(-1, 1), Y_res_blind).coef_[0]
-    rr_blind = (base_rate + beta_blind) / base_rate
+    X_tr_real = scaler_real.fit_transform(imputer.fit_transform(panel_real.loc[tr_mask, cols_real]))
+    X_te_real = scaler_real.transform(imputer.transform(panel_real.loc[te_mask, cols_real]))
 
-    print(f"Ground Truth RR (Makro):                0.9972")
-    print(f"Standard DML RR (mit Erwerbstätigkeit): {rr_std:.4f} (Beta: {beta_std:.6f})")
-    print(f"Erwerb-Blind DML RR (ohne Erwerb):      {rr_blind:.4f} (Beta: {beta_blind:.6f})")
+    y_tr = panel_full.loc[tr_mask, target_col].values
+    y_te = panel_full.loc[te_mask, target_col].values
 
-    # 2. Classification AUC comparison
-    print("\n--- 2. DROPOUT PREDICTION ACCURACY (ROC-AUC / PR-AUC) ---")
-    y_pred_std = y_hat_std
-    y_pred_blind = y_hat_blind
+    # Train Full Model
+    print("\n[1/2] Trainiere Full Baseline Hazard Model...")
+    tf.random.set_seed(42)
+    m_full = build_hazard_model(X_tr_full.shape[1])
+    m_full.fit(X_tr_full, y_tr, epochs=epochs, batch_size=2048, verbose=0)
+    p_full = m_full.predict(X_te_full, verbose=0).flatten()
 
-    auc_std = roc_auc_score(Y, y_pred_std)
-    pr_auc_std = average_precision_score(Y, y_pred_std)
+    # Train Realistic Model
+    print("[2/2] Trainiere Realistic DSGVO Hazard Model...")
+    tf.random.set_seed(42)
+    m_real = build_hazard_model(X_tr_real.shape[1])
+    m_real.fit(X_tr_real, y_tr, epochs=epochs, batch_size=2048, verbose=0)
+    p_real = m_real.predict(X_te_real, verbose=0).flatten()
 
-    auc_blind = roc_auc_score(Y, y_pred_blind)
-    pr_auc_blind = average_precision_score(Y, y_pred_blind)
+    auc_full = float(roc_auc_score(y_te, p_full))
+    pr_full = float(average_precision_score(y_te, p_full))
 
-    print(f"Standard Model  -> ROC-AUC: {auc_std:.4f} | PR-AUC: {pr_auc_std:.4f}")
-    print(f"Erwerb-Blind    -> ROC-AUC: {auc_blind:.4f} | PR-AUC: {pr_auc_blind:.4f}")
-    print(f"Performance Drop: ROC-AUC {auc_std - auc_blind:.4f} | PR-AUC {pr_auc_std - pr_auc_blind:.4f}")
+    auc_real = float(roc_auc_score(y_te, p_real))
+    pr_real = float(average_precision_score(y_te, p_real))
 
-if __name__ == "__main__":
-    main()
+    drop_auc = auc_full - auc_real
+
+    print("\n" + "=" * 74)
+    print("   ERGEBNISSE DSGVO-REALISTIC SURVIVAL (TEST-SET)")
+    print("=" * 74)
+    print(f"  • Full Model ROC-AUC      : {auc_full:.4f}")
+    print(f"  • Realistic Model ROC-AUC : {auc_real:.4f}  (Verlust: {-drop_auc:+.4f})")
+    print("=" * 74)
+
+    # Logging
+    base_dir = data_dir
+    metrics_dict = {
+        "ROC-AUC_Full": auc_full,
+        "PR-AUC_Full": pr_full,
+        "ROC-AUC_Realistic": auc_real,
+        "PR-AUC_Realistic": pr_real,
+        "ROC-AUC_Drop": drop_auc
+    }
+    save_metrics("erwerb_blind_models", metrics_dict, base_dir)
+    save_keras_model(m_real, "realistic_logistic_hazard", base_dir)
+
+    print(f"[OK] DSGVO-Modelle erfolgreich gespeichert unter {base_dir}.")
+    return metrics_dict
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="DSGVO Realistic Survival Training")
+    parser.add_argument('--data_dir', type=str, default='src/output_dl')
+    parser.add_argument('--temporal', type=str, default='prev', choices=['prev', 'cum'])
+    args = parser.parse_args()
+
+    train_erwerb_blind_models(Path(args.data_dir), temporal=args.temporal)

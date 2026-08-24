@@ -2,6 +2,10 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **ROC-AUC_Exam** | 0.8821 |
-| **PR-AUC_Exam** | 0.2161 |
-| **Brier_Score** | 0.0165 |
+| **model_type** | recurrent_exam_survival_prev |
+| **temporal** | prev |
+| **mode** | standard |
+| **ROC-AUC_Exam** | 0.7951 |
+| **PR-AUC_Exam** | 0.1030 |
+| **Brier_Score** | 0.0181 |
+| **ROC-AUC_Student** | 0.5919 |

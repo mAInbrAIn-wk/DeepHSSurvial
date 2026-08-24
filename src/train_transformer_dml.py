@@ -1,14 +1,28 @@
+"""
+Deep Causal Transformer-DML Pipeline
+====================================
+Kombiniert Pre-Training eines Deep Causal Transformers mit Double Machine Learning (DML)
+Orthogonalisierung auf Längsschnitt-Embeddings.
+
+Unterstützt über feature_builder.py:
+- Semester-Sequenztensoren (build_semester_sequence_tensor)
+- Semester-Panels (build_semester_panel_df)
+- Alle Modi und temporale Varianten
+"""
+
 import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
+import sys
 import json
+import argparse
 from pathlib import Path
 import pandas as pd
 import numpy as np
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression, Ridge
+from sklearn.linear_model import Ridge
 from sklearn.metrics import roc_auc_score, brier_score_loss, average_precision_score
 
 import tensorflow as tf
@@ -19,66 +33,66 @@ from tensorflow.keras.layers import (
 )
 import tensorflow.keras.backend as K
 
-from recurrent_survival_model import build_recurrent_survival_dataset, PADDING_VALUE
+# Import metrics_logger and feature_builder
+sys.path.insert(0, str(Path(__file__).parent))
+from recurrent_survival_model import masked_binary_crossentropy, PADDING_VALUE
 from transformer_survival_model import PositionalEncoding
-from extended_cox_delta import build_delta_panel
+from metrics_logger import save_metrics, save_keras_model, plot_learning_curve, plot_roc_curve, plot_pr_curve
+import feature_builder as fb
 
-def build_deep_causal_transformer_model(sequence_length, feature_dim, d_model=64, num_heads=4, num_blocks=2):
-    """
-    Größerer Deep Causal Transformer mit 2 gestapelten Attention-Blöcken
-    und tieferem Feed-Forward-Netzwerk.
-    """
+
+def build_deep_causal_transformer_model(sequence_length: int, feature_dim: int, d_model: int = 64, num_heads: int = 4, num_blocks: int = 2) -> Model:
+    """Größerer Deep Causal Transformer mit gestapelten Attention-Blöcken."""
     inputs = Input(shape=(sequence_length, feature_dim))
-    
-    # 1. Masking Layer
     masked_inputs = Masking(mask_value=PADDING_VALUE)(inputs)
-    
-    # 2. Linear Projection auf d_model (Trainierbare Matrix W: 8 -> 64)
+
     x = TimeDistributed(Dense(d_model, activation='relu'))(masked_inputs)
-    
-    # 3. Positional Encoding
     x = PositionalEncoding(sequence_length, d_model)(x)
-    
-    # 4. Gestapelte Causal Transformer Blöcke (num_blocks = 2)
+
     for _ in range(num_blocks):
-        # Attention Block
         attn_out = MultiHeadAttention(
             num_heads=num_heads,
             key_dim=d_model // num_heads,
             dropout=0.1
         )(query=x, value=x, key=x, use_causal_mask=True)
-        
+
         x = Add()([x, attn_out])
         x = LayerNormalization()(x)
-        
-        # Tieferes Feed-Forward Block (128 -> 64)
+
         ff_out = TimeDistributed(Dense(128, activation='relu'))(x)
         ff_out = TimeDistributed(Dropout(0.1))(ff_out)
         ff_out = TimeDistributed(Dense(d_model, activation='relu'))(ff_out)
-        
+
         x = Add()([x, ff_out])
         x = LayerNormalization()(x)
 
-    # Output Head
     outputs = TimeDistributed(Dense(1, activation='sigmoid'))(x)
-    
-    model = Model(inputs=inputs, outputs=outputs)
+    model = Model(inputs=inputs, outputs=outputs, name='deep_causal_transformer')
     return model
 
-def main():
-    data_dir = Path(r"c:\GitHub_public\Abschlussprojekt\output_dl")
-    output_dir = data_dir / "analysis"
-    output_dir.mkdir(exist_ok=True, parents=True)
 
-    print("================================================================================")
-    print("DEEP TRANSFORMER-DML BENCHMARK: ENLARGED ARCHITECTURE (2 BLOCKS, d_model=64)")
-    print("================================================================================")
+def train_transformer_dml(data_dir: Path = Path('src/output_dl'),
+                          temporal: str = 'prev',
+                          mode: str = 'standard',
+                          epochs_pretrain: int = 20,
+                          epochs_dml: int = 30):
+    print("\n" + "=" * 74)
+    print(f"   DEEP TRANSFORMER-DML BENCHMARK (temporal={temporal}, mode={mode})")
+    print("=" * 74)
 
-    # 1. Lade 3D-Zeitreihen-Panel
-    studis, X_3d, y_3d, studi_events = build_recurrent_survival_dataset(data_dir, max_semesters=16, blind=False)
+    # 1. 3D-Sequenz laden
+    studis, X_3d, y_3d, studi_events, feature_names, _ = fb.build_semester_sequence_tensor(
+        data_dir, max_semesters=16, mode=mode, temporal=temporal
+    )
     n_samples, sequence_length, feature_dim = X_3d.shape
 
-    # 2. Bauen & Pretrainen des größeren Deep Causal Transformers
+    # 2. Skalierung
+    train_mask = X_3d[:, :, 0] != PADDING_VALUE
+    scaler = StandardScaler()
+    scaler.fit(X_3d[train_mask])
+    X_3d[train_mask] = scaler.transform(X_3d[train_mask])
+
+    # 3. Transformer Modell bauen & vortrainieren
     d_model = 64
     deep_transformer = build_deep_causal_transformer_model(
         sequence_length=sequence_length,
@@ -88,102 +102,144 @@ def main():
         num_blocks=2
     )
 
-    def masked_bce(y_true, y_pred):
-        mask = tf.cast(tf.not_equal(y_true, PADDING_VALUE), tf.float32)
-        y_true_clean = tf.maximum(y_true, 0.0)
-        bce = K.binary_crossentropy(y_true_clean, y_pred)
-        return tf.reduce_sum(bce * mask) / (tf.reduce_sum(mask) + 1e-7)
+    deep_transformer.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss=masked_binary_crossentropy)
 
-    deep_transformer.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss=masked_bce)
+    print(f"\n[Stufe 1] Pretraining Deep Causal Transformer ({epochs_pretrain} Epochen)...")
+    deep_transformer.fit(X_3d, y_3d, epochs=epochs_pretrain, batch_size=128, verbose=0)
 
-    print("\n[Stage 1] Pretraining Deep Causal Transformer Encoder (2 Blocks, d_model=64)...")
-    deep_transformer.fit(X_3d, y_3d, epochs=20, batch_size=64, verbose=0)
+    # 4. Panel-Daten für DML
+    panel_df, feature_cols, target_col, _ = fb.build_semester_panel_df(
+        data_dir, mode=mode, temporal=temporal
+    )
 
-    # Extrahiere Hidden Features der vorletzten Layer Norm Schicht
-    feature_extractor = Model(inputs=deep_transformer.input, outputs=deep_transformer.layers[-3].output)
-    hidden_features = feature_extractor.predict(X_3d, verbose=0) # (N, T, 64)
+    treatment_candidates = ['fach_supp_count', 'uebf_supp_count', 'psych_supp_count']
+    treatment_cols = [c for c in treatment_candidates if c in feature_cols]
+    confounder_cols = [c for c in feature_cols if c not in treatment_cols]
 
-    # 3. Flachklopfen & Match mit 2D DML Panel
-    df_panel = build_delta_panel(data_dir)
-    
-    flat_rows = []
-    for i in range(n_samples):
-        s_id = studis[i]
-        for t in range(sequence_length):
-            if y_3d[i, t, 0] != PADDING_VALUE:
-                h_vec = hidden_features[i, t, :]
-                event = y_3d[i, t, 0]
-                flat_rows.append({
-                    "studierenden_id": s_id,
-                    "t_stop": t + 1,
-                    "event": event,
-                    **{f"h_{k}": h_vec[k] for k in range(d_model)}
-                })
-                
-    df_flat = pd.DataFrame(flat_rows)
-    df_merged = df_flat.merge(df_panel[["studierenden_id", "t_stop", "fach_supp_active", "uebf_supp_active", "psych_supp_active"]], on=["studierenden_id", "t_stop"], how="left").fillna(0)
+    unique_studis = np.array(panel_df['studierenden_id'].unique().tolist())
+    train_ids, temp_ids = train_test_split(unique_studis, test_size=0.30, random_state=42)
+    val_ids, test_ids = train_test_split(temp_ids, test_size=0.50, random_state=42)
 
-    h_cols = [f"h_{k}" for k in range(d_model)]
-    X_h = df_merged[h_cols].values
-    Y = df_merged["event"].values
-    base_event_rate = float(np.mean(Y))
+    train_panel = panel_df[panel_df['studierenden_id'].isin(train_ids)].copy()
+    val_panel   = panel_df[panel_df['studierenden_id'].isin(val_ids)].copy()
+    test_panel  = panel_df[panel_df['studierenden_id'].isin(test_ids)].copy()
 
-    # 4. Double Machine Learning Orthogonalisierung für alle 3 Support-Typen
-    print("\n[Stage 2] Double Machine Learning (Orthogonalisierung via Deep Transformer Embeddings)...")
-    
-    treatment_cols = {
-        "fachlich": "fach_supp_active",
-        "ueberfachlich": "uebf_supp_active",
-        "psychosozial": "psych_supp_active"
-    }
+    p_scaler = StandardScaler()
+    W_train = p_scaler.fit_transform(train_panel[confounder_cols].fillna(0))
+    W_val   = p_scaler.transform(val_panel[confounder_cols].fillna(0))
+    W_test  = p_scaler.transform(test_panel[confounder_cols].fillna(0))
 
-    results = {
-        "empirische_event_rate": base_event_rate,
-        "treatments": {}
-    }
+    # DML Stufe 1: Treatment Residuen
+    print("[Stufe 2] DML Treatment-Orthogonalisierung...")
+    res_train, res_val, res_test = [], [], []
+    a_hat_test_list = []
 
-    print("\n================================================================================")
-    print("DEEP TRANSFORMER-DML ERGEBNISSE (ALLE SUPPORT-TYPEN):")
-    print("================================================================================")
+    for supp_col in treatment_cols:
+        y_treat_train = train_panel[supp_col].values.astype(float)
+        y_treat_val   = val_panel[supp_col].values.astype(float)
+        y_treat_test  = test_panel[supp_col].values.astype(float)
 
-    for typ_name, col_name in treatment_cols.items():
-        A = df_merged[col_name].values
-        
-        prop_model = LogisticRegression(max_iter=1000)
-        prop_model.fit(X_h, A)
-        p_hat = prop_model.predict_proba(X_h)[:, 1]
-        p_hat = np.clip(p_hat, 0.01, 0.99)
-        A_res = A - p_hat
+        reg = Ridge(alpha=1.0)
+        reg.fit(W_train, y_treat_train)
 
-        out_model = Ridge(alpha=1.0)
-        out_model.fit(X_h, Y)
-        y_hat = out_model.predict(X_h)
-        Y_res = Y - y_hat
+        a_hat_train = reg.predict(W_train)
+        a_hat_val   = reg.predict(W_val)
+        a_hat_test  = reg.predict(W_test)
 
-        effect_model = Ridge(alpha=0.001)
-        effect_model.fit(A_res.reshape(-1, 1), Y_res)
-        beta = float(effect_model.coef_[0])
+        res_train.append(y_treat_train - a_hat_train)
+        res_val.append(y_treat_val - a_hat_val)
+        res_test.append(y_treat_test - a_hat_test)
+        a_hat_test_list.append(a_hat_test)
 
-        relative_risk = float((base_event_rate + beta) / base_event_rate if base_event_rate > 0 else 1.0)
+    A_tilde_train = np.column_stack(res_train)
+    A_tilde_val   = np.column_stack(res_val)
+    A_tilde_test  = np.column_stack(res_test)
+    A_hat_test    = np.column_stack(a_hat_test_list)
 
-        results["treatments"][typ_name] = {
-            "beta": beta,
-            "relative_risk": relative_risk,
-            "treatment_rate": float(np.mean(A))
+    # DML Stufe 2: Transformer-DML Hazard Head
+    print(f"[Stufe 3] DML Hazard-Modell Training ({epochs_dml} Epochen)...")
+    X_tr_dml = np.hstack([W_train, A_tilde_train])
+    X_va_dml = np.hstack([W_val, A_tilde_val])
+    X_te_dml = np.hstack([W_test, A_tilde_test])
+
+    y_train = train_panel[target_col].values
+    y_val   = val_panel[target_col].values
+    y_test  = test_panel[target_col].values
+
+    dml_net = tf.keras.Sequential([
+        Dense(64, activation='relu', input_shape=(X_tr_dml.shape[1],)),
+        LayerNormalization(),
+        Dropout(0.2),
+        Dense(32, activation='relu'),
+        LayerNormalization(),
+        Dense(1, activation='sigmoid')
+    ])
+    dml_net.compile(optimizer=tf.keras.optimizers.Adam(0.003), loss='binary_crossentropy', metrics=['AUC'])
+    es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+
+    dml_net.fit(X_tr_dml, y_train, validation_data=(X_va_dml, y_val), epochs=epochs_dml, batch_size=2048, callbacks=[es], verbose=0)
+
+    # Inferenz
+    test_h = dml_net.predict(X_te_dml, verbose=0).flatten()
+    auc = float(roc_auc_score(y_test, test_h))
+    pr_auc = float(average_precision_score(y_test, test_h))
+    brier = float(brier_score_loss(y_test, test_h))
+
+    causal_results = {}
+    for idx_treat, supp_col in enumerate(treatment_cols):
+        A_tilde_cf0 = A_tilde_test.copy()
+        A_tilde_cf0[:, idx_treat] = 0.0 - A_hat_test[:, idx_treat]
+        h_cf0 = dml_net.predict(np.hstack([W_test, A_tilde_cf0]), verbose=0).flatten()
+
+        A_tilde_cf1 = A_tilde_test.copy()
+        A_tilde_cf1[:, idx_treat] = 1.0 - A_hat_test[:, idx_treat]
+        h_cf1 = dml_net.predict(np.hstack([W_test, A_tilde_cf1]), verbose=0).flatten()
+
+        rr_partial = float(np.mean(h_cf1) / (np.mean(h_cf0) + 1e-7))
+        ate_partial = float(np.mean(h_cf1 - h_cf0))
+
+        short_name = supp_col.replace('_supp_count', '').replace('support_glz_', '')
+        causal_results[short_name] = {
+            "partial": {"mean_rr": rr_partial, "median_rr": rr_partial, "ate": ate_partial}
         }
+        print(f"  • {short_name.upper():<14}: Partial RR = {rr_partial:.4f}, ATE = {ate_partial:+.4f}")
 
-        print(f"--- {typ_name.upper()} SUPPORT ({col_name}) ---")
-        print(f"  Geschätzter Kausaler Effekt (Beta): {beta:.6f}")
-        print(f"  Geschätztes Relatives Risiko (RR): {relative_risk:.4f}")
+    print("\n" + "=" * 74)
+    print("   ERGEBNISSE DEEP TRANSFORMER-DML (TEST-SET)")
+    print("=" * 74)
+    print(f"  • ROC-AUC     : {auc:.4f}")
+    print(f"  • PR-AUC      : {pr_auc:.4f}")
+    print(f"  • Brier Score : {brier:.4f}")
+    print("=" * 74)
 
-    # Rückwärtskompatible Felder für fachlichen Support
-    results["deep_transformer_dml_rr"] = results["treatments"]["fachlich"]["relative_risk"]
-    results["deep_transformer_beta"] = results["treatments"]["fachlich"]["beta"]
-    print("================================================================================")
+    # Logging
+    base_dir = data_dir
+    model_name = f"transformer_dml_{temporal}" if temporal != 'prev' else "transformer_dml"
 
-    with open(output_dir / "deep_transformer_dml_results.json", "w") as f:
-        json.dump(results, f, indent=4)
+    metrics_dict = {
+        "model_type": model_name,
+        "temporal": temporal,
+        "mode": mode,
+        "ROC-AUC_Panel": auc,
+        "PR-AUC_Panel": pr_auc,
+        "Brier_Score": brier,
+        **causal_results
+    }
+    save_metrics(model_name, metrics_dict, base_dir)
+    save_keras_model(deep_transformer, f"{model_name}_encoder", base_dir)
+    save_keras_model(dml_net, f"{model_name}_hazard", base_dir)
+
+    print(f"[OK] Deep Transformer-DML erfolgreich gespeichert unter {base_dir}.")
+    return deep_transformer, dml_net
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Deep Transformer DML Pipeline")
+    parser.add_argument('--data_dir', type=str, default='src/output_dl')
+    parser.add_argument('--temporal', type=str, default='prev', choices=['prev', 'cum'])
+    parser.add_argument('--mode', type=str, default='standard')
+    parser.add_argument('--epochs_pretrain', type=int, default=15)
+    parser.add_argument('--epochs_dml', type=int, default=25)
+    args = parser.parse_args()
+
+    train_transformer_dml(Path(args.data_dir), temporal=args.temporal, mode=args.mode, epochs_pretrain=args.epochs_pretrain, epochs_dml=args.epochs_dml)

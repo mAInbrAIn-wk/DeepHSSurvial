@@ -1,209 +1,178 @@
 """
 Recurrent Exam-Level Survival Analysis (Keras GRU Sequenz auf Prüfungsebene)
 ===========================================================================
-Erstellt ein 3D-Sequenzarray (N_studis, K_exam_max, N_features), bei dem jeder Zeitschritt
-eine EINZELNE PRÜFUNG darstellt.
+Erstellt und trainiert ein 3D-Sequenz-GRU-Modell (N, max_exams, n_features),
+bei dem jeder Zeitschritt eine EINZELNE PRÜFUNG darstellt.
 
-Verwendet Keras Masking + GRU, um die Trajektorie von Prüfung zu Prüfung zu verfolgen.
+Konsolidiert die bisherigen Skripte (recurrent_exam_survival, _v2, _delta) in ein
+einheitliches, parametrisiertes Skript mit voller feature_builder.py Anbindung.
+
+Unterstützt:
+- Alle Modi (standard, gradeblind, blind, oracle, realistic)
+- Temporale Modi: temporal='prev' (Vor-Prüfungs-Werte) oder temporal='cum' (Gesamthistorie vor Prüfung k)
 """
 
 import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
+import sys
+import argparse
 from pathlib import Path
 import pandas as pd
 import numpy as np
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import (
-    roc_auc_score, brier_score_loss, average_precision_score,
-    precision_score, recall_score, f1_score, accuracy_score
-)
+from sklearn.metrics import roc_auc_score, brier_score_loss, average_precision_score
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Masking, GRU, TimeDistributed, LayerNormalization
-import tensorflow.keras.backend as K
-from sklearn.metrics import classification_report
-from metrics_logger import save_metrics, save_keras_model, plot_learning_curve, plot_roc_curve, plot_pr_curve, plot_confusion_matrix
 
-PADDING_VALUE = -99.0
+# Import metrics_logger and feature_builder
+sys.path.insert(0, str(Path(__file__).parent))
+from recurrent_survival_model import masked_binary_crossentropy, PADDING_VALUE
+from metrics_logger import save_metrics, save_keras_model, plot_learning_curve, plot_roc_curve, plot_pr_curve
+import feature_builder as fb
 
-def masked_binary_crossentropy(y_true, y_pred):
-    mask = tf.cast(tf.not_equal(y_true, PADDING_VALUE), tf.float32)
-    y_true_clean = tf.maximum(y_true, 0.0)
-    bce = K.binary_crossentropy(y_true_clean, y_pred)
-    masked_loss = bce * mask
-    return tf.reduce_sum(masked_loss) / (tf.reduce_sum(mask) + 1e-7)
 
-def build_recurrent_exam_dataset(data_dir: Path, max_exams: int = 50):
-    print("Lade Prüfungs- und Abschlussdaten für 3D Prüfungs-Sequenz ...")
-    agg_abschluesse_path = data_dir / 'agg_abschluesse.csv'
-    agg_pruefungen_path = data_dir / 'agg_pruefungen.csv'
-    
-    if not agg_abschluesse_path.exists():
-        data_dir = Path('output_dl')
-        agg_abschluesse_path = data_dir / 'agg_abschluesse.csv'
-        agg_pruefungen_path = data_dir / 'agg_pruefungen.csv'
-        
-    df_abschluesse = pd.read_csv(agg_abschluesse_path)
-    df_pruefungen = pd.read_csv(agg_pruefungen_path)
-    
-    df_abschluesse.columns = df_abschluesse.columns.str.strip()
-    df_pruefungen.columns = df_pruefungen.columns.str.strip()
-    
-    df_pruefungen = df_pruefungen.sort_values(['studierenden_id', 'pruefung_id']).reset_index(drop=True)
-    
-    status_dict = df_abschluesse.set_index('studierenden_id')['status'].to_dict()
-    hzb_dict = df_abschluesse.set_index('studierenden_id')['hzb_note'].to_dict()
-    erwerb_dict = df_abschluesse.set_index('studierenden_id')['erwerbstaetigkeit_std'].to_dict()
-    
-    studis = df_abschluesse['studierenden_id'].unique()
-    num_studis = len(studis)
-    
-    # 9 Features pro Prüfungsschritt:
-    # [versuch, schwierigkeit, cp, fach_vorher, fach_glz, uebf_vorher, uebf_glz, psych_vorher, psych_glz]
-    n_features = 9
-    
-    X_seq = np.full((num_studis, max_exams, n_features), PADDING_VALUE, dtype=np.float32)
-    y_seq = np.full((num_studis, max_exams, 1), PADDING_VALUE, dtype=np.float32)
-    studi_events = np.zeros(num_studis, dtype=int)
-    
-    pr_grouped = df_pruefungen.groupby('studierenden_id')
-    
-    print("Erstelle 3D Sequence Array auf Prüfungs-Ebene mit Zähl-Expositionsmerkmalen ...")
-    for i, s_id in enumerate(studis):
-        if s_id not in pr_grouped.groups:
-            continue
-            
-        studi_pr = pr_grouped.get_group(s_id)
-        k_max = min(len(studi_pr), max_exams)
-        
-        status = str(status_dict.get(s_id, '')).strip().lower()
-        is_dropout = status in ['abgebrochen', 'exmatrikuliert', 'zeitueberschreitung']
-        studi_events[i] = 1 if is_dropout else 0
-        
-        for k, row in enumerate(studi_pr.itertuples(index=False)):
-            if k >= max_exams:
-                break
-            X_seq[i, k, :] = [
-                float(row.versuch),
-                float(row.schwierigkeit),
-                float(row.cp),
-                float(row.support_vorher_fachlich),
-                float(row.support_glz_fachlich),
-                float(row.support_vorher_ueberfachlich),
-                float(row.support_glz_ueberfachlich),
-                float(row.support_vorher_psychosozial),
-                float(row.support_glz_psychosozial)
-            ]
-            
-            event_val = 1.0 if (k == len(studi_pr) - 1 and is_dropout) else 0.0
-            y_seq[i, k, 0] = event_val
-            
-    print(f"3D Prüfungs-Tensor erfolgreich aufgebaut: X={X_seq.shape}, y={y_seq.shape}")
-    return studis, X_seq, y_seq, studi_events
+def train_recurrent_exam_survival_model(data_dir: Path = Path('src/output_dl'),
+                                       max_exams: int = 40,
+                                       temporal: str = 'prev',
+                                       mode: str = 'standard',
+                                       epochs: int = 25,
+                                       batch_size: int = 128):
+    print("\n" + "=" * 74)
+    print(f"   RECURRENT EXAM-LEVEL SURVIVAL GRU (temporal={temporal}, mode={mode})")
+    print("=" * 74)
 
-def train_recurrent_exam_survival(data_dir: Path):
-    print("\n==========================================================================")
-    print("   RECURRENT EXAM-LEVEL SURVIVAL MODEL (KERAS GRU PRÜFUNGS-TRAJEKTORIE)")
-    print("==========================================================================")
-    
-    studis, X_seq, y_seq, studi_events = build_recurrent_exam_dataset(data_dir)
-    N, K_max, F = X_seq.shape
-    
-    # 3-Wege Split (70% Train, 15% Val, 15% Test) stratifiziert nach Studenten-Event
-    train_idx, temp_idx, _, y_temp_event = train_test_split(
-        np.arange(N), studi_events, test_size=0.30, random_state=42, stratify=studi_events
+    studis, X_seq, y_seq, studi_events, feature_names, _ = fb.build_exam_sequence_tensor(
+        data_dir, max_exams=max_exams, mode=mode, temporal=temporal
     )
-    val_idx, test_idx, _, _ = train_test_split(
-        temp_idx, y_temp_event, test_size=0.50, random_state=42, stratify=y_temp_event
-    )
-    
-    X_train, X_val, X_test = X_seq[train_idx].copy(), X_seq[val_idx].copy(), X_seq[test_idx].copy()
-    y_train, y_val, y_test = y_seq[train_idx], y_seq[val_idx], y_seq[test_idx]
-    
+
+    n_samples, n_timesteps, n_features = X_seq.shape
+    print(f"Dataset: Shape={X_seq.shape} ({n_features} Features pro Prüfung)")
+
+    # 3-Way Split
+    idx = np.arange(n_samples)
+    train_idx, temp_idx = train_test_split(idx, test_size=0.30, random_state=42, stratify=studi_events)
+    val_idx, test_idx = train_test_split(temp_idx, test_size=0.50, random_state=42, stratify=studi_events[temp_idx])
+
+    X_train, y_train = X_seq[train_idx].copy(), y_seq[train_idx].copy()
+    X_val, y_val = X_seq[val_idx].copy(), y_seq[val_idx].copy()
+    X_test, y_test = X_seq[test_idx].copy(), y_seq[test_idx].copy()
+
+    # Skalierung
+    train_mask = X_train[:, :, 0] != PADDING_VALUE
+    val_mask = X_val[:, :, 0] != PADDING_VALUE
+    test_mask = X_test[:, :, 0] != PADDING_VALUE
+
     scaler = StandardScaler()
-    valid_mask_train = (X_train[:, :, 0] != PADDING_VALUE)
-    scaler.fit(X_train[valid_mask_train])
-    
-    for X_split in [X_train, X_val, X_test]:
-        valid_mask = (X_split[:, :, 0] != PADDING_VALUE)
-        X_split[valid_mask] = scaler.transform(X_split[valid_mask])
-    
-    print(f"\nSequence Split: {len(train_idx)} Train, {len(val_idx)} Val, {len(test_idx)} Test-Studierende")
-    
+    scaler.fit(X_train[train_mask])
+
+    X_train[train_mask] = scaler.transform(X_train[train_mask])
+    X_val[val_mask] = scaler.transform(X_val[val_mask])
+    X_test[test_mask] = scaler.transform(X_test[test_mask])
+
+    # Keras GRU Modell
     tf.random.set_seed(42)
-    rec_model = Sequential([
-        Masking(mask_value=PADDING_VALUE, input_shape=(K_max, F)),
-        GRU(32, return_sequences=True),
+    model = Sequential([
+        Masking(mask_value=PADDING_VALUE, input_shape=(n_timesteps, n_features)),
+        GRU(64, return_sequences=True, dropout=0.2),
         LayerNormalization(),
-        Dropout(0.2),
+        GRU(32, return_sequences=True, dropout=0.2),
+        LayerNormalization(),
         TimeDistributed(Dense(16, activation='relu')),
+        Dropout(0.2),
         TimeDistributed(Dense(1, activation='sigmoid'))
     ])
-    
-    rec_model.compile(optimizer=tf.keras.optimizers.Adam(0.005), loss=masked_binary_crossentropy)
-    
-    print("Trainiere Recurrent Prüfungs-GRU Survival Modell ...")
-    history = rec_model.fit(
+
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.003), loss=masked_binary_crossentropy)
+    es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=8, restore_best_weights=True)
+
+    print(f"\nTrainiere Exam-GRU ({epochs} Epochen, Batch-Size {batch_size})...")
+    history = model.fit(
         X_train, y_train,
         validation_data=(X_val, y_val),
-        epochs=25,
-        batch_size=256,
-        verbose=1
+        epochs=epochs, batch_size=batch_size,
+        callbacks=[es], verbose=0
     )
-    
-    y_test_pred = rec_model.predict(X_test, verbose=0)
-    
-    test_mask = (y_test.flatten() != PADDING_VALUE)
-    y_true_flat = y_test.flatten()[test_mask]
-    y_pred_flat = y_test_pred.flatten()[test_mask]
-    
-    auc_score = roc_auc_score(y_true_flat, y_pred_flat)
-    pr_auc = average_precision_score(y_true_flat, y_pred_flat)
-    brier = brier_score_loss(y_true_flat, y_pred_flat)
-    
-    thresh = np.percentile(y_pred_flat, 95)
-    y_pred_bin = (y_pred_flat >= thresh).astype(int)
-    
-    prec = precision_score(y_true_flat, y_pred_bin, zero_division=0)
-    rec = recall_score(y_true_flat, y_pred_bin, zero_division=0)
-    f1 = f1_score(y_true_flat, y_pred_bin, zero_division=0)
-    acc = accuracy_score(y_true_flat, y_pred_bin)
-    rep_str = classification_report(y_true_flat, y_pred_bin, target_names=['Kein Abbruch', 'Abbruch (Top 5%)'], zero_division=0)
-    
-    print("\n==========================================================================")
-    print("   ERGEBNISSE RECURRENT EXAM-LEVEL SURVIVAL MODELL")
-    print("==========================================================================")
-    print(f"  ROC-AUC (Global Ranking)         : {auc_score:.4f}")
-    print(f"  PR-AUC / Average Precision (Gold): {pr_auc:.4f}")
-    print(f"  Brier Score (Kalibrierung)       : {brier:.4f}")
-    print(f"  Accuracy  (Top 5% Threshold)    : {acc:.4f}")
-    print(f"  Precision (Top 5% Threshold)    : {prec:.4f}")
-    print(f"  Recall    (Top 5% Threshold)    : {rec:.4f}")
-    print(f"  F1-Score  (Top 5% Threshold)    : {f1:.4f}")
-    print("==========================================================================")
-    
-    # Metriken & Modell speichern
+
+    # Evaluation
+    test_preds = model.predict(X_test, verbose=0)
+
+    y_test_flat = y_test[test_mask].flatten()
+    preds_flat = test_preds[test_mask].flatten()
+
+    auc = float(roc_auc_score(y_test_flat, preds_flat))
+    pr_auc = float(average_precision_score(y_test_flat, preds_flat))
+    brier = float(brier_score_loss(y_test_flat, preds_flat))
+
+    # Aggregiertes Studierenden-Risiko
+    test_student_events = studi_events[test_idx]
+    surv_probs = np.ones(len(test_idx))
+    for i in range(len(test_idx)):
+        s_len = np.sum(test_mask[i])
+        if s_len > 0:
+            h_k = np.clip(test_preds[i, :s_len, 0], 1e-6, 1.0 - 1e-6)
+            surv_probs[i] = np.prod(1.0 - h_k)
+    pred_student_risk = 1.0 - surv_probs
+    student_auc = float(roc_auc_score(test_student_events, pred_student_risk))
+
+    print("\n" + "=" * 74)
+    print("   ERGEBNISSE RECURRENT EXAM SURVIVAL GRU (TEST-SET)")
+    print("=" * 74)
+    print(f"  • Prüfungs-Ebene ROC-AUC : {auc:.4f}")
+    print(f"  • Prüfungs-Ebene PR-AUC  : {pr_auc:.4f}")
+    print(f"  • Brier Score            : {brier:.4f}")
+    print(f"  • Studierenden ROC-AUC   : {student_auc:.4f}")
+    print("=" * 74)
+
+    # Logging
+    base_dir = data_dir
+    model_name = f"recurrent_exam_survival_{temporal}"
+    if mode != 'standard':
+        model_name += f"_{mode}"
+
     metrics_dict = {
-        "ROC-AUC_Seq": auc_score,
-        "PR-AUC_Seq": pr_auc,
+        "model_type": model_name,
+        "temporal": temporal,
+        "mode": mode,
+        "ROC-AUC_Exam": auc,
+        "PR-AUC_Exam": pr_auc,
         "Brier_Score": brier,
-        "Accuracy_Top5": acc,
-        "Precision_Top5": prec,
-        "Recall_Top5": rec,
-        "F1_Top5": f1
+        "ROC-AUC_Student": student_auc
     }
-    output_dir = Path('output_dl') if Path('output_dl').exists() else Path('../output_dl')
-    save_metrics("recurrent_exam_survival", metrics_dict, output_dir, report_str=rep_str)
-    save_keras_model(rec_model, "recurrent_exam_survival", output_dir)
-    plot_learning_curve(history.history, "recurrent_exam_survival", output_dir, metric_name='loss')
-    plot_roc_curve(y_true_flat, y_pred_flat, "recurrent_exam_survival", output_dir)
-    plot_pr_curve(y_true_flat, y_pred_flat, "recurrent_exam_survival", output_dir)
-    plot_confusion_matrix(y_true_flat, y_pred_bin, "recurrent_exam_survival", output_dir)
+    save_metrics(model_name, metrics_dict, base_dir)
+    save_keras_model(model, model_name, base_dir)
+    plot_learning_curve(history.history, model_name, base_dir, metric_name='loss')
+    plot_roc_curve(y_test_flat, preds_flat, model_name, base_dir)
+    plot_pr_curve(y_test_flat, preds_flat, model_name, base_dir)
+
+    # Abwärtskompatible Dateinamen
+    if temporal == 'prev' and mode == 'standard':
+        save_metrics("recurrent_exam_survival_delta", metrics_dict, base_dir)
+        save_metrics("recurrent_exam_survival", metrics_dict, base_dir)
+        save_keras_model(model, "recurrent_exam_survival_delta", base_dir)
+        save_keras_model(model, "recurrent_exam_survival", base_dir)
+
+    print(f"[OK] Training und Logging für {model_name} abgeschlossen.")
+    return model, scaler
+
 
 if __name__ == '__main__':
-    data_dir = Path('output_dl') if Path('output_dl').exists() else Path('../output_dl')
-    train_recurrent_exam_survival(data_dir)
+    parser = argparse.ArgumentParser(description="Recurrent Exam-Level Survival GRU")
+    parser.add_argument('--data_dir', type=str, default='src/output_dl')
+    parser.add_argument('--temporal', type=str, default='prev', choices=['prev', 'cum'])
+    parser.add_argument('--mode', type=str, default='standard')
+    parser.add_argument('--epochs', type=int, default=20)
+    parser.add_argument('--batch_size', type=int, default=256)
+    args = parser.parse_args()
+
+    train_recurrent_exam_survival_model(
+        data_dir=Path(args.data_dir),
+        temporal=args.temporal,
+        mode=args.mode,
+        epochs=args.epochs,
+        batch_size=args.batch_size
+    )

@@ -1,9 +1,9 @@
 {
-    "ROC-AUC_Seq": 0.8393976777836513,
-    "PR-AUC_Seq": 0.13515280320975387,
-    "Brier_Score": 0.017537366598844528,
-    "Accuracy_Top5": 0.941209974988237,
-    "Precision_Top5": 0.1031182973106748,
-    "Recall_Top5": 0.2704456945045435,
-    "F1_Top5": 0.14930721452460582
+    "model_type": "recurrent_exam_survival_prev",
+    "temporal": "prev",
+    "mode": "standard",
+    "ROC-AUC_Exam": 0.7951375276355079,
+    "PR-AUC_Exam": 0.10301679418453347,
+    "Brier_Score": 0.018065661191940308,
+    "ROC-AUC_Student": 0.5919357753340851
 }

@@ -2,5 +2,8 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **ROC-AUC_Panel** | 0.5345 |
-| **PR-AUC_Panel** | 0.0523 |
+| **model_type** | extended_deepsurv_prev |
+| **temporal** | prev |
+| **mode** | standard |
+| **ROC-AUC_Panel** | 0.5809 |
+| **PR-AUC_Panel** | 0.0534 |

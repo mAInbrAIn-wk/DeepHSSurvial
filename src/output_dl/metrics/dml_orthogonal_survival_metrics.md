@@ -2,18 +2,12 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **ROC-AUC_Panel** | 0.7648 |
-| **PR-AUC_Panel** | 0.1969 |
-| **Brier_Score** | 0.0368 |
-| **Mean_RR_fach_DML** | 0.7994 |
-| **Median_RR_fach_DML** | 0.8404 |
-| **Q05_RR_fach_DML** | 0.3211 |
-| **Q95_RR_fach_DML** | 1.0782 |
-| **Mean_RR_uebf_DML** | 1.0980 |
-| **Median_RR_uebf_DML** | 1.0516 |
-| **Q05_RR_uebf_DML** | 0.8817 |
-| **Q95_RR_uebf_DML** | 1.6098 |
-| **Mean_RR_psych_DML** | 0.9078 |
-| **Median_RR_psych_DML** | 0.9154 |
-| **Q05_RR_psych_DML** | 0.6713 |
-| **Q95_RR_psych_DML** | 1.1218 |
+| **model_type** | dml_orthogonal_survival |
+| **temporal** | prev |
+| **mode** | standard |
+| **ROC-AUC_Panel** | 0.7374 |
+| **PR-AUC_Panel** | 0.1214 |
+| **Brier_Score** | 0.0380 |
+| **fach** | {'partial': {'mean_rr': 0.9012994766235352, 'median_rr': 0.9012994766235352, 'ate': -0.004252604674547911}, 'isolated': {'mean_rr': 0.8954563140869141, 'median_rr': 0.8954563140869141, 'ate': -0.004527080804109573}} |
+| **uebf** | {'partial': {'mean_rr': 0.969671905040741, 'median_rr': 0.969671905040741, 'ate': -0.0012964545749127865}, 'isolated': {'mean_rr': 0.968029797077179, 'median_rr': 0.968029797077179, 'ate': -0.0013843432534486055}} |
+| **psych** | {'partial': {'mean_rr': 0.9600536227226257, 'median_rr': 0.9600536227226257, 'ate': -0.0017059303354471922}, 'isolated': {'mean_rr': 0.959584653377533, 'median_rr': 0.959584653377533, 'ate': -0.0017500550020486116}} |

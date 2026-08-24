@@ -2,6 +2,10 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **ROC-AUC_Panel** | 0.7878 |
-| **PR-AUC_Panel** | 0.2139 |
-| **Brier_Score** | 0.0372 |
+| **model_type** | recurrent_survival_gru_prev |
+| **temporal** | prev |
+| **mode** | standard |
+| **ROC-AUC_Semester** | 0.7540 |
+| **PR-AUC_Semester** | 0.1546 |
+| **Brier_Score** | 0.0376 |
+| **ROC-AUC_Student** | 0.3784 |

@@ -2,24 +2,10 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **ROC-AUC_Seq** | 0.7877 |
-| **PR-AUC_Seq** | 0.2274 |
-| **Brier_Score** | 0.0366 |
-| **Accuracy_Top5** | 0.9303 |
-| **Precision_Top5** | 0.2293 |
-| **Recall_Top5** | 0.2691 |
-| **F1_Top5** | 0.2476 |
-
-## Classification Report
-
-```text
-                  precision    recall  f1-score   support
-
-    Kein Abbruch       0.97      0.96      0.96     51949
-Abbruch (Top 5%)       0.23      0.27      0.25      2311
-
-        accuracy                           0.93     54260
-       macro avg       0.60      0.61      0.61     54260
-    weighted avg       0.94      0.93      0.93     54260
-
-```
+| **model_type** | transformer_survival_prev |
+| **temporal** | prev |
+| **mode** | standard |
+| **ROC-AUC_Semester** | 0.7549 |
+| **PR-AUC_Semester** | 0.1691 |
+| **Brier_Score** | 0.0373 |
+| **ROC-AUC_Student** | 0.3875 |

@@ -1,0 +1,11 @@
+# Metriken: recurrent_exam_survival_prev
+
+| Metrik | Wert |
+| :--- | :---: |
+| **model_type** | recurrent_exam_survival_prev |
+| **temporal** | prev |
+| **mode** | standard |
+| **ROC-AUC_Exam** | 0.7951 |
+| **PR-AUC_Exam** | 0.1030 |
+| **Brier_Score** | 0.0181 |
+| **ROC-AUC_Student** | 0.5919 |

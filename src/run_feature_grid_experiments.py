@@ -452,6 +452,50 @@ def evaluate_exam_gru_grid(data_dir: Path) -> Dict[str, Any]:
     return results
 
 
+def generate_master_markdown_report(master_summary: Dict[str, Any], output_path: Path):
+    md_lines = [
+        "# Master Feature-Grid Benchmark Report",
+        "",
+        "Dieses Dokument enthält die systematische Gegenüberstellung aller Modell-Klassen und Feature-Modi.",
+        "",
+        "| Modell-Klasse | Feature-Modus | Features | PR-AUC | ROC-AUC | Brier-Score | RR Fachlich (part/iso) | RR Überfachlich (part/iso) | RR Psychosozial (part/iso) |",
+        "| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |"
+    ]
+    
+    for model_name, model_data in master_summary.items():
+        if model_name == "panel_models":
+            for sub_name, sub_data in model_data.items():
+                for mode, metrics in sub_data.items():
+                    n_f = metrics.get("n_features", "-")
+                    pr = f"{metrics.get('pr_auc', 0.0):.4f}" if metrics.get('pr_auc') is not None else "-"
+                    roc = f"{metrics.get('roc_auc', 0.0):.4f}" if metrics.get('roc_auc') is not None else "-"
+                    br = f"{metrics.get('brier_score', 0.0):.4f}" if metrics.get('brier_score') is not None else "-"
+                    
+                    cf = metrics.get("counterfactual", {})
+                    fach = f"{cf.get('fach_partial', {}).get('mean_rr', '-')}/{cf.get('fach_isolated', {}).get('mean_rr', '-')}"
+                    uebf = f"{cf.get('uebf_partial', {}).get('mean_rr', '-')}/{cf.get('uebf_isolated', {}).get('mean_rr', '-')}"
+                    psych = f"{cf.get('psych_partial', {}).get('mean_rr', '-')}/{cf.get('psych_isolated', {}).get('mean_rr', '-')}"
+                    
+                    md_lines.append(f"| Panel: {sub_name.upper()} | {mode} | {n_f} | {pr} | {roc} | {br} | {fach} | {uebf} | {psych} |")
+        else:
+            for mode, metrics in model_data.items():
+                n_f = metrics.get("n_features", "-")
+                pr = f"{metrics.get('pr_auc', 0.0):.4f}" if metrics.get('pr_auc') is not None else "-"
+                roc = f"{metrics.get('roc_auc', 0.0):.4f}" if metrics.get('roc_auc') is not None else "-"
+                br = f"{metrics.get('brier_score', 0.0):.4f}" if metrics.get('brier_score') is not None else "-"
+                
+                cf = metrics.get("counterfactual", {})
+                fach = f"{cf.get('fach_partial', {}).get('mean_rr', '-')}/{cf.get('fach_isolated', {}).get('mean_rr', '-')}" if cf else "-"
+                uebf = f"{cf.get('uebf_partial', {}).get('mean_rr', '-')}/{cf.get('uebf_isolated', {}).get('mean_rr', '-')}" if cf else "-"
+                psych = f"{cf.get('psych_partial', {}).get('mean_rr', '-')}/{cf.get('psych_isolated', {}).get('mean_rr', '-')}" if cf else "-"
+                
+                md_lines.append(f"| {model_name.replace('_', ' ').title()} | {mode} | {n_f} | {pr} | {roc} | {br} | {fach} | {uebf} | {psych} |")
+                
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write("\n".join(md_lines) + "\n")
+    print(f" Markdown-Report erfolgreich gespeichert unter: {output_path}")
+
+
 def main():
     data_dir = Path('output_dl')
     for candidate in [Path('output_dl'), Path('src/output_dl'), Path('../output_dl')]:
@@ -473,11 +517,16 @@ def main():
         "exam_gru": exam_gru_res
     }
     
-    summary_path = data_dir / 'metrics' / 'feature_grid_master_benchmark.json'
-    with open(summary_path, 'w', encoding='utf-8') as f:
+    metrics_dir = data_dir / 'metrics'
+    metrics_dir.mkdir(parents=True, exist_ok=True)
+    summary_path_json = metrics_dir / 'feature_grid_master_benchmark.json'
+    summary_path_md = metrics_dir / 'feature_grid_master_benchmark.md'
+    
+    with open(summary_path_json, 'w', encoding='utf-8') as f:
         json.dump(master_summary, f, indent=4)
         
-    print(f"\n Master Feature-Grid Benchmark erfolgreich gespeichert unter: {summary_path}")
+    generate_master_markdown_report(master_summary, summary_path_md)
+    print(f"\n Master Feature-Grid Benchmark JSON erfolgreich gespeichert unter: {summary_path_json}")
 
 if __name__ == '__main__':
     main()

@@ -1,5 +1,9 @@
 {
-    "ROC-AUC_Panel": 0.7877965956675597,
-    "PR-AUC_Panel": 0.21392472537364915,
-    "Brier_Score": 0.03717930614948273
+    "model_type": "recurrent_survival_gru_prev",
+    "temporal": "prev",
+    "mode": "standard",
+    "ROC-AUC_Semester": 0.7540483650087522,
+    "PR-AUC_Semester": 0.15458862098075193,
+    "Brier_Score": 0.03763853758573532,
+    "ROC-AUC_Student": 0.3784350095177704
 }

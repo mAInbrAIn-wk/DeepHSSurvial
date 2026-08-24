@@ -8,12 +8,56 @@ from models import Student, ModulState, PruefungsErgebnis
 from config import CONFIG, MODULE_CURRICULA, STUDIENGAENGE, SUPPORT_ANGEBOTE, SUPPORT_KEYWORDS, HZB_TYPEN, HZB_GEWICHTE
 from simulation_v2 import _erzeuge_semester_liste, generiere_stammdaten, simuliere_pruefung, berechne_dropout
 
+class ClippingTracker:
+    """Trackt alle Clipping- und Capping-Ereignisse während der Simulation für diagnostische Reports."""
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.total_students = 0
+        self.total_semesters = 0
+        self.total_exams = 0
+        self.hzb_clipped_min = 0
+        self.hzb_clipped_max = 0
+        self.erw_note_clipped_min = 0
+        self.erw_note_clipped_max = 0
+        self.puffer_clipped_min = 0
+        self.puffer_clipped_max = 0
+        self.motivation_start_clipped_min = 0
+        self.motivation_start_clipped_max = 0
+        self.soz_int_start_clipped_min = 0
+        self.soz_int_start_clipped_max = 0
+        self.overload_penalty_capped = 0
+        self.support_boost_capped = 0
+        self.motivation_update_capped_max = 0
+        self.soz_int_update_capped_max = 0
+
+    def summary(self) -> dict:
+        return {
+            "total_students": self.total_students,
+            "total_semesters": self.total_semesters,
+            "total_exams": self.total_exams,
+            "hzb_clipped_min": self.hzb_clipped_min,
+            "hzb_clipped_max": self.hzb_clipped_max,
+            "erw_note_clipped_min": self.erw_note_clipped_min,
+            "erw_note_clipped_max": self.erw_note_clipped_max,
+            "puffer_clipped_min": self.puffer_clipped_min,
+            "puffer_clipped_max": self.puffer_clipped_max,
+            "motivation_start_clipped_min": self.motivation_start_clipped_min,
+            "motivation_start_clipped_max": self.motivation_start_clipped_max,
+            "soz_int_start_clipped_min": self.soz_int_start_clipped_min,
+            "soz_int_start_clipped_max": self.soz_int_start_clipped_max,
+            "overload_penalty_capped_pct": round(self.overload_penalty_capped / max(1, self.total_exams) * 100, 3),
+            "support_boost_capped_pct": round(self.support_boost_capped / max(1, self.total_exams) * 100, 3)
+        }
+
+
 def get_exam_noise(base_seed: int, modul_id: str, versuch: int) -> float:
     exam_seed = (base_seed ^ zlib.crc32(f"{modul_id}_{versuch}".encode('utf-8'))) & 0xFFFFFFFF
     return float(np.random.default_rng(exam_seed).normal(0, CONFIG["gewicht_rauschen"]))
 
 
-def generiere_studierende_v3(stammdaten: Dict[str, pd.DataFrame], rng: np.random.Generator) -> List[Student]:
+def generiere_studierende_v3(stammdaten: Dict[str, pd.DataFrame], rng: np.random.Generator, tracker: ClippingTracker = None) -> List[Student]:
     n = CONFIG["n_studierende"]
     studiengaenge = stammdaten["studiengaenge_df"]
     semester_df = stammdaten["semester_df"]
@@ -31,7 +75,14 @@ def generiere_studierende_v3(stammdaten: Dict[str, pd.DataFrame], rng: np.random
         # Geschlecht, Alter, HZB
         geschlecht = rng.choice(["m", "w", "d"], p=[0.68, 0.30, 0.02]) if sg_id in ("SG01", "SG03") else rng.choice(["m", "w", "d"], p=[0.48, 0.50, 0.02])
         alter = int(np.clip(rng.normal(20.5, 2.8), 17, 45))
-        hzb_note = round(float(np.clip(rng.normal(2.4, 0.55), 1.0, 4.0)), 1)
+        
+        raw_hzb = rng.normal(2.4, 0.55)
+        hzb_note = round(float(np.clip(raw_hzb, 1.0, 4.0)), 1)
+        if tracker:
+            tracker.total_students += 1
+            if raw_hzb < 1.0: tracker.hzb_clipped_min += 1
+            if raw_hzb > 4.0: tracker.hzb_clipped_max += 1
+
         hzb_typ = rng.choice(HZB_TYPEN, p=HZB_GEWICHTE)
         
         hzb_offset = 0.0
@@ -43,21 +94,37 @@ def generiere_studierende_v3(stammdaten: Dict[str, pd.DataFrame], rng: np.random
         if hzb_typ == 'Berufl. Qualifikation':
             alter = max(alter, int(rng.uniform(24, 28)))
             
-        erwartete_note = float(np.clip(hzb_note + hzb_offset, 1.0, 4.0))
+        raw_erw = hzb_note + hzb_offset
+        erwartete_note = float(np.clip(raw_erw, 1.0, 4.0))
+        if tracker:
+            if raw_erw < 1.0: tracker.erw_note_clipped_min += 1
+            if raw_erw > 4.0: tracker.erw_note_clipped_max += 1
         
         migration = bool(rng.random() < 0.22)
         erstakademiker = bool(rng.random() < 0.48)
         
         erwerb = int(np.clip(rng.choice([0, 5, 10, 15, 20, 25, 30], p=[0.25, 0.15, 0.20, 0.15, 0.13, 0.07, 0.05]), 0, 40))
         
-        motivation = float(np.clip(CONFIG["motivation_startwert"] + (2.5 - hzb_note) * CONFIG["gewicht_motivation_hzb"] - erwerb * CONFIG["gewicht_motivation_erwerb"] + rng.normal(0, CONFIG["gewicht_motivation_rauschen"]), 0.05, 1.0))
+        raw_mot = CONFIG["motivation_startwert"] + (2.5 - hzb_note) * CONFIG["gewicht_motivation_hzb"] - erwerb * CONFIG["gewicht_motivation_erwerb"] + rng.normal(0, CONFIG["gewicht_motivation_rauschen"])
+        motivation = float(np.clip(raw_mot, 0.05, 1.0))
+        if tracker:
+            if raw_mot < 0.05: tracker.motivation_start_clipped_min += 1
+            if raw_mot > 1.0: tracker.motivation_start_clipped_max += 1
+
         if hzb_typ == 'Berufl. Qualifikation':
             motivation = min(1.0, motivation + 0.10)
             
-        soz_int = float(np.clip(CONFIG["integration_startwert"] - (CONFIG["gewicht_integration_erstakademiker"] if erstakademiker else 0) - (CONFIG["gewicht_integration_migration"] if migration else 0) - erwerb * CONFIG["gewicht_integration_erwerb"] + rng.normal(0, CONFIG["gewicht_integration_rauschen"]), 0.05, 1.0))
+        raw_soz = CONFIG["integration_startwert"] - (CONFIG["gewicht_integration_erstakademiker"] if erstakademiker else 0) - (CONFIG["gewicht_integration_migration"] if migration else 0) - erwerb * CONFIG["gewicht_integration_erwerb"] + rng.normal(0, CONFIG["gewicht_integration_rauschen"])
+        soz_int = float(np.clip(raw_soz, 0.05, 1.0))
+        if tracker:
+            if raw_soz < 0.05: tracker.soz_int_start_clipped_min += 1
+            if raw_soz > 1.0: tracker.soz_int_start_clipped_max += 1
 
-        # SIMULATION V3: Stochastischer Puffer B_i ~ N(60, 30) clipped [0, 180]
-        zeit_puffer = round(float(np.clip(rng.normal(60.0, 30.0), 0.0, 180.0)), 1)
+        raw_puffer = rng.normal(60.0, 30.0)
+        zeit_puffer = round(float(np.clip(raw_puffer, 0.0, 180.0)), 1)
+        if tracker:
+            if raw_puffer < 0.0: tracker.puffer_clipped_min += 1
+            if raw_puffer > 180.0: tracker.puffer_clipped_max += 1
 
         studi = Student(
             studierenden_id=sid, studiengang_id=sg_id, kohorten_semester_id=koh, geschlecht=geschlecht, alter_immatrikulation=alter,
@@ -80,7 +147,9 @@ def simuliere_verlaeufe_v3(
     stammdaten: Dict[str, pd.DataFrame],
     block_fach: bool = False,
     block_uebf: bool = False,
-    block_psych: bool = False
+    block_psych: bool = False,
+    population_seed: int = 12345,
+    tracker: ClippingTracker = None
 ) -> List[Student]:
 
     semester_df = stammdaten["semester_df"].sort_values("semester_nr").reset_index(drop=True)
@@ -104,11 +173,11 @@ def simuliere_verlaeufe_v3(
     modul_cp_dict = {m: r["cp"] for m, r in modul_data.items()}
 
     for idx, studi in enumerate(studierende):
-        base_seed = zlib.crc32(studi.studierenden_id.encode('utf-8'))
+        base_seed = (zlib.crc32(studi.studierenden_id.encode('utf-8')) ^ population_seed) & 0xFFFFFFFF
         rng_init = np.random.default_rng(base_seed)
-        rng_support = np.random.default_rng(base_seed + 1)
-        rng_social = np.random.default_rng(base_seed + 2)
-        rng_dropout = np.random.default_rng(base_seed + 3)
+        rng_support = np.random.default_rng((base_seed + 1) & 0xFFFFFFFF)
+        rng_social = np.random.default_rng((base_seed + 2) & 0xFFFFFFFF)
+        rng_dropout = np.random.default_rng((base_seed + 3) & 0xFFFFFFFF)
         
         sg_info = sg_info_dict[studi.studiengang_id]
         sg_module_rows = sg_module_dict[studi.studiengang_id]
@@ -128,6 +197,8 @@ def simuliere_verlaeufe_v3(
         while chron_sem_idx < len(semester_order) and fachsem <= CONFIG.get("max_simulations_semester", 16) and not studi.abschluss_erreicht and not studi.abgebrochen and not studi.exmatrikuliert:
             akt_sem_id = semester_order[chron_sem_idx]
             akt_sem_typ = semester_types[chron_sem_idx]
+            if tracker:
+                tracker.total_semesters += 1
             
             if studi.anomalie_typ == "plateau" and fachsem in (3, 4) and plateau_pausen < 2:
                 plateau_pausen += 1
@@ -178,25 +249,32 @@ def simuliere_verlaeufe_v3(
                     
                     if geplante_relevante:
                         p = 0.05 + (studi.erwartete_note - 2.0) * 0.05
-                        for m in geplante_relevante:
-                            if studi.modul_states[m].versuche > 0:
-                                p += 0.20
+                        p += max(0, 3 - studi.motivation * 3) * 0.03
+                        
+                        has_failed = any(studi.modul_states[m].versuche > 0 for m in geplante_relevante)
+                        if has_failed:
+                            p += 0.15
+                            
+                        p = min(p, 0.45)
                 elif angebot["typ"] == "ueberfachlich":
-                    p = 0.05 + (0.5 - studi.motivation) * 0.15
-                else: # psychosozial
-                    p = 0.01 + (0.5 - studi.soziale_integration) * 0.12
-                
-                if studi.erstakademiker and angebot["typ"] in ("fachlich", "psychosozial"): p += 0.05
-                p = float(np.clip(p, 0.0, 0.9))
+                    p = 0.04 + max(0, 3 - studi.motivation * 3) * 0.03
+                    p += max(0, 3 - studi.soziale_integration * 3) * 0.02
+                    p = min(p, 0.25)
+                elif angebot["typ"] == "psychosozial":
+                    p = 0.03 + max(0, 4 - studi.motivation * 4) * 0.04
+                    p += max(0, 4 - studi.soziale_integration * 4) * 0.05
+                    p = min(p, 0.30)
                 
                 nutzt_support = rng_support.random() < p
-                typ = angebot["typ"]
-                blocked = (typ == "fachlich" and block_fach) or (typ == "ueberfachlich" and block_uebf) or (typ == "psychosozial" and block_psych)
+                blocked = (angebot["typ"] == "fachlich" and block_fach) or \
+                          (angebot["typ"] == "ueberfachlich" and block_uebf) or \
+                          (angebot["typ"] == "psychosozial" and block_psych)
+                          
                 if nutzt_support and not blocked:
-                    # Check Zeitkonto mit stochastischem Puffer
-                    puffer = getattr(studi, 'hidden_zeit_puffer', 60.0)
-                    if verfuegbare_zeit - support_zeit_kosten - angebot.get("kosten_h", 30) >= 0 or rng_support.random() < 0.2: 
+                    if verfuegbare_zeit - support_zeit_kosten - angebot.get("kosten_h", 30) >= 0:
                         teilgenommene_angebote.append(ang_id)
+                        if angebot["typ"] == "fachlich":
+                            bisherige_fach_supports.add(ang_id)
                         support_zeit_kosten += angebot.get("kosten_h", 30)
                         studi.support_teilnahmen.append({"semester_id": akt_sem_id, "angebot_id": ang_id})
                 elif nutzt_support and blocked:
@@ -223,13 +301,18 @@ def simuliere_verlaeufe_v3(
                 geplanter_workload -= modul_data[dropped]["workload_h"]
             
             # SIMULATION V3.1: Overload-Berechnung & Deckelung der overload_penalty (max 0.15)
-            # Support-Zeitaufwand fließt hier weiterhin voll in den total_workload & overload ein
             total_workload = geplanter_workload + support_zeit_kosten
             overload = max(0.0, float(total_workload - verfuegbare_zeit))
-            overload_penalty = float(min(0.15, (overload / 100.0) * 0.1))
+            raw_overload_pen = (overload / 100.0) * 0.1
+            overload_penalty = float(min(0.15, raw_overload_pen))
             
             durchgefallen_dieses_sem = 0
             for m_id in geplante_module:
+                if tracker:
+                    tracker.total_exams += 1
+                    if raw_overload_pen >= 0.15:
+                        tracker.overload_penalty_capped += 1
+
                 m_state = studi.modul_states[m_id]
                 m_state.versuche += 1
                 
@@ -241,6 +324,8 @@ def simuliere_verlaeufe_v3(
                 raw_boost = boost_sum * CONFIG["gewicht_support_boost"] * CONFIG.get("support_effect_multiplier", 1.0) if boost_sum > 0.0 else 0.0
                 boost = float(np.clip(raw_boost, 0.0, CONFIG["support_deckel"]))
                 support_capped = (raw_boost > CONFIG["support_deckel"])
+                if tracker and support_capped:
+                    tracker.support_boost_capped += 1
                 
                 # V3.3: Deterministisches, positionsunabhängiges Prüfungsrauschen
                 e_noise = get_exam_noise(base_seed, m_id, m_state.versuche)
@@ -278,6 +363,11 @@ def simuliere_verlaeufe_v3(
                         m_state.status = "gescheitert"
                         if "bachelorarbeit" not in modul_data[m_id]["name"].lower():
                             studi.exmatrikuliert = True
+                            studi.exmatrikulations_grund = "endgueltig_nicht_bestanden"
+                            break
+            
+            if studi.exmatrikuliert:
+                break
             
             sem_pruefungen = [p for p in studi.pruefungen if p.semester_id == akt_sem_id and p.bestanden]
             for p_erg in sem_pruefungen:
@@ -322,7 +412,7 @@ def simuliere_verlaeufe_v3(
 
     return studierende
 
-if __name__ == "__main__":
+def main(population_seed: int = 12345):
     print("Starte True Counterfactual Trajectory Simulator (Simulator v3) ...")
     print("  5 Parallele Universen mit per-Typ Support-Blockierung, Stochastischem Puffer & Gedeckeltem Overload")
     import os, json, sys
@@ -345,17 +435,20 @@ if __name__ == "__main__":
     
     results = {}
     POPULATION_SEED = 12345
+    tracker = ClippingTracker()
     
     for uni_key, uni_cfg in UNIVERSES.items():
         print(f"\n  UNIVERSUM {uni_key}: {uni_cfg['label']}")
         rng = np.random.default_rng(POPULATION_SEED)
-        studierende = generiere_studierende_v3(stammdaten, rng)
+        studierende = generiere_studierende_v3(stammdaten, rng, tracker=tracker if uni_key == "A" else None)
         
         simuliere_verlaeufe_v3(
             studierende, stammdaten,
             block_fach=uni_cfg["block_fach"],
             block_uebf=uni_cfg["block_uebf"],
-            block_psych=uni_cfg["block_psych"]
+            block_psych=uni_cfg["block_psych"],
+            population_seed=POPULATION_SEED,
+            tracker=tracker if uni_key == "A" else None
         )
         
         dfs = stammdaten.copy()
@@ -388,5 +481,15 @@ if __name__ == "__main__":
 
     with open(base_output / "metrics" / "true_macro_effects_v3.json", "w") as f:
         json.dump(results, f, indent=4)
+
+    # Clipping Report exportieren
+    diag_dir = base_output / "diagnostics"
+    diag_dir.mkdir(exist_ok=True, parents=True)
+    clip_data = tracker.summary()
+    with open(diag_dir / "clipping_report.json", "w") as f:
+        json.dump(clip_data, f, indent=4)
         
-    print("\nWahre Makro-Effekte Simulation V3 erfolgreich gespeichert!")
+    print("\nWahre Makro-Effekte & Clipping-Diagnostik Simulation V3 erfolgreich gespeichert!")
+
+if __name__ == "__main__":
+    main()
