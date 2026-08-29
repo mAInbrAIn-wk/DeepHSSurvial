@@ -2,9 +2,9 @@
     "model_type": "dynamic_deephit_prev",
     "temporal": "prev",
     "mode": "standard",
-    "ROC-AUC_Dropout": 0.7637095036376695,
-    "PR-AUC_Dropout": 0.15870557015807024,
-    "Brier_Score_Dropout": 0.03803414851427078,
-    "ROC-AUC_Graduation": 0.9978901450185561,
-    "PR-AUC_Graduation": 0.9806393629218876
+    "ROC-AUC_Dropout": 0.7715479679333922,
+    "PR-AUC_Dropout": 0.1409857057733021,
+    "Brier_Score_Dropout": 0.028667284175753593,
+    "ROC-AUC_Graduation": 0.9997806176412474,
+    "PR-AUC_Graduation": 0.9975719960451606
 }

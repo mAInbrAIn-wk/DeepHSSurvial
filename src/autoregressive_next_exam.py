@@ -70,11 +70,7 @@ def build_dual_head_next_exam_model(seq_timesteps: int, seq_features: int, conte
 
 def prepare_next_exam_dataset(data_dir: Path, max_history_len: int = 30):
     """Erstellt Paare von (Historie 1..k, Kontext k+1 -> Note k+1, Bestanden k+1)."""
-    df_pr = pd.read_csv(data_dir / 'agg_pruefungen.csv')
-    df_ab = pd.read_csv(data_dir / 'agg_abschluesse.csv')
-
-    df_pr.columns = df_pr.columns.str.strip()
-    df_ab.columns = df_ab.columns.str.strip()
+    df_ab, df_pr = fb._load_raw_data(data_dir)
 
     df_pr = df_pr.sort_values(['studierenden_id', 'pruefung_id']).reset_index(drop=True)
     df_pr['bestanden_int'] = df_pr['bestanden'].astype(int)
@@ -85,7 +81,7 @@ def prepare_next_exam_dataset(data_dir: Path, max_history_len: int = 30):
     demo_dict = df_ab.set_index('studierenden_id')[['hzb_note', 'hzb_ord', 'erwerbstaetigkeit_std', 'erstakademiker']].to_dict('index')
 
     hist_feats = ['versuch', 'schwierigkeit', 'cp', 'bestanden_int', 'note_clean',
-                  'support_vorher_fachlich', 'support_vorher_ueberfachlich', 'support_vorher_psychosozial']
+                  'support_vorher_fachlich', 'support_vorher_ueberfachlich', 'support_vorher_psychosozial', 'support_glz_fachlich', 'support_glz_ueberfachlich', 'support_glz_psychosozial', 'fachsemester']
 
     X_hist_list, X_ctx_list, y_grade_list, y_pass_list = [], [], [], []
 
@@ -110,7 +106,7 @@ def prepare_next_exam_dataset(data_dir: Path, max_history_len: int = 30):
             pad_seq[:hist_len] = history[-hist_len:]
 
             # Kontext der nächsten Prüfung: Versuch, Schwierigkeit, CP, Supports + Demographie
-            ctx = [next_exam[0], next_exam[1], next_exam[2], next_exam[5], next_exam[6], next_exam[7]] + demo_vec
+            ctx = [next_exam[0], next_exam[1], next_exam[2], next_exam[5], next_exam[6], next_exam[7], next_exam[8], next_exam[9], next_exam[10], next_exam[11]] + demo_vec
 
             X_hist_list.append(pad_seq)
             X_ctx_list.append(ctx)

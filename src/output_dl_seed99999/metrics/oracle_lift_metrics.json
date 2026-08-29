@@ -1,0 +1,8 @@
+{
+    "ROC-AUC_Baseline_LogisticHazard": 0.7438374160205785,
+    "ROC-AUC_Oracle_LogisticHazard": 0.7579957837256448,
+    "ROC-AUC_Lift_LogisticHazard": 0.014158367705066288,
+    "ROC-AUC_Baseline_DeepSurv": 0.543261131824888,
+    "ROC-AUC_Oracle_DeepSurv": 0.5487794088652768,
+    "ROC-AUC_Lift_DeepSurv": 0.005518277040388764
+}

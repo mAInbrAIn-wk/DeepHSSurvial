@@ -1,0 +1,186 @@
+{
+  "timestamp": "2026-08-28 22:04:43",
+  "total_duration_s": 11721.5,
+  "steps": [
+    {
+      "step_name": "1. Extended Cox Proportional Hazards (Statsmodels PHReg)",
+      "status": "PASSED",
+      "duration_s": 11.31,
+      "ram_start_mb": 202.9,
+      "ram_end_mb": 452.9,
+      "ram_delta_mb": 250.0,
+      "error": null
+    },
+    {
+      "step_name": "2. Extended DeepSurv & Logistic Hazard (Panel Breslow)",
+      "status": "PASSED",
+      "duration_s": 223.8,
+      "ram_start_mb": 392.0,
+      "ram_end_mb": 655.9,
+      "ram_delta_mb": 263.8,
+      "error": null
+    },
+    {
+      "step_name": "3. Recurrent Semester Survival GRU",
+      "status": "PASSED",
+      "duration_s": 164.54,
+      "ram_start_mb": 655.9,
+      "ram_end_mb": 793.6,
+      "ram_delta_mb": 137.7,
+      "error": null
+    },
+    {
+      "step_name": "4. Dynamic DeepHit Competing Risks (Dropout & Abschluss)",
+      "status": "PASSED",
+      "duration_s": 193.3,
+      "ram_start_mb": 793.6,
+      "ram_end_mb": 955.9,
+      "ram_delta_mb": 162.3,
+      "error": null
+    },
+    {
+      "step_name": "5. Causal Semester Transformer Survival",
+      "status": "PASSED",
+      "duration_s": 58.69,
+      "ram_start_mb": 955.9,
+      "ram_end_mb": 1090.4,
+      "ram_delta_mb": 134.5,
+      "error": null
+    },
+    {
+      "step_name": "6. Recurrent Exam Survival GRU",
+      "status": "PASSED",
+      "duration_s": 369.22,
+      "ram_start_mb": 1090.4,
+      "ram_end_mb": 1189.8,
+      "ram_delta_mb": 99.4,
+      "error": null
+    },
+    {
+      "step_name": "7. Causal Exam Transformer Survival",
+      "status": "PASSED",
+      "duration_s": 782.47,
+      "ram_start_mb": 1189.8,
+      "ram_end_mb": 1429.5,
+      "ram_delta_mb": 239.6,
+      "error": null
+    },
+    {
+      "step_name": "8. Landmark Baseline Classifiers (RF, SVM, NaiveBayes, MLP)",
+      "status": "PASSED",
+      "duration_s": 182.13,
+      "ram_start_mb": 1430.6,
+      "ram_end_mb": 1479.4,
+      "ram_delta_mb": 48.9,
+      "error": null
+    },
+    {
+      "step_name": "9. Landmark Abschlussnoten-Regression (Ridge, SVR, RF, MLP)",
+      "status": "PASSED",
+      "duration_s": 70.37,
+      "ram_start_mb": 1479.4,
+      "ram_end_mb": 1613.5,
+      "ram_delta_mb": 134.0,
+      "error": null
+    },
+    {
+      "step_name": "10. Double Machine Learning (DML Orthogonalized Survival)",
+      "status": "PASSED",
+      "duration_s": 52.96,
+      "ram_start_mb": 1613.5,
+      "ram_end_mb": 1535.3,
+      "ram_delta_mb": -78.2,
+      "error": null
+    },
+    {
+      "step_name": "11. Deep Transformer-DML Pipeline",
+      "status": "PASSED",
+      "duration_s": 452.2,
+      "ram_start_mb": 1535.3,
+      "ram_end_mb": 1691.4,
+      "ram_delta_mb": 156.1,
+      "error": null
+    },
+    {
+      "step_name": "12. Semester Timeseries LSTM GPA Regression",
+      "status": "PASSED",
+      "duration_s": 124.99,
+      "ram_start_mb": 1691.4,
+      "ram_end_mb": 1717.1,
+      "ram_delta_mb": 25.7,
+      "error": null
+    },
+    {
+      "step_name": "13. Semester Timeseries Transformer Abschlussnoten-Regression",
+      "status": "PASSED",
+      "duration_s": 222.18,
+      "ram_start_mb": 1717.1,
+      "ram_end_mb": 1785.2,
+      "ram_delta_mb": 68.1,
+      "error": null
+    },
+    {
+      "step_name": "14. Exam Timeseries GRU Grade Regression",
+      "status": "PASSED",
+      "duration_s": 340.68,
+      "ram_start_mb": 1785.2,
+      "ram_end_mb": 1904.8,
+      "ram_delta_mb": 119.6,
+      "error": null
+    },
+    {
+      "step_name": "15. Exam Timeseries Transformer Grade Regression",
+      "status": "PASSED",
+      "duration_s": 530.84,
+      "ram_start_mb": 1904.8,
+      "ram_end_mb": 2002.0,
+      "ram_delta_mb": 97.2,
+      "error": null
+    },
+    {
+      "step_name": "16. Oracle Models (Theoretischer Maximum Lift)",
+      "status": "PASSED",
+      "duration_s": 77.41,
+      "ram_start_mb": 2002.0,
+      "ram_end_mb": 2001.7,
+      "ram_delta_mb": -0.3,
+      "error": null
+    },
+    {
+      "step_name": "17. DSGVO Realistic Models (Feature Blindness Analysis)",
+      "status": "PASSED",
+      "duration_s": 41.79,
+      "ram_start_mb": 2001.7,
+      "ram_end_mb": 2028.3,
+      "ram_delta_mb": 26.6,
+      "error": null
+    },
+    {
+      "step_name": "18. Deep Transformer Suite (Enlarged Capacity)",
+      "status": "PASSED",
+      "duration_s": 5866.87,
+      "ram_start_mb": 2028.3,
+      "ram_end_mb": 2599.3,
+      "ram_delta_mb": 571.0,
+      "error": null
+    },
+    {
+      "step_name": "19. Autoregressive Next-Exam Prediction (Dual-Head Multi-Task)",
+      "status": "PASSED",
+      "duration_s": 1948.03,
+      "ram_start_mb": 2599.3,
+      "ram_end_mb": 2671.6,
+      "ram_delta_mb": 72.2,
+      "error": null
+    },
+    {
+      "step_name": "20. Strukturelle Mediationsanalyse (Imai / Pearl Framework)",
+      "status": "PASSED",
+      "duration_s": 7.72,
+      "ram_start_mb": 2671.6,
+      "ram_end_mb": 2616.2,
+      "ram_delta_mb": -55.3,
+      "error": null
+    }
+  ]
+}

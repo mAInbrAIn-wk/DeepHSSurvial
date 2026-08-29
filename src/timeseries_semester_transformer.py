@@ -80,8 +80,7 @@ def train_timeseries_semester_transformer(data_dir: Path = Path('src/output_dl')
     )
 
     # Abschlussnoten-Zielwert pro Student
-    df_abschluesse = pd.read_csv(data_dir / 'agg_abschluesse.csv')
-    df_abschluesse.columns = df_abschluesse.columns.str.strip()
+    df_abschluesse, _ = fb._load_raw_data(data_dir)
     note_dict = df_abschluesse.set_index('studierenden_id')['abschlussnote'].to_dict()
 
     y_student = np.array([note_dict.get(s, np.nan) for s in studis])

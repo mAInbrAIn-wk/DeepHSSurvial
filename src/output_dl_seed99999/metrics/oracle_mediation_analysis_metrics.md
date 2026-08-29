@@ -1,0 +1,7 @@
+# Metriken: oracle_mediation_analysis
+
+| Metrik | Wert |
+| :--- | :---: |
+| **fachlich** | {'1_Realistic': {'total_or': 0.9710236321322813, 'direct_or': 0.9772540465416275, 'mediated_or': 0.9936245703648966}, '2_Oracle_Confounder': {'total_or': 0.9337895902332274, 'direct_or': 0.9464923922426617, 'mediated_or': 0.9865790764790664}, '3_Oracle_Mediator': {'total_or': 0.9710236321322813, 'direct_or': 0.9772540465416275, 'mediated_or': 0.9936245703648966}, '4_Oracle_Both': {'total_or': 0.9337895902332274, 'direct_or': 0.9464923922426617, 'mediated_or': 0.9865790764790664}} |
+| **ueberfachlich** | {'1_Realistic': {'total_or': 1.124701894847482, 'direct_or': 1.0630578245931157, 'mediated_or': 1.0579875043749014}, '2_Oracle_Confounder': {'total_or': 1.0094920785218602, 'direct_or': 1.0029376042751805, 'mediated_or': 1.0065352761914004}, '3_Oracle_Mediator': {'total_or': 1.1553632451432574, 'direct_or': 1.0136331093891204, 'mediated_or': 1.1398239012136775}, '4_Oracle_Both': {'total_or': 1.0130814240334745, 'direct_or': 1.0130814240334745, 'mediated_or': 1.0}} |
+| **psychosozial** | {'1_Realistic': {'total_or': 0.9848875416305063, 'direct_or': 0.9637057824447653, 'mediated_or': 1.021979487486322}, '2_Oracle_Confounder': {'total_or': 0.9346397777845961, 'direct_or': 0.9376129865017616, 'mediated_or': 0.9968289595387767}, '3_Oracle_Mediator': {'total_or': 0.9932665854648571, 'direct_or': 0.9473873899367828, 'mediated_or': 1.0484270700828473}, '4_Oracle_Both': {'total_or': 0.9380499700898217, 'direct_or': 0.938049970089822, 'mediated_or': 0.9999999999999997}} |

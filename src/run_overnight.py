@@ -111,14 +111,10 @@ def run_master_overnight_pipeline(data_dir: Path = None,
                                   skip_sim: bool = False,
                                   temporal: str = 'prev',
                                   population_seed: int = 12345):
-    if data_dir is None:
-        data_dir = Path('output_dl') if Path('output_dl').exists() else Path('src/output_dl')
-    data_dir = Path(data_dir)
-    if not data_dir.exists():
-        if (SRC_DIR / data_dir).exists():
-            data_dir = SRC_DIR / data_dir
-        elif Path(data_dir.name).exists():
-            data_dir = Path(data_dir.name)
+    if data_dir is None or str(data_dir) in ('src/output_dl', 'output_dl'):
+        data_dir = Path('output_dl')
+    else:
+        data_dir = Path(data_dir)
 
     tracker = PipelineBenchmarkTracker()
     total_t0 = time.time()
@@ -135,8 +131,8 @@ def run_master_overnight_pipeline(data_dir: Path = None,
     if not skip_sim:
         def step_sim():
             import simulation_v3
-            simulation_v3.main(population_seed=population_seed)
-        tracker.run_step("0. Simulation V3 (5 Universen, Salted Seeds & Clipping Tracker)", step_sim)
+            simulation_v3.main(population_seed=population_seed, base_output_override=data_dir)
+        tracker.run_step("0. Simulation V3 (8 Universen, Konsistent)", step_sim)
     else:
         print("\n[INFO] Simulation übersprungen (--skip_sim). Nutze bestehende Daten.")
 
@@ -238,14 +234,14 @@ def run_master_overnight_pipeline(data_dir: Path = None,
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Master Overnight Pipeline V3.6")
-    parser.add_argument('--data_dir', type=str, default='src/output_dl')
+    parser.add_argument('--data_dir', type=str, default=None)
     parser.add_argument('--skip_sim', action='store_true', default=False)
     parser.add_argument('--temporal', type=str, default='prev', choices=['prev', 'cum'])
     parser.add_argument('--seed', type=int, default=12345)
     args = parser.parse_args()
 
     run_master_overnight_pipeline(
-        data_dir=Path(args.data_dir),
+        data_dir=Path(args.data_dir) if args.data_dir else None,
         skip_sim=args.skip_sim,
         temporal=args.temporal,
         population_seed=args.seed

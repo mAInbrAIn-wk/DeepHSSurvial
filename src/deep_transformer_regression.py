@@ -127,8 +127,7 @@ def train_deep_transformer_models(data_dir: Path = Path('src/output_dl'),
     # 1. Deep Semester Transformer Regressor
     print("\n[1/3] Deep Semester-Transformer Regressor...")
     studis_s, X_sem, _, _, _, _ = fb.build_semester_sequence_tensor(data_dir, max_semesters=16, mode=mode, temporal=temporal, target_type='gpa')
-    df_abschluesse = pd.read_csv(data_dir / 'agg_abschluesse.csv')
-    df_abschluesse.columns = df_abschluesse.columns.str.strip()
+    df_abschluesse, _ = fb._load_raw_data(data_dir)
     note_dict = df_abschluesse.set_index('studierenden_id')['abschlussnote'].to_dict()
 
     y_s = np.array([note_dict.get(s, np.nan) for s in studis_s])
