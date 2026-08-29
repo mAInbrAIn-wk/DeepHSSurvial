@@ -2,12 +2,18 @@
 
 | Metrik | Wert |
 | :--- | :---: |
-| **model_type** | dml_orthogonal_survival |
-| **temporal** | prev |
-| **mode** | standard |
-| **ROC-AUC_Panel** | 0.7374 |
-| **PR-AUC_Panel** | 0.1214 |
-| **Brier_Score** | 0.0380 |
-| **fach** | {'partial': {'mean_rr': 0.9012994766235352, 'median_rr': 0.9012994766235352, 'ate': -0.004252604674547911}, 'isolated': {'mean_rr': 0.8954563140869141, 'median_rr': 0.8954563140869141, 'ate': -0.004527080804109573}} |
-| **uebf** | {'partial': {'mean_rr': 0.969671905040741, 'median_rr': 0.969671905040741, 'ate': -0.0012964545749127865}, 'isolated': {'mean_rr': 0.968029797077179, 'median_rr': 0.968029797077179, 'ate': -0.0013843432534486055}} |
-| **psych** | {'partial': {'mean_rr': 0.9600536227226257, 'median_rr': 0.9600536227226257, 'ate': -0.0017059303354471922}, 'isolated': {'mean_rr': 0.959584653377533, 'median_rr': 0.959584653377533, 'ate': -0.0017500550020486116}} |
+| **ROC-AUC_Panel** | 0.7687 |
+| **PR-AUC_Panel** | 0.2030 |
+| **Brier_Score** | 0.0358 |
+| **Mean_RR_fach_DML** | 0.7899 |
+| **Median_RR_fach_DML** | 0.7999 |
+| **Q05_RR_fach_DML** | 0.4076 |
+| **Q95_RR_fach_DML** | 1.0806 |
+| **Mean_RR_uebf_DML** | 1.0702 |
+| **Median_RR_uebf_DML** | 1.0460 |
+| **Q05_RR_uebf_DML** | 0.8516 |
+| **Q95_RR_uebf_DML** | 1.3659 |
+| **Mean_RR_psych_DML** | 0.9656 |
+| **Median_RR_psych_DML** | 0.9589 |
+| **Q05_RR_psych_DML** | 0.7808 |
+| **Q95_RR_psych_DML** | 1.1525 |
