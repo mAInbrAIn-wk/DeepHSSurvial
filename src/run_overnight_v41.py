@@ -224,8 +224,8 @@ def run_master_overnight_pipeline_v41(data_dir: Path, temporal: str, population_
     # NEUE MODELLE (VON run_all_experiments.py & Prompt)
     # -------------------------------------------------------------------------
     def step_21():
-        from deep_survival import main as run_deep_surv
-        return run_deep_surv()
+        from deep_survival import train_deep_survival
+        return train_deep_survival(data_dir=data_dir)
     tracker.run_step("21. Deep Survival", step_21)
 
     def step_22():
@@ -271,12 +271,12 @@ def run_master_overnight_pipeline_v41(data_dir: Path, temporal: str, population_
 
     def step_30():
         from landmark_prediction import main as run_landmark
-        return run_landmark()
+        return run_landmark(data_dir=data_dir)
     tracker.run_step("30. Landmark Prediction", step_30)
 
     def step_31():
         from plot_calibration_curves import main as plot_calibration_curves
-        return plot_calibration_curves()
+        return plot_calibration_curves(data_dir=data_dir)
     tracker.run_step("31. Plot Calibration Curves", step_31)
 
     # -------------------------------------------------------------------------
@@ -284,32 +284,32 @@ def run_master_overnight_pipeline_v41(data_dir: Path, temporal: str, population_
     # -------------------------------------------------------------------------
     def step_32():
         from run_feature_grid_experiments import main as run_feature_grid
-        return run_feature_grid()
+        return run_feature_grid(data_dir=data_dir)
     tracker.run_step("32. Feature Grid Experiments", step_32)
 
     def step_33():
-        from counterfactual_hr_delta import main as run_cf_hr_delta
-        return run_cf_hr_delta()
+        from counterfactual_hr_delta import analyze_counterfactual_hr_delta
+        return analyze_counterfactual_hr_delta(data_dir)
     tracker.run_step("33. Counterfactual HR Delta", step_33)
 
     def step_34():
-        from counterfactual_rr_logistic_hazard_delta import main as run_cf_rr_loghaz
-        return run_cf_rr_loghaz()
+        from counterfactual_rr_logistic_hazard_delta import analyze_counterfactual_rr_logistic_hazard_delta
+        return analyze_counterfactual_rr_logistic_hazard_delta(data_dir)
     tracker.run_step("34. Counterfactual RR Logistic Hazard Delta", step_34)
 
     def step_35():
         from counterfactual_rr_deephit_delta import main as run_cf_rr_deephit
-        return run_cf_rr_deephit()
+        return run_cf_rr_deephit(data_dir=data_dir)
     tracker.run_step("35. Counterfactual RR DeepHit Delta", step_35)
 
     def step_36():
         from counterfactual_inference_semester_transformer import run_counterfactual_transformer
-        return run_counterfactual_transformer()
+        return run_counterfactual_transformer(data_dir=data_dir)
     tracker.run_step("36. Counterfactual Inference Semester Transformer", step_36)
 
     def step_37():
         from counterfactual_rr_exam_rnn_delta import main as run_cf_exam_rnn_delta
-        return run_cf_exam_rnn_delta()
+        return run_cf_exam_rnn_delta(data_dir=data_dir)
     tracker.run_step("37. Counterfactual RR Exam RNN Delta", step_37)
 
 

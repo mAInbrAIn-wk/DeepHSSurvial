@@ -37,12 +37,17 @@ def masked_binary_crossentropy(y_true, y_pred):
     return tf.reduce_sum(bce * mask) / (tf.reduce_sum(mask) + 1e-7)
 
 
-def main():
+def main(data_dir=None):
     print("\n==========================================================================")
     print("   KALIBRIERUNGSANALYSE & RELIABILITY DIAGRAMME")
     print("==========================================================================")
     
-    data_dir = Path('../output_dl') if Path('../output_dl').exists() else Path('output_dl')
+    if data_dir is not None:
+        data_dir = Path(data_dir)
+    elif os.environ.get('DATA_DIR'):
+        data_dir = Path(os.environ['DATA_DIR'])
+    else:
+        data_dir = Path('../output_dl') if Path('../output_dl').exists() else Path('output_dl')
     plots_dir = data_dir / 'plots'
     plots_dir.mkdir(parents=True, exist_ok=True)
     

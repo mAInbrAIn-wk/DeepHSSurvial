@@ -1,0 +1,17 @@
+{
+    "deep_semester_transformer_regression": {
+        "R2": 0.9070317149162292,
+        "RMSE": 0.32384017305313806,
+        "MAE": 0.2471964955329895
+    },
+    "deep_exam_transformer_regression": {
+        "R2": 0.8977935314178467,
+        "RMSE": 0.3373246165508403,
+        "MAE": 0.25588473677635193
+    },
+    "deep_exam_transformer_survival": {
+        "ROC-AUC": 0.9999842392025403,
+        "PR-AUC": 0.9999672868887929,
+        "Brier_Score": 0.0001555679045850411
+    }
+}

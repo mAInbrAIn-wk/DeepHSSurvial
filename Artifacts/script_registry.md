@@ -253,8 +253,12 @@ Alle nachfolgenden Skripte implementieren kontrafaktische Simulationen nach dem 
 - [`plot_calibration_curves.py`](file:///c:/GitHub_public/Abschlussprojekt/src/plot_calibration_curves.py): Erzeugt Zuverlässigkeitsdiagramme (*Calibration Curves*) und Brier-Score Vergleiche über alle Survival-Modelle.
 
 ### E. Orchestrierung & Hilfsmodule
-- [`run_all_experiments.py`](file:///c:/GitHub_public/Abschlussprojekt/src/run_all_experiments.py): Sequenzieller Master-Runner für alle ML- und DL-Modelltrainings.
-- [`run_overnight.py`](file:///c:/GitHub_public/Abschlussprojekt/src/run_overnight.py): Master-Orchestrierung für vollständige Nachtläufe (Simulation $\rightarrow$ Aggregation $\rightarrow$ Training $\rightarrow$ DML $\rightarrow$ Evaluation).
+- [`run_fast_suite.py`](file:///c:/GitHub_public/Abschlussprojekt/src/run_fast_suite.py): **Fast Core Suite** (V4.1) — Führt 25+ schlanke Modelle, DML, Landmark & alle 5 Kontrafaktik-Skripte in 15–20 Min. pro Szenario aus.
+- [`run_heavy_suite.py`](file:///c:/GitHub_public/Abschlussprojekt/src/run_heavy_suite.py): **Heavy Deep Suite** (V4.1) — Isoliertes Training der großen Deep Transformer- & Autoregressor-Netzwerke (~2.5h, gezielt für Baseline).
+- [`run_master_suite.py`](file:///c:/GitHub_public/Abschlussprojekt/src/run_master_suite.py): **Master Suite Orchestrator** (V4.1) — Einheitliche CLI mit `--suite fast|heavy|all`, `--temporal prev|cum`, `--modes`.
+- [`run_overnight_v41.py`](file:///c:/GitHub_public/Abschlussprojekt/src/run_overnight_v41.py): Erweiterter 37-Schritte-Runner für vollständige Monolith-Nachtläufe.
+- [`run_all_experiments.py`](file:///c:/GitHub_public/Abschlussprojekt/src/run_all_experiments.py): Älterer sequenzieller Master-Runner für 23 Basis-Experimente.
+- [`run_overnight.py`](file:///c:/GitHub_public/Abschlussprojekt/src/run_overnight.py): Klassischer 20-Schritte-Runner für V3.6.
 - [`main.py`](file:///c:/GitHub_public/Abschlussprojekt/src/main.py): Einstiegspunkt für Standard-Einzellauf der Basissimulation.
 - [`config.py`](file:///c:/GitHub_public/Abschlussprojekt/src/config.py) & [`extract_config.py`](file:///c:/GitHub_public/Abschlussprojekt/src/extract_config.py): Zentrale Konfigurationsparameter (Workload-Schwellen, Support-Boosts, Caps, Semesterdauern).
 - [`metrics_logger.py`](file:///c:/GitHub_public/Abschlussprojekt/src/metrics_logger.py): Einheitliche Hilfsfunktionen zum Speichern von Metriken (`.json`, `.md`), Keras-Modellen (`.keras`) und Plots (`.png`).

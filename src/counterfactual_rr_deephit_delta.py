@@ -18,13 +18,21 @@ from dynamic_deephit_delta_model import build_competing_risks_dataset_delta
 from recurrent_survival_model import masked_binary_crossentropy, PADDING_VALUE
 from metrics_logger import save_metrics
 
-def main():
+def main(data_dir=None):
     print("\n==========================================================================")
     print("   COUNTERFACTUAL RELATIVE RISK ANALYSIS (DYNAMIC DEEPHIT DELTA)")
     print("==========================================================================")
     
-    data_dir = Path('output_dl') if (Path('output_dl/models/dynamic_deephit_delta.keras').exists() or Path('output_dl/agg_abschluesse.csv').exists()) else Path('../output_dl')
+    if data_dir is not None:
+        data_dir = Path(data_dir)
+    elif os.environ.get('DATA_DIR'):
+        data_dir = Path(os.environ['DATA_DIR'])
+    else:
+        data_dir = Path('output_dl') if (Path('output_dl/models/dynamic_deephit_delta.keras').exists() or Path('output_dl/agg_abschluesse.csv').exists()) else Path('../output_dl')
+    
     model_path = data_dir / 'models' / 'dynamic_deephit_delta.keras'
+    if not model_path.exists():
+        model_path = data_dir / 'dynamic_deephit_delta.keras'
     if not model_path.exists():
         model_path = Path('../output_dl/models/dynamic_deephit_delta.keras')
     if not model_path.exists():

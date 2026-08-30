@@ -1,0 +1,16 @@
+# Metriken: transformer_survival_counterfactual
+
+| Metrik | Wert |
+| :--- | :---: |
+| **fach_partial** | {'mean_hr': 1.0072182416915894, 'median_hr': 1.0, 'q05': 0.8386552333831787, 'q95': 1.1755815744400024} |
+| **fach_isolated** | {'mean_hr': 0.9965537786483765, 'median_hr': 1.0, 'q05': 0.8160328269004822, 'q95': 1.1328295469284058} |
+| **Mean_HR_fach** | 1.0072 |
+| **Median_HR_fach** | 1.0000 |
+| **uebf_partial** | {'mean_hr': 1.0103169679641724, 'median_hr': 1.0, 'q05': 0.8922720551490784, 'q95': 1.1354418992996216} |
+| **uebf_isolated** | {'mean_hr': 1.002834439277649, 'median_hr': 1.0, 'q05': 0.8864545226097107, 'q95': 1.1153730154037476} |
+| **Mean_HR_uebf** | 1.0103 |
+| **Median_HR_uebf** | 1.0000 |
+| **psych_partial** | {'mean_hr': 0.9821500182151794, 'median_hr': 1.0, 'q05': 0.7701365947723389, 'q95': 1.0565065145492554} |
+| **psych_isolated** | {'mean_hr': 0.9752410054206848, 'median_hr': 1.0, 'q05': 0.7483377456665039, 'q95': 1.0327829122543335} |
+| **Mean_HR_psych** | 0.9822 |
+| **Median_HR_psych** | 1.0000 |

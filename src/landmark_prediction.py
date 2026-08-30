@@ -66,8 +66,14 @@ def build_landmark_dataset(df_ab, df_pr, max_semester=2, max_seq_len=30):
     X = np.array(X_list, dtype=np.float32)
     return X, np.array(y_status), np.array(y_grade), valid_ids
 
-def main():
-    data_dir = Path('src/output_dl_seed99999')
+def main(data_dir=None):
+    if data_dir is not None:
+        data_dir = Path(data_dir)
+    elif os.environ.get('DATA_DIR'):
+        data_dir = Path(os.environ['DATA_DIR'])
+    else:
+        data_dir = Path('src/output_dl') if Path('src/output_dl').exists() else Path('output_dl')
+        
     model_path = data_dir / 'models' / 'autoregressive_deep_transformer.keras'
     
     print("1. Lade Deep Transformer Autoregressor...")

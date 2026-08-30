@@ -1,0 +1,9 @@
+# Metriken: grid_semester_transformer_standard
+
+| Metrik | Wert |
+| :--- | :---: |
+| **n_features** | 18 |
+| **roc_auc** | 0.7847 |
+| **pr_auc** | 0.2291 |
+| **brier_score** | 0.0366 |
+| **counterfactual** | {'fach_partial': {'mean_rr': 1.002644419670105, 'median_rr': 0.9973573088645935}, 'fach_isolated': {'mean_rr': 1.001793384552002, 'median_rr': 0.997329592704773}, 'uebf_partial': {'mean_rr': 1.0210720300674438, 'median_rr': 1.0030860900878906}, 'uebf_isolated': {'mean_rr': 1.0194716453552246, 'median_rr': 1.0034832954406738}, 'psych_partial': {'mean_rr': 1.008390188217163, 'median_rr': 1.0093629360198975}, 'psych_isolated': {'mean_rr': 1.006978154182434, 'median_rr': 1.0090566873550415}} |

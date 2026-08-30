@@ -18,11 +18,19 @@ from transformer_survival_model import PositionalEncoding
 
 from metrics_logger import save_metrics
 
-def run_counterfactual_transformer():
+def run_counterfactual_transformer(data_dir=None):
     print("Starte Counterfactual Inference für Transformer (Semester-Ebene)...")
     
-    data_dir = Path('output_dl') if (Path('output_dl/models/transformer_survival.keras').exists() or Path('output_dl/agg_abschluesse.csv').exists()) else Path('../output_dl')
+    if data_dir is not None:
+        data_dir = Path(data_dir)
+    elif os.environ.get('DATA_DIR'):
+        data_dir = Path(os.environ['DATA_DIR'])
+    else:
+        data_dir = Path('output_dl') if (Path('output_dl/models/transformer_survival.keras').exists() or Path('output_dl/agg_abschluesse.csv').exists()) else Path('../output_dl')
+    
     model_path = data_dir / 'models' / 'transformer_survival.keras'
+    if not model_path.exists():
+        model_path = data_dir / 'transformer_survival.keras'
     if not model_path.exists():
         model_path = Path('../output_dl/models/transformer_survival.keras')
     if not model_path.exists():

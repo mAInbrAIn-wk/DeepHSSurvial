@@ -20,7 +20,7 @@ from pathlib import Path
 import json
 import numpy as np
 import pandas as pd
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional, Union
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -496,12 +496,17 @@ def generate_master_markdown_report(master_summary: Dict[str, Any], output_path:
     print(f" Markdown-Report erfolgreich gespeichert unter: {output_path}")
 
 
-def main():
-    data_dir = Path('output_dl')
-    for candidate in [Path('output_dl'), Path('src/output_dl'), Path('../output_dl')]:
-        if (candidate / 'agg_abschluesse.csv').exists():
-            data_dir = candidate
-            break
+def main(data_dir: Optional[Union[str, Path]] = None):
+    if data_dir is not None:
+        data_dir = Path(data_dir)
+    elif os.environ.get('DATA_DIR'):
+        data_dir = Path(os.environ['DATA_DIR'])
+    else:
+        data_dir = Path('output_dl')
+        for candidate in [Path('output_dl'), Path('src/output_dl'), Path('../output_dl')]:
+            if (candidate / 'agg_abschluesse.csv').exists():
+                data_dir = candidate
+                break
             
     print(f"Starte Master Grid Evaluation Pipeline (Data Dir: {data_dir}) ...")
     

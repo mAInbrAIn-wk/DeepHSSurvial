@@ -1,0 +1,915 @@
+{
+  "timestamp": "2026-08-30 19:23:08",
+  "total_duration_s": 123.03,
+  "steps": [
+    {
+      "step_name": "1. Extended Cox [standard]",
+      "status": "PASSED",
+      "duration_s": 41.59,
+      "ram_start_mb": 19.6,
+      "ram_end_mb": 469.6,
+      "ram_delta_mb": 450.1,
+      "error": null
+    },
+    {
+      "step_name": "2. Extended DeepSurv [standard]",
+      "status": "FAILED",
+      "duration_s": 13.09,
+      "ram_start_mb": 216.7,
+      "ram_end_mb": 266.2,
+      "ram_delta_mb": 49.4,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "3. Recurrent Survival GRU [standard]",
+      "status": "FAILED",
+      "duration_s": 0.68,
+      "ram_start_mb": 266.4,
+      "ram_end_mb": 266.7,
+      "ram_delta_mb": 0.2,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "4. Dynamic DeepHit Competing Risks [standard]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 266.7,
+      "ram_end_mb": 266.7,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "5. Transformer Survival [standard]",
+      "status": "FAILED",
+      "duration_s": 0.13,
+      "ram_start_mb": 266.7,
+      "ram_end_mb": 266.7,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "6. Recurrent Exam Survival GRU [standard]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 266.7,
+      "ram_end_mb": 266.7,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "7. Transformer Exam Survival [standard]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 266.7,
+      "ram_end_mb": 266.7,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "8. Landmark Baseline [standard]",
+      "status": "FAILED",
+      "duration_s": 0.25,
+      "ram_start_mb": 266.7,
+      "ram_end_mb": 269.5,
+      "ram_delta_mb": 2.8,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "9. Landmark Regression [standard]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 269.5,
+      "ram_end_mb": 269.8,
+      "ram_delta_mb": 0.2,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "10. DML Orthogonal Survival [standard]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 269.8,
+      "ram_end_mb": 269.8,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "11. Transformer DML [standard]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 269.8,
+      "ram_end_mb": 269.8,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "12. Timeseries Semester LSTM [standard]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 269.8,
+      "ram_end_mb": 269.8,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "13. Timeseries Semester Transformer [standard]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 269.8,
+      "ram_end_mb": 269.8,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "14. Timeseries Exam GRU [standard]",
+      "status": "FAILED",
+      "duration_s": 0.13,
+      "ram_start_mb": 269.8,
+      "ram_end_mb": 270.0,
+      "ram_delta_mb": 0.2,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "15. Timeseries Exam Transformer [standard]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 270.0,
+      "ram_end_mb": 270.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "18. Deep Transformer Suite [standard]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 270.0,
+      "ram_end_mb": 270.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "1. Extended Cox [gradeblind]",
+      "status": "PASSED",
+      "duration_s": 11.51,
+      "ram_start_mb": 270.0,
+      "ram_end_mb": 526.4,
+      "ram_delta_mb": 256.3,
+      "error": null
+    },
+    {
+      "step_name": "2. Extended DeepSurv [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 278.7,
+      "ram_end_mb": 279.0,
+      "ram_delta_mb": 0.3,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "3. Recurrent Survival GRU [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 279.0,
+      "ram_end_mb": 279.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "4. Dynamic DeepHit Competing Risks [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 279.0,
+      "ram_end_mb": 279.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "5. Transformer Survival [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 279.0,
+      "ram_end_mb": 279.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "6. Recurrent Exam Survival GRU [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 279.0,
+      "ram_end_mb": 279.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "7. Transformer Exam Survival [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 279.0,
+      "ram_end_mb": 279.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "8. Landmark Baseline [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 279.0,
+      "ram_end_mb": 279.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "9. Landmark Regression [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 279.0,
+      "ram_end_mb": 279.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "10. DML Orthogonal Survival [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 279.0,
+      "ram_end_mb": 279.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "11. Transformer DML [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 279.0,
+      "ram_end_mb": 279.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "12. Timeseries Semester LSTM [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.12,
+      "ram_start_mb": 279.0,
+      "ram_end_mb": 279.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "13. Timeseries Semester Transformer [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 279.0,
+      "ram_end_mb": 279.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "14. Timeseries Exam GRU [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 279.0,
+      "ram_end_mb": 279.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "15. Timeseries Exam Transformer [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 279.0,
+      "ram_end_mb": 279.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "18. Deep Transformer Suite [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 279.0,
+      "ram_end_mb": 279.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "1. Extended Cox [blind]",
+      "status": "PASSED",
+      "duration_s": 10.07,
+      "ram_start_mb": 279.0,
+      "ram_end_mb": 517.1,
+      "ram_delta_mb": 238.0,
+      "error": null
+    },
+    {
+      "step_name": "2. Extended DeepSurv [blind]",
+      "status": "FAILED",
+      "duration_s": 0.16,
+      "ram_start_mb": 283.6,
+      "ram_end_mb": 284.0,
+      "ram_delta_mb": 0.4,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "3. Recurrent Survival GRU [blind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.0,
+      "ram_end_mb": 284.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "4. Dynamic DeepHit Competing Risks [blind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.0,
+      "ram_end_mb": 284.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "5. Transformer Survival [blind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.0,
+      "ram_end_mb": 284.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "6. Recurrent Exam Survival GRU [blind]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 284.0,
+      "ram_end_mb": 284.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "7. Transformer Exam Survival [blind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.0,
+      "ram_end_mb": 284.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "8. Landmark Baseline [blind]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 284.0,
+      "ram_end_mb": 284.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "9. Landmark Regression [blind]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 284.0,
+      "ram_end_mb": 284.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "10. DML Orthogonal Survival [blind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.0,
+      "ram_end_mb": 284.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "11. Transformer DML [blind]",
+      "status": "FAILED",
+      "duration_s": 0.13,
+      "ram_start_mb": 284.0,
+      "ram_end_mb": 284.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "12. Timeseries Semester LSTM [blind]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 284.0,
+      "ram_end_mb": 284.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "13. Timeseries Semester Transformer [blind]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 284.0,
+      "ram_end_mb": 284.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "14. Timeseries Exam GRU [blind]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 284.0,
+      "ram_end_mb": 284.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "15. Timeseries Exam Transformer [blind]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 284.0,
+      "ram_end_mb": 284.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "18. Deep Transformer Suite [blind]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.0,
+      "ram_end_mb": 284.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "1. Extended Cox [oracle]",
+      "status": "PASSED",
+      "duration_s": 14.97,
+      "ram_start_mb": 284.0,
+      "ram_end_mb": 568.4,
+      "ram_delta_mb": 284.4,
+      "error": null
+    },
+    {
+      "step_name": "2. Extended DeepSurv [oracle]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 284.1,
+      "ram_end_mb": 284.5,
+      "ram_delta_mb": 0.4,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "3. Recurrent Survival GRU [oracle]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.5,
+      "ram_end_mb": 284.5,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "4. Dynamic DeepHit Competing Risks [oracle]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 284.5,
+      "ram_end_mb": 284.5,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "5. Transformer Survival [oracle]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.5,
+      "ram_end_mb": 284.5,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "6. Recurrent Exam Survival GRU [oracle]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 284.5,
+      "ram_end_mb": 284.5,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "7. Transformer Exam Survival [oracle]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.5,
+      "ram_end_mb": 284.5,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "8. Landmark Baseline [oracle]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.5,
+      "ram_end_mb": 284.5,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "9. Landmark Regression [oracle]",
+      "status": "FAILED",
+      "duration_s": 0.13,
+      "ram_start_mb": 284.5,
+      "ram_end_mb": 284.5,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "10. DML Orthogonal Survival [oracle]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.5,
+      "ram_end_mb": 284.5,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "11. Transformer DML [oracle]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 284.5,
+      "ram_end_mb": 284.5,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "12. Timeseries Semester LSTM [oracle]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.5,
+      "ram_end_mb": 284.5,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "13. Timeseries Semester Transformer [oracle]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.5,
+      "ram_end_mb": 284.5,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "14. Timeseries Exam GRU [oracle]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.5,
+      "ram_end_mb": 284.5,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "15. Timeseries Exam Transformer [oracle]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.5,
+      "ram_end_mb": 284.5,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "18. Deep Transformer Suite [oracle]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 284.5,
+      "ram_end_mb": 284.5,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "1. Extended Cox [realistic]",
+      "status": "PASSED",
+      "duration_s": 10.4,
+      "ram_start_mb": 284.5,
+      "ram_end_mb": 520.1,
+      "ram_delta_mb": 235.6,
+      "error": null
+    },
+    {
+      "step_name": "2. Extended DeepSurv [realistic]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 287.8,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.2,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "3. Recurrent Survival GRU [realistic]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "4. Dynamic DeepHit Competing Risks [realistic]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "5. Transformer Survival [realistic]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "6. Recurrent Exam Survival GRU [realistic]",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "7. Transformer Exam Survival [realistic]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "8. Landmark Baseline [realistic]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "9. Landmark Regression [realistic]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "10. DML Orthogonal Survival [realistic]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "11. Transformer DML [realistic]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "12. Timeseries Semester LSTM [realistic]",
+      "status": "FAILED",
+      "duration_s": 0.13,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "13. Timeseries Semester Transformer [realistic]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "14. Timeseries Exam GRU [realistic]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "15. Timeseries Exam Transformer [realistic]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "18. Deep Transformer Suite [realistic]",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "16. Oracle Models",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "17. Erwerb Blind Models",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.0,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "19. Autoregressive Next-Exam",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 288.0,
+      "ram_end_mb": 288.4,
+      "ram_delta_mb": 0.4,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "20. Structural Mediation Analysis",
+      "status": "PASSED",
+      "duration_s": 8.4,
+      "ram_start_mb": 288.4,
+      "ram_end_mb": 295.6,
+      "ram_delta_mb": 7.2,
+      "error": null
+    },
+    {
+      "step_name": "21. Deep Survival",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 295.6,
+      "ram_end_mb": 296.6,
+      "ram_delta_mb": 1.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "22. Dynamic DeepHit Delta Model",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 296.6,
+      "ram_end_mb": 296.6,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "23. Extended Deep Survival Delta",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 296.6,
+      "ram_end_mb": 296.6,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "24. Extended Exam Survival",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 296.6,
+      "ram_end_mb": 296.7,
+      "ram_delta_mb": 0.1,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "25. Extended Cox Delta",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 296.7,
+      "ram_end_mb": 296.7,
+      "ram_delta_mb": 0.0,
+      "error": "cannot import name 'build_delta_panel' from 'extended_cox_delta' (C:\\GitHub_public\\Abschlussprojekt\\src\\extended_cox_delta.py)"
+    },
+    {
+      "step_name": "26. Recurrent Survival Model Delta",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 296.7,
+      "ram_end_mb": 296.8,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "27. Recurrent Exam Survival Delta",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 296.8,
+      "ram_end_mb": 296.8,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "28. Recurrent Exam Survival V2",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 296.8,
+      "ram_end_mb": 296.8,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "29. Autoregressive Deep Transformer",
+      "status": "FAILED",
+      "duration_s": 0.14,
+      "ram_start_mb": 296.8,
+      "ram_end_mb": 296.8,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "30. Landmark Prediction",
+      "status": "FAILED",
+      "duration_s": 4.0,
+      "ram_start_mb": 296.8,
+      "ram_end_mb": 298.6,
+      "ram_delta_mb": 1.8,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "31. Plot Calibration Curves",
+      "status": "FAILED",
+      "duration_s": 0.23,
+      "ram_start_mb": 298.6,
+      "ram_end_mb": 298.6,
+      "ram_delta_mb": 0.1,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "32. Feature Grid Experiments",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 298.6,
+      "ram_end_mb": 299.6,
+      "ram_delta_mb": 1.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "33. Counterfactual HR Delta",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 299.6,
+      "ram_end_mb": 299.6,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "34. Counterfactual RR Logistic Hazard Delta",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 299.6,
+      "ram_end_mb": 299.6,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "35. Counterfactual RR DeepHit Delta",
+      "status": "FAILED",
+      "duration_s": 0.08,
+      "ram_start_mb": 299.6,
+      "ram_end_mb": 299.6,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "36. Counterfactual Inference Semester Transformer",
+      "status": "FAILED",
+      "duration_s": 0.13,
+      "ram_start_mb": 299.6,
+      "ram_end_mb": 299.6,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    },
+    {
+      "step_name": "37. Counterfactual RR Exam RNN Delta",
+      "status": "FAILED",
+      "duration_s": 0.09,
+      "ram_start_mb": 299.6,
+      "ram_end_mb": 299.6,
+      "ram_delta_mb": 0.0,
+      "error": "DLL load failed while importing _ml_dtypes_ext: Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert."
+    }
+  ]
+}

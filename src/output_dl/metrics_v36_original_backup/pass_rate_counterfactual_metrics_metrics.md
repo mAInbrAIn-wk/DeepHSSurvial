@@ -1,0 +1,13 @@
+# Metriken: pass_rate_counterfactual_metrics
+
+| Metrik | Wert |
+| :--- | :---: |
+| **prsquared** | 0.3396 |
+| **N_obs** | 812143 |
+| **coefficients** | {'support_glz_fachlich': {'coef': 3.068736209842669, 'odds_ratio': 21.514695426179408, 'pvalue': 0.0}, 'support_vorher_fachlich': {'coef': 2.0569736511841517, 'odds_ratio': 7.8222610624396225, 'pvalue': 0.0}, 'support_glz_ueberfachlich': {'coef': -0.3182837616772283, 'odds_ratio': 0.7273963519177674, 'pvalue': 5.140905817227532e-181}, 'support_vorher_ueberfachlich': {'coef': -0.036717993059420244, 'odds_ratio': 0.963947937030872, 'pvalue': 3.8229380841788936e-11}, 'support_glz_psychosozial': {'coef': 0.15498130943296742, 'odds_ratio': 1.167636137119684, 'pvalue': 9.01917958430274e-22}, 'support_vorher_psychosozial': {'coef': 0.40085390460838927, 'odds_ratio': 1.4930991176646233, 'pvalue': 0.0}} |
+| **fach_partial** | {'mean_delta_pass_rate_pp': 1.235074562527727} |
+| **fach_isolated** | {'mean_delta_pass_rate_pp': 1.3212877577315596} |
+| **uebf_partial** | {'mean_delta_pass_rate_pp': -0.3999308743091734} |
+| **uebf_isolated** | {'mean_delta_pass_rate_pp': -0.4646473076900248} |
+| **psych_partial** | {'mean_delta_pass_rate_pp': 0.6573957260461505} |
+| **psych_isolated** | {'mean_delta_pass_rate_pp': 0.7765557188565309} |

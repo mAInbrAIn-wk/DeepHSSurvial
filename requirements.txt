@@ -1,23 +1,31 @@
 # DeepSupport Project Requirements
-# Diese Datei enthält die spezifischen Versionen, die zur Ausführung des Codes verwendet wurden.
+# Diese Datei enthält die verifizierten Versionen, die zur fehlerfreien Ausführung des Codes verwendet werden.
 
 # Core Data Science & Machine Learning
-pandas==3.0.5
-numpy==2.5.2
+pandas==2.2.3
+numpy==2.2.6              # Wichtig: Version <2.3 für SciPy- & TensorFlow-Kompatibilität
 scikit-learn==1.9.0
 tensorflow==2.21.0
+keras==3.15.1
+
+# Low-level ML Engine & Windows DLL Policy Fixes
+ml-dtypes==0.5.1          # Wichtig: Spezifischer Fix gegen Windows WDAC/AppLocker DLL-Blockade
+optree==0.13.0            # Wichtig: Spezifischer Fix gegen Windows WDAC/AppLocker DLL-Blockade
 
 # Survival Analysis & Statistics
-statsmodels==0.14.6
-#lifelines==0.30.3
+statsmodels==0.14.2
+
+# Data Processing & Performance Tracking
+duckdb==1.5.5
+psutil==7.2.2
 
 # Dashboard & Visualisierung
 dash==4.4.1
 dash-bootstrap-components==2.0.4
-plotly==6.9.0
+plotly==7.0.0
 matplotlib==3.11.1
 seaborn==0.13.2
 
-# Wichtig: Spezifischer Fix für Dash unter Python 3.12 (verhindert SystemError)
-pydantic==2.13.4
-pydantic_core==2.46.4
+# Pydantic (Kompatibilität mit Dash unter Python 3.12)
+pydantic==2.13.5
+pydantic_core==2.46.5

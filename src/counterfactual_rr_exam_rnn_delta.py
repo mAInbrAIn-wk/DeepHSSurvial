@@ -18,15 +18,21 @@ from recurrent_exam_survival_delta import build_recurrent_exam_dataset_delta
 from recurrent_survival_model import masked_binary_crossentropy, PADDING_VALUE
 from metrics_logger import save_metrics
 
-def main():
+def main(data_dir=None):
     print("\n==========================================================================")
     print("   COUNTERFACTUAL RELATIVE RISK ANALYSIS (RECURRENT EXAM DELTA - DUAL STRAND)")
     print("==========================================================================")
     
-    data_dir = Path('src/output_dl') if Path('src/output_dl').exists() else (Path('output_dl') if Path('output_dl').exists() else Path('../output_dl'))
+    if data_dir is not None:
+        data_dir = Path(data_dir)
+    elif os.environ.get('DATA_DIR'):
+        data_dir = Path(os.environ['DATA_DIR'])
+    else:
+        data_dir = Path('src/output_dl') if Path('src/output_dl').exists() else (Path('output_dl') if Path('output_dl').exists() else Path('../output_dl'))
+    
     model_path = data_dir / 'models' / 'recurrent_exam_survival_delta.keras'
     if not model_path.exists():
-        for candidate in [Path('output_dl/models/recurrent_exam_survival_delta.keras'), Path('../output_dl/models/recurrent_exam_survival_delta.keras'), Path('src/output_dl/models/recurrent_exam_survival_delta.keras')]:
+        for candidate in [data_dir / 'recurrent_exam_survival_delta.keras', Path('output_dl/models/recurrent_exam_survival_delta.keras'), Path('../output_dl/models/recurrent_exam_survival_delta.keras'), Path('src/output_dl/models/recurrent_exam_survival_delta.keras')]:
             if candidate.exists():
                 model_path = candidate
                 data_dir = candidate.parent.parent
