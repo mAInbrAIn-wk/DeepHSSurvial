@@ -1,10 +1,29 @@
 import math
+import zlib
 import numpy as np
 import pandas as pd
 from typing import List, Dict, Tuple
 from pathlib import Path
 from models import Student, ModulState, PruefungsErgebnis
 from config import CONFIG, MODULE_CURRICULA, STUDIENGAENGE, SUPPORT_ANGEBOTE, SUPPORT_KEYWORDS, HZB_TYPEN, HZB_GEWICHTE
+
+# V4.1: Deterministisches, positionsunabhängiges Prüfungsrauschen (restauriert aus V3)
+#
+# DESIGNENTSCHEIDUNG: Das Prüfungsrauschen ist deterministisch per (Student, Modul, Versuch).
+# In allen 8 Universen erhält derselbe Student bei derselben Prüfung dasselbe Zufallsrauschen.
+# Die Rauschrichtung (positiv/negativ) bleibt identisch; nur die Amplitude ändert sich
+# (via gewicht_rauschen in S07/S08).
+#
+# Diese Synchronisation ist NICHT alternativlos: In der Realität gibt es einen
+# "Schmetterlingseffekt" im unbeobachteten Teil der Welt — z.B. könnte ein Student
+# in einer Welt mit Support besser schlafen und deshalb eine andere Tagesform haben.
+# Wir entscheiden uns bewusst für die synchronisierte Variante, da sie die kausale
+# Isolation der Support-Effekte maximiert und Statusdifferenzen zwischen Universen
+# ausschließlich durch den simulierten Mechanismus entstehen.
+def get_exam_noise(base_seed: int, modul_id: str, versuch: int, cfg: Dict = None) -> float:
+    if cfg is None: cfg = CONFIG
+    exam_seed = (base_seed ^ zlib.crc32(f"{modul_id}_{versuch}".encode('utf-8'))) & 0xFFFFFFFF
+    return float(np.random.default_rng(exam_seed).normal(0, cfg["gewicht_rauschen"]))
 
 def _erzeuge_semester_liste(start_jahr: int, end_jahr: int, puffer_semester: int = 16) -> List[Dict]:
     semesters = []
@@ -121,11 +140,16 @@ def generiere_studierende(stammdaten: Dict[str, pd.DataFrame], rng: np.random.Ge
         mean_soz = np.clip(cfg["integration_startwert"] - (cfg["gewicht_integration_erstakademiker"] if erstakademiker else 0) - (cfg["gewicht_integration_migration"] if migration else 0) - erwerb * cfg["gewicht_integration_erwerb"], 0.01, 0.99)
         soz_int = float(rng.beta(mean_soz * 20.0, (1.0 - mean_soz) * 20.0))
 
+        # V4.1: Individueller Zeitpuffer als Beta-Verteilung (restauriert aus V3)
+        # mean≈60h (0.33*180), kappa=8 → std≈26h, Wertebereich [0, 180]
+        zeit_puffer = round(float(rng.beta(0.33 * 8.0, (1.0 - 0.33) * 8.0) * 180.0), 1)
+
         studi = Student(
             studierenden_id=sid, studiengang_id=sg_id, kohorten_semester_id=koh, geschlecht=geschlecht, alter_immatrikulation=alter,
             hzb_note=hzb_note, hzb_typ=hzb_typ, migrationshintergrund=migration, erstakademiker=erstakademiker, erwerbstaetigkeit_std=erwerb,
             motivation=round(motivation, 3), soziale_integration=round(soz_int, 3), motivation_initial=round(motivation, 3), soziale_integration_initial=round(soz_int, 3),
-            erwartete_note=erwartete_note, erwartete_note_initial=erwartete_note
+            erwartete_note=erwartete_note, erwartete_note_initial=erwartete_note,
+            hidden_zeit_puffer=zeit_puffer
         )
         
         sg_module = stammdaten["modul_studiengang_df"]
@@ -138,7 +162,7 @@ def generiere_studierende(stammdaten: Dict[str, pd.DataFrame], rng: np.random.Ge
 
 # ---- Simulation Logic ----
 
-def simuliere_pruefung(schwierigkeit: float, erwartete_note: float, motivation: float, soz_int: float, fachlicher_boost: float, versuch: int, overload_penalty: float, rng: np.random.Generator, cfg: Dict = None) -> Tuple[float, bool, float]:
+def simuliere_pruefung(schwierigkeit: float, erwartete_note: float, motivation: float, soz_int: float, fachlicher_boost: float, versuch: int, overload_penalty: float, exam_noise: float, cfg: Dict = None) -> Tuple[float, bool, float]:
     if cfg is None: cfg = CONFIG
     # Berechne latente Leistung ohne Support
     leistung_base = (
@@ -149,7 +173,7 @@ def simuliere_pruefung(schwierigkeit: float, erwartete_note: float, motivation: 
         schwierigkeit * cfg["gewicht_schwierigkeit"] +
         (versuch - 1) * cfg["gewicht_lerneffekt"] -
         overload_penalty +
-        rng.normal(0, cfg["gewicht_rauschen"])
+        exam_noise
     )
     
     leistung_mit_support = leistung_base + fachlicher_boost
@@ -171,7 +195,7 @@ def berechne_dropout(motivation: float, soz_int: float, cp_rueckstand: float, du
     if fachsemester >= 5: p *= 0.6
     return float(np.clip(p * 0.5, 0.0, 0.45))
 
-def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.DataFrame], rng: np.random.Generator, cfg: Dict = None):
+def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.DataFrame], rng: np.random.Generator, cfg: Dict = None, population_seed: int = 12345):
     if cfg is None: cfg = CONFIG
     module_df = stammdaten["module_df"]
     modul_sg_df = stammdaten["modul_studiengang_df"]
@@ -217,6 +241,16 @@ def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.Dat
     # Semester types precomputed
     sem_types = semester_df.set_index("semester_id")["typ"].to_dict()
 
+    # V4.1: Support-Zuordnungs-Dict für Carry-over (restauriert aus V3)
+    support_zuord_dict = {(r["modul_id"], r["angebot_id"]): float(r["wirkungsstaerke"]) for _, r in support_zuord_df.iterrows()}
+    support_by_id = {r["angebot_id"]: r for r in support_df.to_dict("records")}
+    
+    # V4.1: Vollständige Support-Liste (ALLE Angebote, auch blockierte) für Pad-Draws
+    full_support_df = pd.DataFrame(SUPPORT_ANGEBOTE)
+    support_list_all = full_support_df.to_dict("records")
+    # Aktive Angebote (nach Universum-Filterung)
+    active_support_ids = set(support_df["angebot_id"].tolist())
+
     # --- V4 Tracker ---
     tracker_modules_dropped = 0
     tracker_overload_hits = 0
@@ -224,6 +258,17 @@ def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.Dat
     for idx, studi in enumerate(studierende):
         studi.stat_modules_dropped = 0 # Dynamisches Attribut fuer spuetere Auswertung
         if (idx + 1) % cfg.get("log_every_n_studis", 5000) == 0: print(f"Simuliert: {idx+1}/{len(studierende)}")
+        
+        # V4.1: Per-Student-Seeds (restauriert aus V3)
+        base_seed = (zlib.crc32(studi.studierenden_id.encode('utf-8')) ^ population_seed) & 0xFFFFFFFF
+        rng_support = np.random.default_rng((base_seed + 1) & 0xFFFFFFFF)
+        rng_social  = np.random.default_rng((base_seed + 2) & 0xFFFFFFFF)
+        rng_dropout = np.random.default_rng((base_seed + 3) & 0xFFFFFFFF)
+        rng_anomalie = np.random.default_rng((base_seed + 4) & 0xFFFFFFFF)
+        rng_workload = np.random.default_rng((base_seed + 5) & 0xFFFFFFFF)  # V4.1: Probabilistischer Modulabwurf
+        
+        # V4.1: Carry-over fachlicher Supports (restauriert aus V3)
+        bisherige_fach_supports = set()
         
         sg_info = sg_infos[studi.studiengang_id]
         sg_module_list = sg_module_cache[studi.studiengang_id]
@@ -233,10 +278,10 @@ def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.Dat
         fachsem = 1
         chron_sem_idx = koh_idx
         
-        # Anomalie
-        anomalie_mask = rng.random() < cfg.get("anomalie_quote", 0.05)
+        # Anomalie (V4.1: eigener RNG-Stream)
+        anomalie_mask = rng_anomalie.random() < cfg.get("anomalie_quote", 0.05)
         if anomalie_mask:
-            studi.anomalie_typ = rng.choice(["super_schnell", "sehr_lang", "fruehabbruch", "plateau"], p=[0.20, 0.40, 0.25, 0.15])
+            studi.anomalie_typ = rng_anomalie.choice(["super_schnell", "sehr_lang", "fruehabbruch", "plateau"], p=[0.20, 0.40, 0.25, 0.15])
             
         plateau_pausen = 0
         
@@ -285,85 +330,103 @@ def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.Dat
                     if modul_data[v_m]["turnus"] in ("beides", akt_sem_typ):
                         geplante_module.append(v_m)
                         break
-            elif studi.anomalie_typ == "sehr_lang" and rng.random() < 0.4:
+            elif studi.anomalie_typ == "sehr_lang" and rng_anomalie.random() < 0.4:
                 geplante_module = geplante_module[:max(1, len(geplante_module)-1)]
             
-            # --- Reaktive Support-Nutzung simulieren ---
+            # --- Reaktive Support-Nutzung simulieren (V4.1: Pad-Draws, rng_support) ---
             teilgenommene_angebote = []
             support_zeit_kosten = 0
-            kosten_override = cfg.get("support_kosten_override", None)
+            kosten_faktor = cfg.get("support_kosten_faktor", 1.0)  # V4.1: Faktor statt Override
             rct_mode = cfg.get("rct_support_uptake", False)
             
-            for angebot in support_list:
+            # V4.1: Über ALLE Angebote iterieren (nicht vorfiltriert), Pad-Draws wie V3
+            for angebot in support_list_all:
                 ang_id = angebot["angebot_id"]
+                typ = angebot["typ"]
+                blocked = ang_id not in active_support_ids
                 p = 0.0
                 
                 if rct_mode:
-                    # Im RCT Mode: Konstanter 20% Uptake ohne Endogenitaet/Selektionsbias
-                    if angebot["typ"] == "fachlich":
+                    rct_rates = {"fachlich": 0.042, "ueberfachlich": 0.025, "psychosozial": 0.023}
+                    if typ == "fachlich":
                         rel_module = ang_to_mod.get(ang_id, [])
                         if any(m in rel_module for m in geplante_module):
-                            p = 0.20
+                            p = rct_rates["fachlich"]
                     else:
-                        p = 0.20
+                        p = rct_rates.get(typ, 0.02)
                 else:
-                    if angebot["typ"] == "fachlich":
-                        # Hat der Student eines der relevanten Module in Planung?
+                    if typ == "fachlich":
                         rel_module = ang_to_mod.get(ang_id, [])
                         geplante_relevante = [m for m in geplante_module if m in rel_module]
                         
                         if geplante_relevante:
-                            # Base prob: Nutze erwartete_note (dynamische Fähigkeit) statt statischer HZB-Note
                             p = 0.05 + (studi.erwartete_note - 2.0) * 0.05
-                            # Reaktiver Boost: Gab es in diesen Modulen bereits Fehlversuche?
                             for m in geplante_relevante:
                                 if studi.modul_states[m].versuche > 0:
-                                    p += 0.20 # +20% nach Fehlversuch
-                    elif angebot["typ"] == "ueberfachlich":
+                                    p += 0.20
+                    elif typ == "ueberfachlich":
                         p = 0.05 + (0.5 - studi.motivation) * 0.15
                         if studi.motivation < 0.2: p *= (studi.motivation / 0.2)
                     else: # psychosozial
                         p = 0.01 + (0.5 - studi.soziale_integration) * 0.12
                         if studi.soziale_integration < 0.2: p *= (studi.soziale_integration / 0.2)
                     
-                    if studi.erstakademiker and angebot["typ"] in ("fachlich", "psychosozial"): p += 0.05
-                    p = float(np.clip(p, 0.0, 0.9)) # Höhere Max-Wahrscheinlichkeit als vorher, aber realitätsnah
+                    if studi.erstakademiker and typ in ("fachlich", "psychosozial"): p += 0.05
+                    p = float(np.clip(p, 0.0, 0.9))
                 
-                if rng.random() < p:
-                    teilgenommene_angebote.append(ang_id)
-                    kost = kosten_override if kosten_override is not None else angebot.get("kosten_h", 30)
-                    support_zeit_kosten += kost
-                    studi.support_teilnahmen.append({"semester_id": akt_sem_id, "angebot_id": ang_id})
+                # V4.1: IMMER ziehen (Pad-Draw), auch bei blockierten Angeboten
+                nutzt_support = rng_support.random() < p
+                
+                if nutzt_support and not blocked:
+                    # Zeitcheck mit stochastischem Puffer (wie V3)
+                    kost = angebot.get("kosten_h", 30) * kosten_faktor
+                    if verfuegbare_zeit - support_zeit_kosten - kost >= 0 or rng_support.random() < 0.2:
+                        teilgenommene_angebote.append(ang_id)
+                        support_zeit_kosten += kost
+                        studi.support_teilnahmen.append({"semester_id": akt_sem_id, "angebot_id": ang_id})
+                elif nutzt_support and blocked:
+                    # V4.1: Pad-Draw für Zeitcheck (restauriert aus V3)
+                    if verfuegbare_zeit - support_zeit_kosten - angebot.get("kosten_h", 30) < 0:
+                        _ = rng_support.random()
             
             # --- Motivation/Integration Boost durch Support ---
             mult = cfg.get("support_effect_multiplier", 1.0)
-            for ang in [a for a in support_list if a["angebot_id"] in teilgenommene_angebote]:
-                if ang["typ"] == "ueberfachlich":
+            for ang_id in teilgenommene_angebote:
+                ang = support_by_id.get(ang_id, {})
+                if ang.get("typ") == "ueberfachlich":
                     studi.motivation = min(1.0, studi.motivation + 0.02 * mult)
                     studi.soziale_integration = min(1.0, studi.soziale_integration + 0.01 * mult)
-                elif ang["typ"] == "psychosozial":
+                elif ang.get("typ") == "psychosozial":
                     studi.motivation = min(1.0, studi.motivation + 0.015 * mult)
                     studi.soziale_integration = min(1.0, studi.soziale_integration + 0.035 * mult)
 
-            # --- Module nach Zeit sortieren und ggf. fallen lassen ---
-            # Studierende reduzieren Module, wenn Overload zu groß wird
+            # --- V4.1: Probabilistischer Modulabwurf (statt deterministischem Schwellwert) ---
+            # Wahrscheinlichkeit steigt mit Überschuss über individuellem Zeitpuffer
             geplanter_workload = sum(modul_data[m]["workload_h"] for m in geplante_module)
-            if geplanter_workload + support_zeit_kosten > verfuegbare_zeit + 150 and len(geplante_module) > 1:
+            ueberschuss = geplanter_workload + support_zeit_kosten - verfuegbare_zeit - studi.hidden_zeit_puffer
+            if ueberschuss > 0 and len(geplante_module) > 1:
                 tracker_overload_hits += 1
-                
-            while geplanter_workload + support_zeit_kosten > verfuegbare_zeit + 150 and len(geplante_module) > 1:
-                # Wirft das schwerste Modul ab
-                geplante_module.sort(key=lambda m: modul_data[m]["schwierigkeit"])
-                dropped = geplante_module.pop()
-                geplanter_workload -= modul_data[dropped]["workload_h"]
-                tracker_modules_dropped += 1
-                studi.stat_modules_dropped += 1
+            while ueberschuss > 0 and len(geplante_module) > 1:
+                # Sigmoid: bei 50h Überschuss ~50%, bei 150h ~75%, bei 300h ~86%
+                p_drop = float(np.clip(ueberschuss / (ueberschuss + 50.0), 0.0, 0.99))
+                if rng_workload.random() < p_drop:
+                    geplante_module.sort(key=lambda m: modul_data[m]["schwierigkeit"])
+                    dropped = geplante_module.pop()
+                    geplanter_workload -= modul_data[dropped]["workload_h"]
+                    ueberschuss = geplanter_workload + support_zeit_kosten - verfuegbare_zeit - studi.hidden_zeit_puffer
+                    tracker_modules_dropped += 1
+                    studi.stat_modules_dropped += 1
+                else:
+                    break  # Student behält Module trotz Überbelastung
             
             # Berechne verbleibenden Overload
             total_workload = geplanter_workload + support_zeit_kosten
             overload = max(0, total_workload - verfuegbare_zeit)
-            # Penalty: 0.1 pro 100h Overload
-            overload_penalty = (overload / 100.0) * 0.1
+            # V4.1: Overload-Penalty, konfigurierbar. Optionales Cap via overload_penalty_cap (S14)
+            overload_penalty_factor = cfg.get("overload_penalty_factor", 0.1)
+            overload_penalty_raw = (overload / 100.0) * overload_penalty_factor
+            overload_cap = cfg.get("overload_penalty_cap", None)
+            overload_penalty = float(min(overload_cap, overload_penalty_raw)) if overload_cap is not None else overload_penalty_raw
             
             # --- Prüfungen ablegen ---
             durchgefallen_dieses_sem = 0
@@ -371,9 +434,16 @@ def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.Dat
                 m_state = studi.modul_states[m_id]
                 m_state.versuche += 1
                 
-                # Fachlicher Support Boost
-                boost_sum = sum(mod_to_ang_boost.get(m_id, {}).get(a_id, 0.0) for a_id in teilgenommene_angebote)
-                boost = float(np.clip(boost_sum * cfg.get("gewicht_support_boost", 0.08) * cfg.get("support_effect_multiplier", 1.0), 0.0, cfg.get("support_deckel", 1.0)))
+                # V4.1: Fachlicher Support Boost MIT Carry-over (restauriert aus V3)
+                current_boost_sum = sum(support_zuord_dict.get((m_id, ang_id), 0.0) for ang_id in teilgenommene_angebote)
+                carryover_ids = bisherige_fach_supports - set(teilgenommene_angebote)
+                carryover_boost_sum = sum(support_zuord_dict.get((m_id, ang_id), 0.0) for ang_id in carryover_ids)
+                boost_sum = current_boost_sum + carryover_boost_sum * (2.0 / 3.0)
+                raw_boost = boost_sum * cfg.get("gewicht_support_boost", 0.08) * cfg.get("support_effect_multiplier", 1.0) if boost_sum > 0.0 else 0.0
+                boost = float(np.clip(raw_boost, 0.0, cfg.get("support_deckel", 1.0)))
+                
+                # V4.1: Deterministisches Prüfungsrauschen (restauriert aus V3)
+                e_noise = get_exam_noise(base_seed, m_id, m_state.versuche, cfg)
                 
                 note, bestanden, note_cf = simuliere_pruefung(
                     schwierigkeit=modul_data[m_id]["schwierigkeit"],
@@ -383,7 +453,7 @@ def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.Dat
                     fachlicher_boost=boost,
                     versuch=m_state.versuche,
                     overload_penalty=overload_penalty,
-                    rng=rng,
+                    exam_noise=e_noise,
                     cfg=cfg
                 )
                 
@@ -392,7 +462,11 @@ def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.Dat
                     note=note, bestanden=bestanden, note_counterfactual=note_cf, support_genutzt=(boost > 0),
                     hidden_motivation=studi.motivation,
                     hidden_soziale_integration=studi.soziale_integration,
-                    hidden_erwartete_note=studi.erwartete_note
+                    hidden_erwartete_note=studi.erwartete_note,
+                    hidden_overload=overload,                                                    # V4.1 restauriert
+                    hidden_zeit_puffer=studi.hidden_zeit_puffer,                                  # V4.1 restauriert
+                    hidden_penalty_capped=(overload_cap is not None and overload_penalty_raw > overload_cap),  # V4.1 restauriert
+                    hidden_support_capped=(raw_boost > cfg.get("support_deckel", 1.0))            # V4.1 restauriert
                 ))
                 
                 if bestanden:
@@ -410,7 +484,6 @@ def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.Dat
             for p_erg in sem_pruefungen:
                 grade_diff = studi.erwartete_note - p_erg.note
                 if grade_diff >= 0.5:
-                    # Super-Klausur Boost: Base +0.005 für >= 0.5 Notenstufen besser als Erwartung, linear steigend
                     super_boost = 0.005 + 0.01 * (grade_diff - 0.5)
                     studi.motivation = min(1.0, studi.motivation + super_boost)
 
@@ -418,7 +491,6 @@ def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.Dat
             if sem_pruefungen:
                 sem_gpa = sum(p.note for p in sem_pruefungen) / len(sem_pruefungen)
                 if sem_gpa < studi.erwartete_note:
-                    # Fähigkeiten verbessern sich bei guten Noten dauerhaft (erwartete Note sinkt, fällt aber nie ab)
                     studi.erwartete_note = round(0.7 * studi.erwartete_note + 0.3 * sem_gpa, 2)
 
             # --- Motivation/Integration nach Semesterergebnis ---
@@ -434,8 +506,8 @@ def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.Dat
             #         demotivation_penalty = 0.01 * (p_erg.note - studi.erwartete_note)
             #         studi.motivation = max(0.05, studi.motivation - demotivation_penalty)
 
-            mean_walk = np.clip(studi.soziale_integration, 0.01, 0.99)
-            studi.soziale_integration = float(rng.beta(mean_walk * 95.0, (1.0 - mean_walk) * 95.0))
+            # V4.1: Soziale Integration Drift (rng_social, restauriert aus V3)
+            studi.soziale_integration = float(np.clip(studi.soziale_integration + rng_social.normal(0, 0.05), 0.05, 1.0))
             
             # --- Abschluss / Dropout ---
             cp_bestanden = studi.cp_bestanden({m: modul_data[m]["cp"] for m in modul_data})
@@ -449,8 +521,14 @@ def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.Dat
                 cp_rueckstand = max(0.0, cp_soll - cp_bestanden)
                 p_drop = berechne_dropout(studi.motivation, studi.soziale_integration, cp_rueckstand, durchgefallen_dieses_sem, fachsem, overload_penalty)
                 if studi.anomalie_typ == "sehr_lang": p_drop *= 0.3
-                if rng.random() < p_drop:
+                # V4.1: rng_dropout statt globalem rng (restauriert aus V3)
+                if rng_dropout.random() < p_drop:
                     studi.abgebrochen = True
+
+            # V4.1: Carry-over fachlicher Supports für nächstes Semester merken (restauriert aus V3)
+            for ang_id in teilgenommene_angebote:
+                if support_by_id.get(ang_id, {}).get("typ") == "fachlich":
+                    bisherige_fach_supports.add(ang_id)
 
             fachsem += 1
             chron_sem_idx += 1

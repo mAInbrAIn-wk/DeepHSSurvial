@@ -35,77 +35,97 @@ UNIVERSES = {
 }
 
 GRID_SCENARIOS = [
-    {
-        "id": "S01_baseline",
-        "name": "Baseline V4 (Standard)",
-        "dim": "Baseline",
-        "override": {}
-    },
+    # --- S01 ist implizit: Baseline ohne Override (wird separat via run_v4_universes.py erzeugt) ---
+    # --- Support-Wirkung ---
     {
         "id": "S02_supp_half",
-        "name": "Support-Wirkung Halbiert (0.5x)",
+        "name": "Support-Wirkung Halbiert (2.5 = 0.5x Baseline 5.0)",
         "dim": "Support-Wirkung",
-        "override": {"support_effect_multiplier": 0.5}
+        "override": {"support_effect_multiplier": 2.5}
     },
     {
         "id": "S03_supp_double",
-        "name": "Support-Wirkung Verdoppelt (2.0x)",
+        "name": "Support-Wirkung Verdoppelt (10.0 = 2x Baseline 5.0)",
         "dim": "Support-Wirkung",
-        "override": {"support_effect_multiplier": 2.0}
+        "override": {"support_effect_multiplier": 10.0}
     },
+    # --- Notenboost ---
     {
         "id": "S04_grade_half",
-        "name": "Notenboost Fachlich Halbiert (0.04)",
-        "dim": "Notenboost Fachlich",
+        "name": "Notenboost Halbiert (0.04 statt 0.08)",
+        "dim": "Notenboost",
         "override": {"gewicht_support_boost": 0.04}
     },
     {
         "id": "S05_grade_double",
-        "name": "Notenboost Fachlich Verdoppelt (0.16)",
-        "dim": "Notenboost Fachlich",
+        "name": "Notenboost Verdoppelt (0.16 statt 0.08)",
+        "dim": "Notenboost",
         "override": {"gewicht_support_boost": 0.16}
     },
     {
         "id": "S06_grade_quad",
-        "name": "Notenboost Fachlich Vervierfacht (0.32)",
-        "dim": "Notenboost Fachlich",
+        "name": "Notenboost Vervierfacht (0.32 statt 0.08)",
+        "dim": "Notenboost",
         "override": {"gewicht_support_boost": 0.32}
     },
+    # --- Rauschen ---
     {
         "id": "S07_noise_half",
-        "name": "Stochastisches Rauschen Halbiert (0.09)",
+        "name": "Rauschen Halbiert (0.09 statt 0.18)",
         "dim": "Rauschen",
         "override": {"gewicht_rauschen": 0.09}
     },
     {
         "id": "S08_noise_double",
-        "name": "Stochastisches Rauschen Verdoppelt (0.36)",
+        "name": "Rauschen Verdoppelt (0.36 statt 0.18)",
         "dim": "Rauschen",
         "override": {"gewicht_rauschen": 0.36}
     },
+    # --- Zeitkosten ---
     {
         "id": "S09_cost_zero",
-        "name": "Support-Kosten 0h (Kostenlos)",
+        "name": "Support Kostenlos (Faktor 0)",
         "dim": "Zeitkosten",
-        "override": {"support_kosten_override": 0}
+        "override": {"support_kosten_faktor": 0.0}
     },
     {
-        "id": "S10_cost_high",
-        "name": "Support-Kosten 60h (Hohe Belastung)",
+        "id": "S10_cost_double",
+        "name": "Support-Kosten Verdoppelt (Faktor 2)",
         "dim": "Zeitkosten",
-        "override": {"support_kosten_override": 60}
+        "override": {"support_kosten_faktor": 2.0}
     },
+    # --- Selektion ---
     {
-        "id": "S11_rct_uptake",
-        "name": "RCT / Random Uptake (Kein Selektionsbias)",
+        "id": "S11_rct_calibrated",
+        "name": "RCT Kalibriert (Gleiches Volumen, zufaellige Zuordnung)",
         "dim": "Selektion",
         "override": {"rct_support_uptake": True}
     },
+    # --- Overload-Penalty ---
     {
-        "id": "S12_high_synergy",
-        "name": "Synergie-Optimum (Mult=2.0, Boost=0.16, Cost=15h)",
-        "dim": "Synergie",
-        "override": {"support_effect_multiplier": 2.0, "gewicht_support_boost": 0.16, "support_kosten_override": 15}
+        "id": "S12_overload_half",
+        "name": "Overload-Penalty Halbiert (0.05 statt 0.1)",
+        "dim": "Overload-Penalty",
+        "override": {"overload_penalty_factor": 0.05}
+    },
+    {
+        "id": "S13_overload_double",
+        "name": "Overload-Penalty Verdoppelt (0.2 statt 0.1)",
+        "dim": "Overload-Penalty",
+        "override": {"overload_penalty_factor": 0.2}
+    },
+    {
+        "id": "S14_overload_cap",
+        "name": "Overload-Penalty mit Cap (0.15, wie V3.6)",
+        "dim": "Overload-Penalty",
+        "override": {"overload_penalty_cap": 0.15}
+    },
+    # --- Kombi-Szenarien ---
+    {
+        "id": "S15_cost_effect_double",
+        "name": "Kosten UND Wirkung Verdoppelt (Faktor 2 + Mult 10.0)",
+        "dim": "Kombi",
+        "override": {"support_kosten_faktor": 2.0, "support_effect_multiplier": 10.0}
     }
 ]
 
@@ -134,7 +154,7 @@ def _simulate_single_universe_worker(args: Tuple) -> Dict:
     
     # 4. Klonen und Simulation mit fixem Simulator-Seed
     rng_sim = np.random.default_rng(population_seed + 100)
-    studierende = simuliere_verlaeufe(base_studierende, stammdaten, rng_sim, cfg=cfg_scenario)
+    studierende = simuliere_verlaeufe(base_studierende, stammdaten, rng_sim, cfg=cfg_scenario, population_seed=population_seed)
     
     # 5. Metriken berechnen
     N = len(studierende)
@@ -156,7 +176,12 @@ def _simulate_single_universe_worker(args: Tuple) -> Dict:
     nmig_drop = sum(1 for s in nmig_studis if s in dropout_studis) / len(nmig_studis) if nmig_studis else 0.0
     
     # Noten & Dauer
-    gpa_grad = float(np.mean([s.abschlussnote for s in grad_studis])) if grad_studis else np.nan
+    gpa_list = []
+    for s in grad_studis:
+        passed = [p.note for p in s.pruefungen if p.bestanden]
+        if passed:
+            gpa_list.append(np.mean(passed))
+    gpa_grad = float(np.mean(gpa_list)) if gpa_list else np.nan
     dauer_grad = float(np.mean([len(s.einschreibungen) for s in grad_studis])) if grad_studis else np.nan
     
     # Workload drops
@@ -200,7 +225,7 @@ def run_full_sensitivity_grid(
     out_dir: Path = Path("src/output_v4_grid")
 ):
     print("=" * 95)
-    print("V4 SIMULATION SENSITIVITY GRID SEARCH (12 SZENARIEN x 8 UNIVERSEN)")
+    print(f"V4 SIMULATION SENSITIVITY GRID SEARCH ({len(GRID_SCENARIOS)} SZENARIEN x 8 UNIVERSEN)")
     print(f"Cohort Size per Universe: N = {n_studierende:,} | Workers: {max_workers} | Seed: {population_seed}")
     print("=" * 95)
     
@@ -208,15 +233,15 @@ def run_full_sensitivity_grid(
     metrics_dir = out_dir / "metrics"
     metrics_dir.mkdir(parents=True, exist_ok=True)
     
-    # Aufgaben vorbereiten (12 x 8 = 96 Tasks)
+    # Aufgaben vorbereiten
     tasks = []
     for sc in GRID_SCENARIOS:
         sc_cfg = copy.deepcopy(CONFIG)
         sc_cfg["n_studierende"] = n_studierende
         sc_cfg.update(sc["override"])
         
-        # Save CSV nur fuer Baseline und Extreme, um Disk I/O zu sparen
-        save_csv = sc["id"] in ("S01_baseline", "S03_supp_double", "S10_cost_high")
+        # Save CSV fuer alle Szenarien (fuer Detailanalysen auf Studierendenebene)
+        save_csv = True
         
         for u_key, u_cfg in UNIVERSES.items():
             tasks.append((sc["id"], u_key, u_cfg, sc_cfg, population_seed, save_csv, str(out_dir)))

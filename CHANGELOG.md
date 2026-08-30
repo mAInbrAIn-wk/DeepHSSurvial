@@ -3,6 +3,63 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
+## [V4.1] — 2026-08-29 — RNG-Synchronisierung & Feature-Restaurierung
+
+### Hintergrund
+Beim V4-Refactoring (Performance-Optimierung) gingen mehrere V3-Features
+verloren, die für die kausale Interpretierbarkeit der Multiuniversen-Simulation
+kritisch waren. V4.1 restauriert alle verlorenen Features.
+
+### Restauriert
+- **Per-Student-Seeds (4+1 separate RNG-Streams):** `rng_support`, `rng_social`,
+  `rng_dropout`, `rng_anomalie` via `zlib.crc32(studierenden_id) ^ population_seed`.
+  Vorher: ein einziger globaler `rng`-Stream → 26% RNG-Artefakt-Statusdifferenzen.
+  Nachher: 9,2% Statusdifferenzen (rein kausaler Support-Effekt, 90,8% identisch).
+- **Deterministisches Prüfungsrauschen:** `get_exam_noise(base_seed, modul_id, versuch)`
+  als reine Funktion statt sequentiellem `rng.normal()`.
+- **Pad-Draws für blockierte Angebote:** Iteration über ALLE 12 Angebote in jedem
+  Universum; `rng_support.random()` wird immer gezogen, blockierte Angebote nach
+  dem Draw ignoriert.
+- **Carry-over fachlicher Support-Boost:** 2/3 Nachwirkung aus Vorsemestern.
+- **Soziale Integration Drift:** `rng_social.normal(0, 0.05)` statt `rng.beta()`.
+
+### Geändert
+- **Overload-Penalty Cap:** Nicht mehr Default, sondern konfigurierbar via
+  `overload_penalty_cap` (z.B. `0.15` in Szenario S14). Default: kein Cap.
+- **`population_seed` als expliziter Parameter:** `simuliere_verlaeufe()` akzeptiert
+  jetzt `population_seed` als Funktionsparameter (wie V3), statt ihn aus der Config
+  zu lesen. Runner aktualisiert.
+- **Support-Kosten als Faktor:** `support_kosten_faktor` (Default: 1.0) multipliziert
+  die individuellen Angebotskosten, statt alle auf denselben Wert zu setzen
+  (`support_kosten_override` entfernt).
+- **Probabilistischer Modulabwurf:** Statt deterministischem Schwellwert steigt die
+  Abwurf-Wahrscheinlichkeit sigmoid mit dem Überschuss über dem individuellen
+  Zeitpuffer: `p = ueberschuss / (ueberschuss + 50)`. Eigener RNG-Stream
+  `rng_workload` (Stream +5) → keine Beeinflussung anderer Streams.
+- **Individueller Zeitpuffer restauriert:** `hidden_zeit_puffer` wieder als
+  `Beta(μ=0.33, κ=8) × 180h` pro Student generiert (mean≈60h, std≈26h).
+  Ersetzt den fixen +150h-Schwellwert.
+- **PruefungsErgebnis Hidden Fields restauriert:** Alle 7 Hidden Fields wieder
+  gefüllt (`hidden_overload`, `hidden_zeit_puffer`, `hidden_penalty_capped`,
+  `hidden_support_capped`).
+- **Butterfly-Effekt Designnotiz:** Kommentar an `get_exam_noise` dokumentiert die
+  bewusste Entscheidung zur RNG-Synchronisierung zwischen Universen.
+
+### Hinzugefügt
+- **Kalibrierter RCT-Modus:** `rct_support_uptake=True` verwendet jetzt per-Typ
+  kalibrierte Raten (fachlich: 0.042, überfachlich: 0.025, psychosozial: 0.023)
+  statt pauschal p=0.20, um das Baseline-Teilnahmevolumen beizubehalten.
+- **Konfigurierbarer Overload-Penalty-Faktor:** `cfg["overload_penalty_factor"]`
+  (Default: 0.1).
+- **S14 Overload-Cap-Szenario:** `overload_penalty_cap: 0.15` als Grid-Variante.
+- **S15 Kombi-Szenario:** Kosten UND Wirkung verdoppelt (faktor 2 + mult 10.0).
+
+### Nicht geändert
+- V4-Features (Precompute, Zeitkonto, Super-Klausur-Boost, dynamische
+  erwartete Note, Modulabwurf) bleiben unverändert.
+- `simuliere_pruefung`- und `berechne_dropout`-Formeln bleiben identisch.
+
+
 ## [3.6.0] - 2026-08-24
 
 ### Hinzugefügt / Erledigt

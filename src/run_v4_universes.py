@@ -71,7 +71,7 @@ def run_v4_universes(population_seed: int = 12345, base_output_override: Path = 
         
         # 4. Simulation V4 ausfuhren
         start_t = time.time()
-        studierende = simuliere_verlaeufe(studierende_klohn, uni_stammdaten, rng_sim)
+        studierende = simuliere_verlaeufe(studierende_klohn, uni_stammdaten, rng_sim, population_seed=population_seed)
         
         # 5. Export
         df_dict = uni_stammdaten.copy()
