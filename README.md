@@ -108,7 +108,23 @@ Da leistungsschwächere Studierende oder Studierende mit viel Erwerbstätigkeit 
 
 ---
 
-## 6. V4.1 Sensitivity Grid Search ($N = 50.000$)
+## 6. Feature Builder & Datenformate
+
+Die zentrale `src/feature_builder.py` generiert Features in 5 Modi (`standard`, `gradeblind`, `blind`, `oracle`, `realistic`). Mit Version V4.1.1 wurden **Sample Leakage** und **Future Leakage** behoben, und die Oracle-Features um `hidden_overload` und `hidden_zeit_puffer` erweitert.
+
+Die Feature-Anzahlen nach Format:
+
+| Format | standard | oracle |
+|:---|:---:|:---:|
+| Semester Tensor | 18 | 23 |
+| Exam Tensor | 24 | 29 |
+| Semester Panel | 16 | 21 |
+| Exam Panel | 23 | 28 |
+| Landmark | 16 | 21 |
+
+---
+
+## 7. V4.1 Sensitivity Grid Search ($N = 50.000$)
 
 Vollständiger Sensitivitätslauf mit 15 Szenarien × 8 Universen = 120 Simulationsläufe. Laufzeit: 14,6 h (5 Worker). B=37,1% über alle nicht-globalen Szenarien (perfekte RNG-Synchronisierung).
 

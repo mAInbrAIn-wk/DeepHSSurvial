@@ -89,7 +89,8 @@ def _load_raw_data(data_dir: Union[str, Path]) -> Tuple[pd.DataFrame, pd.DataFra
         latent_initial_cols = [
             'studierenden_id', 'migrationshintergrund', 'erstakademiker', 'erwerbstaetigkeit_std',
             'hzb_typ', 'hzb_note', 'motivation_initial', 'soziale_integration_initial',
-            'hidden_erwartete_note_initial', 'hidden_motivation_initial', 'hidden_soziale_integration_initial'
+            'hidden_erwartete_note_initial', 'hidden_motivation_initial', 'hidden_soziale_integration_initial',
+            'hidden_zeit_puffer'
         ]
         merge_cols = [c for c in latent_initial_cols if c in df_studi.columns and (c == 'studierenden_id' or c not in df_abschluesse.columns)]
         if len(merge_cols) > 1:
@@ -136,6 +137,7 @@ def build_semester_sequence_tensor(
         agg_dict['hidden_motivation'] = ('hidden_motivation', 'mean')
         agg_dict['hidden_soziale_integration'] = ('hidden_soziale_integration', 'mean')
         agg_dict['hidden_erwartete_note'] = ('hidden_erwartete_note', 'mean')
+        agg_dict['hidden_overload'] = ('hidden_overload', 'mean')
 
     sem_agg = df_pruefungen.groupby(['studierenden_id', 'fachsemester']).agg(**agg_dict).reset_index()
     sem_agg = sem_agg.sort_values(['studierenden_id', 'fachsemester']).reset_index(drop=True)
@@ -158,6 +160,7 @@ def build_semester_sequence_tensor(
         sem_agg['hidden_motivation_prev'] = sem_agg.groupby('studierenden_id')['hidden_motivation'].shift(1).fillna(0.5)
         sem_agg['hidden_soziale_integration_prev'] = sem_agg.groupby('studierenden_id')['hidden_soziale_integration'].shift(1).fillna(0.5)
         sem_agg['hidden_erwartete_note_prev'] = sem_agg.groupby('studierenden_id')['hidden_erwartete_note'].shift(1).fillna(3.0)
+        sem_agg['hidden_overload_prev'] = sem_agg.groupby('studierenden_id')['hidden_overload'].shift(1).fillna(0.0)
 
     feature_names: List[str] = [
         'hzb_note',
@@ -186,7 +189,9 @@ def build_semester_sequence_tensor(
         feature_names.extend([
             'hidden_motivation_prev',
             'hidden_soziale_integration_prev',
-            'hidden_erwartete_note_prev'
+            'hidden_erwartete_note_prev',
+            'hidden_overload_prev',
+            'hidden_zeit_puffer'
         ])
 
     feature_indices: Dict[str, Optional[int]] = {
@@ -221,6 +226,8 @@ def build_semester_sequence_tensor(
 
     # 1. Statische Werte über alle gültigen Zeitschritte broadcasten
     X_seq[v_i, v_t, feature_names.index('hzb_note')] = df_abschluesse.loc[v_i, 'hzb_note'].values
+    if oracle and 'hidden_zeit_puffer' in feature_names:
+        X_seq[v_i, v_t, feature_names.index('hidden_zeit_puffer')] = df_abschluesse.loc[v_i, 'hidden_zeit_puffer'].fillna(60.0).values
     X_seq[v_i, v_t, feature_names.index('hzb_typ_ord')] = df_abschluesse.loc[v_i, 'hzb_typ_ord'].values
     for s_name in STUDIENGAENGE_LIST:
         f_name = f"stg_{s_name.replace(' ', '_')}"
@@ -256,6 +263,7 @@ def build_semester_sequence_tensor(
         X_seq[v_i, v_t, feature_names.index('hidden_motivation_prev')] = sem_agg.loc[valid_mask, 'hidden_motivation_prev'].values
         X_seq[v_i, v_t, feature_names.index('hidden_soziale_integration_prev')] = sem_agg.loc[valid_mask, 'hidden_soziale_integration_prev'].values
         X_seq[v_i, v_t, feature_names.index('hidden_erwartete_note_prev')] = sem_agg.loc[valid_mask, 'hidden_erwartete_note_prev'].values
+        X_seq[v_i, v_t, feature_names.index('hidden_overload_prev')] = sem_agg.loc[valid_mask, 'hidden_overload_prev'].values
 
     # 3. Targets zuweisen (Exakte DGP-Werte: 'abgeschlossen' vs. ['abgebrochen', 'exmatrikuliert', 'zeitueberschreitung'])
     df_abschluesse['is_dropout'] = df_abschluesse['status'].str.strip().isin(['abgebrochen', 'exmatrikuliert', 'zeitueberschreitung']).astype(int)
@@ -318,7 +326,12 @@ def build_exam_sequence_tensor(
     df_pruefungen['fails_prev_exam'] = df_pruefungen.groupby('studierenden_id')['is_fail'].shift(1).fillna(0)
     df_pruefungen['cp_earned_prev_exam'] = df_pruefungen.groupby('studierenden_id')['cp_earned'].shift(1).fillna(0.0)
     df_pruefungen['note_prev_exam'] = df_pruefungen.groupby('studierenden_id')['note_clean'].shift(1).fillna(3.0)
-    df_pruefungen['cp_rueckstand'] = np.maximum(0.0, (df_pruefungen['fachsemester'] - 1) * 30.0 - df_pruefungen['cp_cum'])
+    
+    # Note: fails_cum, cp_cum, gpa_cum are ONLY used in temporal='cum' mode. 
+    # They are inclusive of the current exam, which is technically leakage, 
+    # but since temporal='cum' represents 'history up to and including now', this is a design choice.
+    df_pruefungen['cp_cum_prev'] = df_pruefungen.groupby('studierenden_id')['cp_earned'].cumsum().groupby(df_pruefungen['studierenden_id']).shift(1).fillna(0.0)
+    df_pruefungen['cp_rueckstand'] = np.maximum(0.0, (df_pruefungen['fachsemester'] - 1) * 30.0 - df_pruefungen['cp_cum_prev'])
 
     feature_names: List[str] = [
         'hzb_note',
@@ -351,7 +364,8 @@ def build_exam_sequence_tensor(
         feature_names.extend(['support_vorher_psychosozial', 'support_glz_psychosozial'])
 
     if oracle:
-        feature_names.extend(['hidden_motivation', 'hidden_soziale_integration', 'hidden_erwartete_note'])
+        feature_names.extend(['hidden_motivation', 'hidden_soziale_integration', 'hidden_erwartete_note',
+                              'hidden_overload', 'hidden_zeit_puffer'])
 
     feature_indices: Dict[str, Optional[int]] = {
         'fach_glz': feature_names.index('support_glz_fachlich') if 'support_glz_fachlich' in feature_names else None,
@@ -431,6 +445,8 @@ def build_exam_sequence_tensor(
         X_seq[v_i, v_k, feature_names.index('hidden_motivation')] = df_pruefungen.loc[mask, 'hidden_motivation'].fillna(0.5).values
         X_seq[v_i, v_k, feature_names.index('hidden_soziale_integration')] = df_pruefungen.loc[mask, 'hidden_soziale_integration'].fillna(0.5).values
         X_seq[v_i, v_k, feature_names.index('hidden_erwartete_note')] = df_pruefungen.loc[mask, 'hidden_erwartete_note'].fillna(3.0).values
+        X_seq[v_i, v_k, feature_names.index('hidden_overload')] = df_pruefungen.loc[mask, 'hidden_overload'].fillna(0.0).values
+        X_seq[v_i, v_k, feature_names.index('hidden_zeit_puffer')] = df_pruefungen.loc[mask, 'hidden_zeit_puffer'].fillna(60.0).values
 
     # 3. Targets zuweisen
     df_abschluesse['is_dropout'] = df_abschluesse['status'].str.strip().str.lower().isin(['abgebrochen', 'exmatrikuliert', 'zeitueberschreitung']).astype(int)
@@ -481,7 +497,8 @@ def build_semester_panel_df(
         'note': 'mean',
         'hidden_motivation': 'mean',
         'hidden_soziale_integration': 'mean',
-        'hidden_erwartete_note': 'mean'
+        'hidden_erwartete_note': 'mean',
+        'hidden_overload': 'mean'
     }).reset_index().sort_values(['studierenden_id', 'fachsemester']).reset_index(drop=True)
 
     pr_sem['t_start'] = pr_sem['fachsemester'] - 1
@@ -509,6 +526,7 @@ def build_semester_panel_df(
         pr_sem['hidden_motivation_prev'] = pr_sem.groupby('studierenden_id')['hidden_motivation'].shift(1).fillna(0.5)
         pr_sem['hidden_soziale_integration_prev'] = pr_sem.groupby('studierenden_id')['hidden_soziale_integration'].shift(1).fillna(0.5)
         pr_sem['hidden_erwartete_note_prev'] = pr_sem.groupby('studierenden_id')['hidden_erwartete_note'].shift(1).fillna(3.0)
+        pr_sem['hidden_overload_prev'] = pr_sem.groupby('studierenden_id')['hidden_overload'].shift(1).fillna(0.0)
 
     df_abschluesse['is_dropout'] = df_abschluesse['status'].str.strip().str.lower().isin(['abgebrochen', 'exmatrikuliert', 'zeitueberschreitung']).astype(int)
     df_abschluesse['hzb_typ_ord'] = df_abschluesse['hzb_typ'].map(HZB_ORDINAL_MAP).fillna(3.0)
@@ -518,7 +536,7 @@ def build_semester_panel_df(
     for s_name in STUDIENGAENGE_LIST:
         df_abschluesse[f"stg_{s_name.replace(' ', '_')}"] = (df_abschluesse['stg_name'] == s_name).astype(float)
 
-    stud_cols = ['studierenden_id', 'is_dropout', 'studiendauer_semester', 'hzb_note', 'hzb_typ_ord', 'stg_name', 'migrationshintergrund', 'erstakademiker', 'erwerbstaetigkeit_std'] + [f"stg_{s.replace(' ', '_')}" for s in STUDIENGAENGE_LIST]
+    stud_cols = ['studierenden_id', 'is_dropout', 'studiendauer_semester', 'hzb_note', 'hzb_typ_ord', 'stg_name', 'migrationshintergrund', 'erstakademiker', 'erwerbstaetigkeit_std', 'hidden_zeit_puffer'] + [f"stg_{s.replace(' ', '_')}" for s in STUDIENGAENGE_LIST]
     stud_cols = [c for c in stud_cols if c in df_abschluesse.columns]
 
     panel_df = pr_sem.merge(df_abschluesse[stud_cols], on='studierenden_id', how='left')
@@ -546,8 +564,11 @@ def build_semester_panel_df(
         feature_cols.extend([
             'hidden_motivation_prev',
             'hidden_soziale_integration_prev',
-            'hidden_erwartete_note_prev'
+            'hidden_erwartete_note_prev',
+            'hidden_overload_prev',
+            'hidden_zeit_puffer_static'
         ])
+        panel_df['hidden_zeit_puffer_static'] = panel_df['hidden_zeit_puffer'].fillna(60.0)
 
     feature_indices = {
         'fach_supp': 'fach_supp_count',
@@ -593,7 +614,10 @@ def build_exam_panel_df(
     df_pruefungen['fails_prev'] = df_pruefungen.groupby('studierenden_id')['is_fail'].shift(1).fillna(0)
     df_pruefungen['delta_cp_prev'] = df_pruefungen.groupby('studierenden_id')['cp_earned'].shift(1).fillna(0.0)
     df_pruefungen['gpa_prev'] = df_pruefungen.groupby('studierenden_id')['note_clean'].shift(1).fillna(3.0)
-    df_pruefungen['cp_rueckstand'] = np.maximum(0.0, (df_pruefungen['fachsemester'] - 1) * 30.0 - df_pruefungen['cp_cum'])
+    # Note: fails_cum, cp_cum, gpa_cum are inclusive of the current exam which is technically 
+    # leakage, but since temporal='cum' represents history up to and including now, this is a design choice.
+    df_pruefungen['cp_cum_prev'] = df_pruefungen.groupby('studierenden_id')['cp_earned'].cumsum().groupby(df_pruefungen['studierenden_id']).shift(1).fillna(0.0)
+    df_pruefungen['cp_rueckstand'] = np.maximum(0.0, (df_pruefungen['fachsemester'] - 1) * 30.0 - df_pruefungen['cp_cum_prev'])
     df_pruefungen['cp_value'] = df_pruefungen['cp']
 
     df_abschluesse['is_dropout'] = df_abschluesse['status'].str.strip().str.lower().isin(
@@ -631,6 +655,14 @@ def build_exam_panel_df(
     if not realistic:
         feature_cols.extend(['support_vorher_psychosozial', 'support_glz_psychosozial'])
 
+    if oracle and 'hidden_motivation' in panel_df.columns:
+        # hidden_zeit_puffer kommt aus df_pruefungen (identisch pro Student), nicht aus dem Merge
+        feature_cols.extend(['hidden_motivation', 'hidden_soziale_integration', 'hidden_erwartete_note', 'hidden_overload', 'hidden_zeit_puffer'])
+        panel_df['hidden_motivation'] = panel_df['hidden_motivation'].fillna(0.5)
+        panel_df['hidden_soziale_integration'] = panel_df['hidden_soziale_integration'].fillna(0.5)
+        panel_df['hidden_erwartete_note'] = panel_df['hidden_erwartete_note'].fillna(3.0)
+        panel_df['hidden_overload'] = panel_df['hidden_overload'].fillna(0.0)
+        panel_df['hidden_zeit_puffer'] = panel_df['hidden_zeit_puffer'].fillna(60.0)
     feature_indices = {
         'fach_glz': 'support_glz_fachlich',
         'fach_vorher': 'support_vorher_fachlich',
@@ -684,7 +716,8 @@ def build_landmark_dataset(
         'support_glz_psychosozial': 'sum',
         'hidden_motivation': 'mean',
         'hidden_soziale_integration': 'mean',
-        'hidden_erwartete_note': 'mean'
+        'hidden_erwartete_note': 'mean',
+        'hidden_overload': 'mean'
     }).reset_index().rename(columns={
         'cp_earned': 'cp_s1s2',
         'is_fail': 'fails_s1s2',
@@ -694,7 +727,8 @@ def build_landmark_dataset(
         'support_glz_psychosozial': 'psych_supp_s1s2',
         'hidden_motivation': 'hidden_motivation_s1s2',
         'hidden_soziale_integration': 'hidden_soziale_integration_s1s2',
-        'hidden_erwartete_note': 'hidden_erwartete_note_s1s2'
+        'hidden_erwartete_note': 'hidden_erwartete_note_s1s2',
+        'hidden_overload': 'hidden_overload_s1s2'
     })
 
     df_lm = pd.merge(df_valid, lm_agg, on='studierenden_id', how='left')
@@ -712,6 +746,9 @@ def build_landmark_dataset(
     df_lm['hidden_motivation_s1s2'] = df_lm['hidden_motivation_s1s2'].fillna(0.5)
     df_lm['hidden_soziale_integration_s1s2'] = df_lm['hidden_soziale_integration_s1s2'].fillna(0.5)
     df_lm['hidden_erwartete_note_s1s2'] = df_lm['hidden_erwartete_note_s1s2'].fillna(3.0)
+    df_lm['hidden_overload_s1s2'] = df_lm['hidden_overload_s1s2'].fillna(0.0)
+    if 'hidden_zeit_puffer' in df_lm.columns:
+        df_lm['hidden_zeit_puffer'] = df_lm['hidden_zeit_puffer'].fillna(60.0)
 
     df_lm['hzb_typ_ord'] = df_lm['hzb_typ'].map(HZB_ORDINAL_MAP).fillna(3.0)
     for s_name in STUDIENGAENGE_LIST:
@@ -746,7 +783,9 @@ def build_landmark_dataset(
         feature_cols.extend([
             'hidden_motivation_s1s2',
             'hidden_soziale_integration_s1s2',
-            'hidden_erwartete_note_s1s2'
+            'hidden_erwartete_note_s1s2',
+            'hidden_overload_s1s2',
+            'hidden_zeit_puffer'
         ])
 
     feature_indices = {

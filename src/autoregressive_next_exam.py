@@ -83,7 +83,7 @@ def prepare_next_exam_dataset(data_dir: Path, max_history_len: int = 30):
     hist_feats = ['versuch', 'schwierigkeit', 'cp', 'bestanden_int', 'note_clean',
                   'support_vorher_fachlich', 'support_vorher_ueberfachlich', 'support_vorher_psychosozial', 'support_glz_fachlich', 'support_glz_ueberfachlich', 'support_glz_psychosozial', 'fachsemester']
 
-    X_hist_list, X_ctx_list, y_grade_list, y_pass_list = [], [], [], []
+    X_hist_list, X_ctx_list, y_grade_list, y_pass_list, student_id_list = [], [], [], [], []
 
     grouped = df_pr.groupby('studierenden_id')
     print(f"Erstelle Autoregressive Next-Exam Samples für {len(grouped)} Studierende ...")
@@ -112,14 +112,16 @@ def prepare_next_exam_dataset(data_dir: Path, max_history_len: int = 30):
             X_ctx_list.append(ctx)
             y_grade_list.append(next_exam[4]) # note_clean
             y_pass_list.append(next_exam[3])  # bestanden_int
+            student_id_list.append(s_id)
 
     X_hist = np.array(X_hist_list, dtype=np.float32)
     X_ctx = np.array(X_ctx_list, dtype=np.float32)
     y_grade = np.array(y_grade_list, dtype=np.float32)
     y_pass = np.array(y_pass_list, dtype=np.float32)
+    student_ids = np.array(student_id_list)
 
     print(f"Gesamtanzahl Next-Exam Samples: {len(X_hist):,}")
-    return X_hist, X_ctx, y_grade, y_pass
+    return X_hist, X_ctx, y_grade, y_pass, student_ids
 
 
 def train_autoregressive_next_exam(data_dir: Path = Path('src/output_dl'),
@@ -129,13 +131,16 @@ def train_autoregressive_next_exam(data_dir: Path = Path('src/output_dl'),
     print("   AUTOREGRESSIVE NEXT-EXAM PREDICTION (DUAL-HEAD MULTI-TASK)")
     print("=" * 74)
 
-    X_hist, X_ctx, y_grade, y_pass = prepare_next_exam_dataset(data_dir)
+    X_hist, X_ctx, y_grade, y_pass, student_ids = prepare_next_exam_dataset(data_dir)
 
-    # 3-Way Split
-    n_samples = len(X_hist)
-    idx = np.arange(n_samples)
-    tr_idx, temp_idx = train_test_split(idx, test_size=0.30, random_state=42)
-    va_idx, te_idx = train_test_split(temp_idx, test_size=0.50, random_state=42)
+    # 3-Way Group-Consistent Split on student IDs
+    unique_students = np.unique(student_ids)
+    tr_students, temp_students = train_test_split(unique_students, test_size=0.30, random_state=42)
+    va_students, te_students = train_test_split(temp_students, test_size=0.50, random_state=42)
+
+    tr_idx = np.where(np.isin(student_ids, tr_students))[0]
+    va_idx = np.where(np.isin(student_ids, va_students))[0]
+    te_idx = np.where(np.isin(student_ids, te_students))[0]
 
     # Skalierung
     v_mask_tr = X_hist[tr_idx, :, 0] != PADDING_VALUE

@@ -33,6 +33,10 @@ Im Datengenerator treten Studierende dann dem Support bei, wenn sie sich in eine
 ### B. KPI-Operationalisierung im Dashboard
 Die in `kpi.md` definierten Metriken für Wirksamkeit und Zielgruppenerreichung wurden im Analyse-Backend berechnet und geloggt, aus Zeitgründen jedoch nicht vollständig in der Benutzeroberfläche des Dashboards visualisiert.
 
+### C. Feature Engineering Design-Entscheidungen
+- **`temporal='cum'`**: Die kummulative Zählweise verwendet einen inklusiven `cumsum` (die aktuelle Prüfung/Semester ist inkludiert). Dies ist eine bewusste Designentscheidung zur Abbildung des momentanen Wissensstands.
+- **One-Hot-Encoding (OHE)**: Es besteht eine bewusste Inkonsistenz zwischen den Formaten. Die Tensor-Formate verwenden 5 `stg_OHE`-Spalten, während die Panel-Formate 4 Spalten (Reference Encoding) verwenden. Dies sollte bei der Modellierung beachtet werden.
+
 ---
 
 ## 3. Dokumentations- & Artefakt-Transparenz

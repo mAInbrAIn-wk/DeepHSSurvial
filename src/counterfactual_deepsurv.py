@@ -21,9 +21,14 @@ def main():
         data_file = Path('../output_dl/agg_abschluesse.csv')
     df_raw, feature_cols = load_raw_data(data_file)
     
-    # 1. Stratifizierter 3-Wege-Split (70% Train, 15% Val, 15% Test)
-    df_train, df_temp = train_test_split(df_raw, test_size=0.30, random_state=42, stratify=df_raw['event'])
-    df_val, df_test = train_test_split(df_temp, test_size=0.50, random_state=42, stratify=df_temp['event'])
+    # 1. Group-consistent 3-Wege-Split (70% Train, 15% Val, 15% Test) on student IDs
+    unique_students = df_raw['studierenden_id'].unique()
+    train_students, temp_students = train_test_split(unique_students, test_size=0.30, random_state=42)
+    val_students, test_students = train_test_split(temp_students, test_size=0.50, random_state=42)
+    
+    df_train = df_raw[df_raw['studierenden_id'].isin(train_students)]
+    df_val = df_raw[df_raw['studierenden_id'].isin(val_students)]
+    df_test = df_raw[df_raw['studierenden_id'].isin(test_students)]
     
     X_train_df = df_train[feature_cols]
     

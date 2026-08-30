@@ -93,6 +93,23 @@ src/output_v4_grid_v41/
 
 ---
 
+### 1.6 Feature Builder & Datensätze (V4.1.1 Update)
+
+Die Extraktion der Rohdaten in analysefertige Matrizen erfolgt über `src/feature_builder.py`. Seit dem V4.1.1 Update sind alle **Sample Leakages** (Student-Level Split) und **Future Leakages** (`cp_rueckstand` Fix) behoben. 
+Die Oracle-Features umfassen nun 5 statt 3 Felder (neu: `hidden_overload`, `hidden_zeit_puffer`).
+
+Feature-Anzahlen nach Format:
+
+| Format | standard | oracle |
+|:---|:---:|:---:|
+| Semester Tensor | 18 | 23 |
+| Exam Tensor | 24 | 29 |
+| Semester Panel | 16 | 21 |
+| Exam Panel | 23 | 28 |
+| Landmark | 16 | 21 |
+
+---
+
 ## 2. Szenario-Beschreibungen
 
 ### 2.1 Baseline-Parameter (S01)

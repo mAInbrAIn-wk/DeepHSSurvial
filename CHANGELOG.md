@@ -3,6 +3,28 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
+## [V4.1.1 Quality Fixes] — 2026-08-30
+
+### 1. Sample Leakage Fix (5 Skripte)
+- `autoregressive_next_exam.py`: Split geändert von Zeilenebene auf Studentenebene (group-consistent)
+- `autoregressive_deep_transformer.py`: Selber Fix
+- `eval_autoregressive_fail.py`: Selber Fix
+- `run_transfer_learning.py`: Selber Fix  
+- `counterfactual_deepsurv.py`: Selber Fix
+- Alle verwenden `random_state=42`, 70/15/15 Split auf `studierenden_id.unique()`
+
+### 2. Future Leakage Fix in Feature Builder
+- `feature_builder.py`: `cp_rueckstand` in Exam Tensor und Exam Panel verwendet nun `cp_cum_prev` (shifted) statt `cp_cum` (inklusive aktueller Prüfung)
+- `temporal='cum'` Modus nutzt inklusiven cumsum als dokumentierte Design-Entscheidung
+
+### 3. Oracle Feature Erweiterung
+- `feature_builder.py`: `hidden_overload` und `hidden_zeit_puffer` als Oracle-Features in ALLEN 5 Build-Funktionen hinzugefügt
+- `build_exam_panel_df()`: Oracle-Modus fehlte komplett, jetzt implementiert
+- Oracle-Modus hat nun 5 Hidden-Features statt 3:
+  - hidden_motivation, hidden_soziale_integration, hidden_erwartete_note (bestehend)
+  - hidden_overload (NEU: Workload in Stunden pro Prüfung)
+  - hidden_zeit_puffer (NEU: statisch pro Student, individueller Zeitpuffer)
+
 ## [V4.1 Sensitivity Grid] — 2026-08-30 — Vollständiger Sensitivitäts-Gitterlauf
 
 ### Abgeschlossen

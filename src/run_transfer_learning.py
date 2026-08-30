@@ -22,12 +22,16 @@ def main():
     v35_data_dir = Path('src/output_dl')
     print("Lade V3.5 Datensatz...")
     
-    X_hist, X_ctx, y_grade, y_pass = prepare_next_exam_dataset(v35_data_dir)
+    X_hist, X_ctx, y_grade, y_pass, student_ids = prepare_next_exam_dataset(v35_data_dir)
     
-    n_samples = len(X_hist)
-    idx = np.arange(n_samples)
-    tr_idx, temp_idx = train_test_split(idx, test_size=0.30, random_state=42)
-    va_idx, te_idx = train_test_split(temp_idx, test_size=0.50, random_state=42)
+    # Group-consistent Split on student IDs
+    unique_students = np.unique(student_ids)
+    tr_students, temp_students = train_test_split(unique_students, test_size=0.30, random_state=42)
+    va_students, te_students = train_test_split(temp_students, test_size=0.50, random_state=42)
+    
+    tr_idx = np.where(np.isin(student_ids, tr_students))[0]
+    va_idx = np.where(np.isin(student_ids, va_students))[0]
+    te_idx = np.where(np.isin(student_ids, te_students))[0]
     
     scaler_seq = StandardScaler()
     scaler_ctx = StandardScaler()
