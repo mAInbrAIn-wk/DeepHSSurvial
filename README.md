@@ -2,7 +2,7 @@
 
 **Autor:** Wilfried Keller  
 **Kontext:** Abschlussprojekt im Kurs *Deep Learning* (Dr. Bernd Ebenhoch)  
-**Datum:** August 2026 (Version 3.3 Dual-Strang Benchmark)
+**Datum:** August 2026 (Version 4.1)
 
 ---
 
@@ -35,20 +35,20 @@ Da leistungsschwächere Studierende oder Studierende mit viel Erwerbstätigkeit 
 
 ---
 
-## 2. Kausale Ground Truth der 8 Universen ($N = 50.000$ pro Universum)
+## 2. Kausale Ground Truth der 8 Universen (V4.1, seed=99999, $N = 50.000$)
 
 ### A. Dropout-Risiko (Relativrisiko $RR$)
 
 | Universum | Konfiguration | Dropout-Rate | Relativrisiko ($RR$) | Kausalwirkung (Ground Truth) |
 | :--- | :--- | :---: | :---: | :--- |
-| **A (Baseline)** | Alle Support-Typen aktiv | **27,37 %** | **1,0000** | Referenz der faktischen Beobachtungswelt |
-| **B (Null-Support)** | Kein Support aktiv | **32,35 %** | **0,8462** (A vs B) | **-15,38 % Gesamtrisikosenkung** durch alle Angebote |
-| **C (Ohne Fachlich)** | Fachlich blockiert, Rest aktiv | 28,58 % | **0,9579** (A vs C) | **-4,21 % Risikoreduktion** (Partieller Effekt Fachlich) |
-| **D (Ohne Überfachlich)**| Überfachlich blockiert, Rest aktiv | 29,16 % | **0,9387** (A vs D) | **-6,13 % Risikoreduktion** (Partieller Effekt Überfachlich) |
-| **E (Ohne Psychosozial)**| Psychosozial blockiert, Rest aktiv | 28,77 % | **0,9514** (A vs E) | **-4,86 % Risikoreduktion** (Partieller Effekt Psychosozial) |
-| **F (Nur Fachlich)** | Nur Fachlich aktiv, Rest blockiert | 30,79 % | **0,9518** (F vs B) | **-4,82 % Risikoreduktion** (Isolierter Einzeleffekt) |
-| **G (Nur Überfachlich)** | Nur Überfachlich aktiv, Rest blockiert | 30,14 % | **0,9317** (G vs B) | **-6,83 % Risikoreduktion** (Isolierter Einzeleffekt) |
-| **H (Nur Psychosozial)** | Nur Psychosozial aktiv, Rest blockiert | 30,64 % | **0,9472** (H vs B) | **-5,28 % Risikoreduktion** (Isolierter Einzeleffekt) |
+| **A (Baseline)** | Alle Support-Typen aktiv | **29,20 %** | **1,0000** | Referenz der faktischen Beobachtungswelt |
+| **B (Null-Support)** | Kein Support aktiv | **37,10 %** | **0,7871** (A vs B) | **-21,3 % Gesamtrisikosenkung** durch alle Angebote |
+| **C (Ohne Fachlich)** | Fachlich blockiert, Rest aktiv | 32,10 % | **0,9097** (A vs C) | **-9,0 % Risikoreduktion** (Partieller Effekt Fachlich) |
+| **D (Ohne Überfachlich)**| Überfachlich blockiert, Rest aktiv | 31,70 % | **0,9211** (A vs D) | **-7,9 % Risikoreduktion** (Partieller Effekt Überfachlich) |
+| **E (Ohne Psychosozial)**| Psychosozial blockiert, Rest aktiv | 30,80 % | **0,9481** (A vs E) | **-5,2 % Risikoreduktion** (Partieller Effekt Psychosozial) |
+| **F (Nur Fachlich)** | Nur Fachlich aktiv, Rest blockiert | 33,60 % | **0,9057** (F vs B) | **-9,4 % Risikoreduktion** (Isolierter Einzeleffekt) |
+| **G (Nur Überfachlich)** | Nur Überfachlich aktiv, Rest blockiert | 34,00 % | **0,9164** (G vs B) | **-8,4 % Risikoreduktion** (Isolierter Einzeleffekt) |
+| **H (Nur Psychosozial)** | Nur Psychosozial aktiv, Rest blockiert | 34,80 % | **0,9381** (H vs B) | **-6,2 % Risikoreduktion** (Isolierter Einzeleffekt) |
 
 ---
 
@@ -105,3 +105,30 @@ Da leistungsschwächere Studierende oder Studierende mit viel Erwerbstätigkeit 
 
 - 👉 **[`Artifacts/script_registry.md`](Artifacts/script_registry.md)**: Vollständiges Inventar aller 69 Skripte mit Feature-Vektoren, Input-Dimensionen und Outputs.
 - 👉 **[`Artifacts/simulation_kausal_doku.md`](Artifacts/simulation_kausal_doku.md)**: Vollständiges Kausaldiagramm (Mermaid), mathematische DGP-Gleichungen und Selektionsmechaniken.
+
+---
+
+## 6. V4.1 Sensitivity Grid Search ($N = 50.000$)
+
+Vollständiger Sensitivitätslauf mit 15 Szenarien × 8 Universen = 120 Simulationsläufe. Laufzeit: 14,6 h (5 Worker). B=37,1% über alle nicht-globalen Szenarien (perfekte RNG-Synchronisierung).
+
+| Szenario | Parameterdimension | Dropout A | Dropout B | ARR (pp) |
+| :--- | :--- | :---: | :---: | :---: |
+| **S01 (Baseline)** | Referenz | 29,2 % | 37,1 % | 7,9 |
+| **S02** | Support-Wirkung ×0,5 | 32,8 % | 37,1 % | 4,3 |
+| **S03** | Support-Wirkung ×2,0 | 25,5 % | 37,1 % | 11,6 |
+| **S04** | Notenboost ×0,5 | 30,2 % | 37,1 % | 6,9 |
+| **S05** | Notenboost ×1,5 | 28,5 % | 37,1 % | 8,6 |
+| **S06** | Notenboost ×2,0 | 27,9 % | 37,1 % | 9,2 |
+| **S07** | Rauschen ×0,5 | 26,1 % | 33,7 % | 7,6 |
+| **S08** | Rauschen ×2,0 | 32,5 % | 40,1 % | 7,6 |
+| **S09** | Zeitkosten ×0,5 | 28,5 % | 37,1 % | 8,6 |
+| **S10** | Zeitkosten ×2,0 | 29,7 % | 37,1 % | 7,4 |
+| **S11** | RCT-Selektion | 25,7 % | 37,1 % | 11,4 |
+| **S12** | Overload-Penalty ×0,5 | 27,3 % | 35,7 % | 8,4 |
+| **S13** | Overload-Penalty ×2,0 | 30,6 % | 37,9 % | 7,3 |
+| **S14** | Overload-Penalty Cap 0,15 | 28,7 % | 36,0 % | 7,3 |
+| **S15 (Kombi)** | Kosten ×2 + Wirkung ×2 | 25,9 % | 37,1 % | 11,2 |
+
+> [!NOTE]
+> **Sensitivitäts-Ranking (ARR-Spanne):** Overload-Penalty (8,5pp) > Support-Wirkung (7,3pp) > Rauschen (6,4pp) > RCT-Selektion (3,5pp) > Notenboost (3,0pp) > Zeitkosten (1,2pp). Die ARR bleibt über alle Overload-Kalibrierungen hinweg robust (7,3–8,4pp).

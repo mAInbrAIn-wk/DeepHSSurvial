@@ -3,7 +3,27 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
-## [V4.1] — 2026-08-29 — RNG-Synchronisierung & Feature-Restaurierung
+## [V4.1 Sensitivity Grid] — 2026-08-30 — Vollständiger Sensitivitäts-Gitterlauf
+
+### Abgeschlossen
+- **Vollständiges Sensitivitäts-Grid:** 15 Szenarien × 8 Universen = 120 Simulationsläufe bei N=50.000
+- **Gesamtlaufzeit:** 14,6 Stunden (52.722 Sekunden) mit `ProcessPoolExecutor` und 5 Workern
+- **Szenarien** umfassen 6 Parameterdimensionen: Support-Wirkung (S02/S03), Notenboost (S04/S05/S06), Rauschen (S07/S08), Zeitkosten (S09/S10), RCT-Selektion (S11), Overload-Penalty (S12/S13/S14), plus Kombi-Szenario (S15)
+
+### Kernergebnisse
+- **Baseline (S01):** Dropout A=29,2%, B=37,1%, ARR=7,9pp, NNT=12,6
+- **Perfekte RNG-Synchronisierung:** B=37,1% über alle nicht-globalen Szenarien hinweg
+- **Sensitivitäts-Ranking:** Overload-Penalty (8,5pp Spanne) > Support-Wirkung (7,3pp) > Rauschen (6,4pp) > Selektion (3,5pp) > Notenboost (3,0pp) > Zeitkosten (1,2pp)
+- **ARR robust** gegenüber Overload-Kalibrierung (7,3–8,4pp)
+- **S15 (Kombi):** Kostenverdopplung kostet nur 0,5pp bei gleichzeitiger Wirkungsverdopplung
+
+### Erstellte Analyseskripte
+- `analyze_nachtlauf_v41.py` — Synoptische Übersicht und szenarienübergreifender Vergleich
+- `paradox_analysis_v41.py` — Paradoxe Statuswechsel-Analyse
+- `paradox_s02s03_detail.py` — Detaillierte S02/S03-Divergenzanalyse
+
+
+## [V4.1] — 2026-08-29/30 — RNG-Synchronisierung & Feature-Restaurierung
 
 ### Hintergrund
 Beim V4-Refactoring (Performance-Optimierung) gingen mehrere V3-Features
