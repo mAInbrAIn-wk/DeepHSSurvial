@@ -13,22 +13,44 @@ from sklearn.impute import SimpleImputer
 
 import tensorflow as tf
 
-from extended_cox_survival import build_person_semester_panel
+import feature_builder as fb
 from extended_deep_survival import breslow_cox_loss
 from metrics_logger import save_metrics
 
-def analyze_counterfactual_hr(data_dir: Path):
+def analyze_counterfactual_hr(data_dir: Path, mode: str = 'standard'):
     print("\n==========================================================================")
-    print("   COUNTERFACTUAL HAZARD RATIO ANALYSIS (EXTENDED DEEPSURV PANEL)")
+    print(f"   COUNTERFACTUAL HAZARD RATIO ANALYSIS (EXTENDED DEEPSURV PANEL | mode={mode})")
     print("==========================================================================")
     
-    panel_df = build_person_semester_panel(data_dir)
+    model_path = None
+    for candidate in [
+        f"extended_deepsurv_prev_{mode}.keras",
+        f"extended_deepsurv_cum_{mode}.keras",
+        "extended_deepsurv_panel.keras",
+        "extended_deepsurv_prev.keras",
+        "extended_deepsurv_delta.keras",
+        "extended_deepsurv_cum.keras",
+        "extended_deepsurv.keras"
+    ]:
+        p = data_dir / "models" / candidate
+        if p.exists():
+            model_path = p
+            break
+    if model_path is None:
+        print(f"Kein Extended DeepSurv Modell unter {data_dir / 'models'} gefunden!")
+        return
+        
+    model = tf.keras.models.load_model(model_path, custom_objects={'breslow_cox_loss': breslow_cox_loss})
+    print(f"Modell geladen: {model_path.name}  |  Input-Dim: {model.input_shape}")
+    expected_dim = model.input_shape[-1]
     
-    num_cols = ['hzb_note', 'erwerbstaetigkeit_std', 't_stop', 't_start', 'cum_cp', 'cum_fails']
-    cat_cols = ['stg_name', 'erstakademiker']
-    treatment_cols = ['fach_supp_count', 'uebf_supp_count', 'psych_supp_count']
+    panel_df, feature_cols, target_col, _ = fb.build_semester_panel_df(data_dir, mode=mode, temporal='prev')
     
-    feature_cols = num_cols + cat_cols + treatment_cols
+    cat_candidates = ['stg_name', 'erstakademiker', 'hzb_typ', 'migrationshintergrund']
+    cat_cols = [c for c in cat_candidates if c in feature_cols]
+    treatment_candidates = ['fach_supp_count', 'uebf_supp_count', 'psych_supp_count']
+    treatment_cols = [c for c in treatment_candidates if c in feature_cols]
+    num_cols = [c for c in feature_cols if c not in cat_cols and c not in treatment_cols]
     
     unique_studis = np.array(panel_df['studierenden_id'].unique().tolist())
     train_ids, test_ids = train_test_split(unique_studis, test_size=0.20, random_state=42)
@@ -36,20 +58,35 @@ def analyze_counterfactual_hr(data_dir: Path):
     train_panel = panel_df[panel_df['studierenden_id'].isin(train_ids)].copy()
     test_panel  = panel_df[panel_df['studierenden_id'].isin(test_ids)].copy()
     
-    preprocessor = ColumnTransformer([
-        ('num', Pipeline([('imputer', SimpleImputer(strategy='median')), ('scaler', StandardScaler())]), num_cols),
-        ('cat', Pipeline([('imputer', SimpleImputer(strategy='most_frequent')), ('encoder', OneHotEncoder(sparse_output=False, handle_unknown='ignore'))]), cat_cols),
-        ('treatments', 'passthrough', treatment_cols)
-    ])
+    transformers = []
+    if num_cols:
+        transformers.append(('num', Pipeline([('imputer', SimpleImputer(strategy='median')), ('scaler', StandardScaler())]), num_cols))
+    if cat_cols:
+        transformers.append(('cat', Pipeline([('imputer', SimpleImputer(strategy='most_frequent')), ('encoder', OneHotEncoder(sparse_output=False, handle_unknown='ignore'))]), cat_cols))
+    if treatment_cols:
+        transformers.append(('treatments', 'passthrough', treatment_cols))
+        
+    preprocessor = ColumnTransformer(transformers)
     preprocessor.fit(train_panel[feature_cols])
     
-    model_path = data_dir / "models" / "extended_deepsurv_panel.keras"
-    if not model_path.exists():
-        print(f"Modell {model_path} nicht gefunden!")
-        return
-        
-    model = tf.keras.models.load_model(model_path, custom_objects={'breslow_cox_loss': breslow_cox_loss})
-    print(f"Modell geladen: {model_path.name}  |  Input-Dim: {model.input_shape}")
+    X_test_chk = preprocessor.transform(test_panel[feature_cols])
+    if X_test_chk.shape[1] != expected_dim:
+        alt_mode = 'gradeblind' if mode == 'standard' else 'standard'
+        panel_df, feature_cols, target_col, _ = fb.build_semester_panel_df(data_dir, mode=alt_mode, temporal='prev')
+        cat_cols = [c for c in cat_candidates if c in feature_cols]
+        treatment_cols = [c for c in treatment_candidates if c in feature_cols]
+        num_cols = [c for c in feature_cols if c not in cat_cols and c not in treatment_cols]
+        train_panel = panel_df[panel_df['studierenden_id'].isin(train_ids)].copy()
+        test_panel  = panel_df[panel_df['studierenden_id'].isin(test_ids)].copy()
+        transformers = []
+        if num_cols:
+            transformers.append(('num', Pipeline([('imputer', SimpleImputer(strategy='median')), ('scaler', StandardScaler())]), num_cols))
+        if cat_cols:
+            transformers.append(('cat', Pipeline([('imputer', SimpleImputer(strategy='most_frequent')), ('encoder', OneHotEncoder(sparse_output=False, handle_unknown='ignore'))]), cat_cols))
+        if treatment_cols:
+            transformers.append(('treatments', 'passthrough', treatment_cols))
+        preprocessor = ColumnTransformer(transformers)
+        preprocessor.fit(train_panel[feature_cols])
 
     metrics_all = {}
 

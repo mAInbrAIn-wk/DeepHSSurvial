@@ -1,0 +1,21 @@
+# Metriken: extended_cox_panel
+
+| Metrik | Wert |
+| :--- | :---: |
+| **model_type** | extended_cox_cum_gradeblind |
+| **temporal** | cum |
+| **mode** | gradeblind |
+| **Support_HR_Fach_count** | 1.1986 |
+| **Support_HR_Uebf_count** | 1.0061 |
+| **Support_HR_Psych_count** | 1.0100 |
+| **fach_partial** | {'mean_hr': 1.198606663448752, 'median_hr': 1.198606663448752} |
+| **fach_isolated** | {'mean_hr': 1.198606663448752, 'median_hr': 1.198606663448752} |
+| **uebf_partial** | {'mean_hr': 1.0060996884710849, 'median_hr': 1.0060996884710849} |
+| **uebf_isolated** | {'mean_hr': 1.0060996884710849, 'median_hr': 1.0060996884710849} |
+| **psych_partial** | {'mean_hr': 1.0100042552346817, 'median_hr': 1.0100042552346817} |
+| **psych_isolated** | {'mean_hr': 1.0100042552346817, 'median_hr': 1.0100042552346817} |
+| **Support_HR_Fach_tv** | 1.1986 |
+| **Support_HR_Uebf_tv** | 1.0061 |
+| **Support_HR_Psych_tv** | 1.0100 |
+| **HR_cum_fails** | 1.0959 |
+| **HR_cum_cp** | 0.9004 |

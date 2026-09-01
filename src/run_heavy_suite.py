@@ -1,4 +1,4 @@
-﻿"""
+"""
 Heavy Deep Suite Runner (V4.1)
 ==============================
 Fuehrt die rechenintensiven Deep Transformer- und Autoregressor-Architekturen
@@ -92,7 +92,7 @@ class PipelineBenchmarkTracker:
         print(f"\n[REPORT] Heavy Suite Benchmark gespeichert unter: {md_path}")
 
 
-def run_heavy_suite(data_dir: Path, temporal: str = 'prev', modes: list = None, population_seed: int = 42):
+def run_heavy_suite(data_dir: Path, temporal: str = 'prev', modes: list = None, population_seed: int = 42, include_deep_transformers: bool = False):
     if modes is None:
         modes = ['standard', 'gradeblind']
 
@@ -105,14 +105,18 @@ def run_heavy_suite(data_dir: Path, temporal: str = 'prev', modes: list = None, 
     print(f"   Start: {time.strftime('%Y-%m-%d %H:%M:%S')} | Temporal: {temporal} | Seed: {population_seed}")
     print(f"   Data Dir: {data_dir.resolve()}")
     print(f"   Aktive Modi: {modes}")
+    print(f"   Deep Transformer Suite (d=128): {'AKTIVIERT' if include_deep_transformers else 'DEAKTIVIERT (UNDER REVISION)'}")
     print("*" * 80)
 
-    # 1. DEEP TRANSFORMER SUITE (4 SUB-MODELLE)
-    for mode in modes:
-        tracker.run_step(
-            f"Deep Transformer Suite (4 Sub-Modelle) [{mode}]",
-            lambda m=mode: __import__('deep_transformer_regression').train_deep_transformer_models(data_dir, temporal, m)
-        )
+    # 1. DEEP TRANSFORMER SUITE (4 SUB-MODELLE) - UNDER REVISION
+    if include_deep_transformers:
+        for mode in modes:
+            tracker.run_step(
+                f"Deep Transformer Suite (4 Sub-Modelle) [{mode}]",
+                lambda m=mode: __import__('deep_transformer_regression').train_deep_transformer_models(data_dir, temporal, m)
+            )
+    else:
+        print("\n[INFO] Deep Transformer Suite (d=128) ist temporär deaktiviert (Under Revision: Positional Encoding & Regularisierung).")
 
     # 2. AUTOREGRESSIVE NEXT-EXAM MULTI-TASK
     tracker.run_step(
@@ -150,6 +154,7 @@ if __name__ == '__main__':
     parser.add_argument('--temporal', type=str, default='prev', choices=['prev', 'cum'])
     parser.add_argument('--modes', type=str, default='standard,gradeblind')
     parser.add_argument('--seed', type=int, default=42)
+    parser.add_argument('--include_deep_transformers', action='store_true', default=False, help="Aktiviere experimentelle Deep Transformer Suite (d=128, Under Revision)")
     args = parser.parse_args()
 
     mode_list = [m.strip() for m in args.modes.split(',') if m.strip()]
@@ -157,5 +162,6 @@ if __name__ == '__main__':
         data_dir=Path(args.data_dir),
         temporal=args.temporal,
         modes=mode_list,
-        population_seed=args.seed
+        population_seed=args.seed,
+        include_deep_transformers=args.include_deep_transformers
     )

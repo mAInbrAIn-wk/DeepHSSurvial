@@ -144,7 +144,7 @@ def train_timeseries_semester_transformer(data_dir: Path = Path('src/output_dl')
 
     # Logging
     base_dir = data_dir
-    model_name = f"timeseries_semester_transformer_{temporal}" if temporal != 'prev' else "timeseries_semester_transformer"
+    model_name = f"timeseries_semester_transformer_{temporal}_{mode}" if (temporal != 'prev' or mode != 'standard') else "timeseries_semester_transformer"
 
     metrics_dict = {
         "model_type": model_name,

@@ -4,6 +4,6 @@ Kausale Zerlegung der Support-Wirkung in direkte (Motivation/Psychosozial) und i
 
 | Support-Typ | Total OR | Direct OR (ADE) | Mediated OR (ACME) | Anteil vermittelt (PM) |
 | :--- | :---: | :---: | :---: | :---: |
-| **Fachlich** | 0.9616 | 0.9435 | 1.0192 | **-48.4%** |
-| **Ueberfachlich** | 1.0311 | 1.0031 | 1.0279 | **90.0%** |
-| **Psychosozial** | 1.0482 | 1.0070 | 1.0408 | **85.1%** |
+| **Fachlich** | 0.9522 | 0.9619 | 0.9899 | **20.7%** |
+| **Ueberfachlich** | 1.1141 | 1.0504 | 1.0607 | **54.5%** |
+| **Psychosozial** | 1.0014 | 0.9795 | 1.0224 | **1565.3%** |

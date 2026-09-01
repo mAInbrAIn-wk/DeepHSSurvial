@@ -14,31 +14,50 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from dynamic_deephit_model import build_competing_risks_dataset
+import feature_builder as fb
 from recurrent_survival_model import masked_binary_crossentropy, PADDING_VALUE
 from metrics_logger import save_metrics
 
-def main():
+def main(data_dir=None):
     print("\n==========================================================================")
     print("   COUNTERFACTUAL INFERENCE: DYNAMIC DEEPHIT (EXISTING MODEL)")
     print("==========================================================================")
     
-    data_dir = Path('../output_dl') if Path('../output_dl').exists() else Path('output_dl')
-    model_path = data_dir / 'models' / 'dynamic_deephit_competing.keras'
-    
-    if not model_path.exists():
-        print(f"Modell nicht gefunden: {model_path}")
+    if data_dir is None:
+        data_dir = Path('../output_dl') if Path('../output_dl').exists() else Path('output_dl')
+    else:
+        data_dir = Path(data_dir)
+        
+    possible_names = [
+        'dynamic_deephit_prev.keras',
+        'dynamic_deephit_competing.keras',
+        'dynamic_deephit_model.keras',
+        'dynamic_deephit_delta.keras'
+    ]
+    model_path = None
+    for name in possible_names:
+        cand = data_dir / 'models' / name
+        if cand.exists():
+            model_path = cand
+            break
+            
+    if model_path is None:
+        print(f"Modell nicht gefunden in {data_dir / 'models'}")
         return
         
     print("Lade Datensatz & DeepHit Modell...")
-    studis, X_seq, y_dropout, y_grad, studi_events = build_competing_risks_dataset(data_dir, max_semesters=16)
+    studis, X_seq, y_seq, studi_events, feature_names, _ = fb.build_semester_sequence_tensor(
+        data_dir, max_semesters=16, mode='standard', temporal='prev', target_type='competing_risks'
+    )
+    y_dropout = y_seq[:, :, 0:1]
+    y_grad = y_seq[:, :, 1:2]
     N, K_max, F = X_seq.shape
     
-    train_idx, temp_idx, _, y_temp_event = train_test_split(
-        np.arange(N), studi_events, test_size=0.30, random_state=42, stratify=studi_events
+    train_idx, temp_idx = train_test_split(
+        np.arange(N), test_size=0.30, random_state=42, stratify=(studi_events == 1).astype(int)
     )
-    val_idx, test_idx, _, _ = train_test_split(
-        temp_idx, y_temp_event, test_size=0.50, random_state=42, stratify=y_temp_event
+    val_idx, test_idx = train_test_split(
+        temp_idx, test_size=0.50, random_state=42, stratify=(studi_events[temp_idx] == 1).astype(int)
     )
     
     X_train = X_seq[train_idx].copy()

@@ -1,0 +1,11 @@
+{
+    "model_type": "dml_orthogonal_survival_cum_gradeblind",
+    "temporal": "cum",
+    "mode": "gradeblind",
+    "ROC-AUC_Panel": 0.8359475359118969,
+    "PR-AUC_Panel": 0.2653154255315677,
+    "Brier_Score": 0.03433981165289879,
+    "fach": "{'partial': {'mean_rr': 1.011205792427063, 'median_rr': 1.011205792427063, 'ate': 0.0004804806085303426}, 'isolated': {'mean_rr': 1.012094497680664, 'median_rr': 1.012094497680664, 'ate': 0.0005214481498114765}}",
+    "uebf": "{'partial': {'mean_rr': 0.9317864775657654, 'median_rr': 0.9317864775657654, 'ate': -0.002951053436845541}, 'isolated': {'mean_rr': 0.9349782466888428, 'median_rr': 0.9349782466888428, 'ate': -0.0028027163352817297}}",
+    "psych": "{'partial': {'mean_rr': 0.983327329158783, 'median_rr': 0.983327329158783, 'ate': -0.0007175377686508}, 'isolated': {'mean_rr': 0.9822672009468079, 'median_rr': 0.9822672009468079, 'ate': -0.0007642855052836239}}"
+}

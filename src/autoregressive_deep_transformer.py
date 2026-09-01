@@ -97,10 +97,14 @@ def build_deep_transformer_dual_head(seq_timesteps: int, seq_features: int, cont
     model = Model(inputs=[seq_input, ctx_input], outputs=[out_grade, out_pass])
     return model
 
-def main():
-    data_dir = Path('src/output_dl_seed99999') # Bleibt bei N=50k Dataset
+def train_autoregressive_deep_transformer(data_dir=None):
+    if data_dir is None:
+        data_dir = Path(os.environ.get('DATA_DIR', 'output_v4_grid_v41/S01_baseline/universe_A'))
+    else:
+        data_dir = Path(data_dir)
+        
     print("="*70)
-    print(" DEEP TRANSFORMER AUTOREGRESSOR + POSITIONAL ENCODING ")
+    print(f" DEEP TRANSFORMER AUTOREGRESSOR + POSITIONAL ENCODING (dir={data_dir}) ")
     print("="*70)
     
     X_hist, X_ctx, y_grade, y_pass, student_ids = prepare_next_exam_dataset(data_dir)
@@ -143,7 +147,7 @@ def main():
     
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=6, restore_best_weights=True)
     
-    print("Starte Training (Max 20 Epochen)...")
+    print("Starte Training (Max 12 Epochen, Batch-Size 512)...")
     model.fit(
         {'exam_history': X_hist_scaled[tr_idx], 'next_exam_context': X_ctx_scaled[tr_idx]},
         {'out_grade': y_grade[tr_idx], 'out_pass': y_pass[tr_idx]},
@@ -151,7 +155,7 @@ def main():
             {'exam_history': X_hist_scaled[va_idx], 'next_exam_context': X_ctx_scaled[va_idx]},
             {'out_grade': y_grade[va_idx], 'out_pass': y_pass[va_idx]}
         ),
-        epochs=20, batch_size=256, verbose=1, callbacks=[es]
+        epochs=12, batch_size=512, verbose=1, callbacks=[es]
     )
     
     print("\nEvaluiere auf Test-Set...")
@@ -162,10 +166,20 @@ def main():
     
     (data_dir / 'models').mkdir(exist_ok=True, parents=True)
     model.save(data_dir / 'models' / 'autoregressive_deep_transformer.keras')
-    
+
+    metrics_out = {
+        'Next_Exam_Grade_R2': float(r2),
+        'Next_Exam_Pass_ROC_AUC': float(auc)
+    }
+    (data_dir / 'metrics').mkdir(exist_ok=True, parents=True)
+    with open(data_dir / 'metrics' / 'autoregressive_deep_transformer_metrics.json', 'w', encoding='utf-8') as f:
+        json.dump(metrics_out, f, indent=4)
+        
     print(f"\nERGEBNISSE DEEP TRANSFORMER AUTOREGRESSOR (mit PE):")
     print(f" -> R2 Score (Note): {r2:.4f}")
     print(f" -> ROC-AUC (Pass):  {auc:.4f}")
 
+main = train_autoregressive_deep_transformer
+
 if __name__ == '__main__':
-    main()
+    train_autoregressive_deep_transformer()

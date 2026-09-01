@@ -23,7 +23,7 @@ from sklearn.metrics import brier_score_loss
 
 import tensorflow as tf
 
-from extended_cox_delta import build_delta_panel
+import feature_builder as fb
 from metrics_logger import save_metrics
 import tensorflow.keras.backend as K
 
@@ -51,58 +51,68 @@ def main(data_dir=None):
     plots_dir = data_dir / 'plots'
     plots_dir.mkdir(parents=True, exist_ok=True)
     
-    panel_df = build_delta_panel(data_dir)
+    panel_df, f_cols, target_col, _ = fb.build_semester_panel_df(data_dir, mode='standard', temporal='prev')
     
-    num_cols = ['hzb_note', 'erwerbstaetigkeit_std', 't_stop', 't_start', 'fails_prev', 'delta_cp_prev', 'cp_rueckstand']
-    cat_cols = ['stg_name', 'erstakademiker']
-    treatment_cols = ['fach_supp_active', 'uebf_supp_active', 'psych_supp_active']
-    feature_cols = num_cols + cat_cols + treatment_cols
-    
-    unique_studis = np.array(panel_df['studierenden_id'].unique().tolist())
-    train_ids, test_ids = train_test_split(unique_studis, test_size=0.20, random_state=42)
+    studis = panel_df['studierenden_id'].unique()
+    train_ids, test_ids = train_test_split(studis, test_size=0.20, random_state=42)
     
     train_panel = panel_df[panel_df['studierenden_id'].isin(train_ids)].copy()
     test_panel  = panel_df[panel_df['studierenden_id'].isin(test_ids)].copy()
     
-    preprocessor = ColumnTransformer([
-        ('num', Pipeline([('imputer', SimpleImputer(strategy='median')), ('scaler', StandardScaler())]), num_cols),
-        ('cat', Pipeline([('imputer', SimpleImputer(strategy='most_frequent')), ('encoder', OneHotEncoder(sparse_output=False, handle_unknown='ignore'))]), cat_cols),
-        ('treatments', 'passthrough', treatment_cols)
-    ])
-    preprocessor.fit(train_panel[feature_cols])
-    X_test = preprocessor.transform(test_panel[feature_cols])
+    scaler = StandardScaler()
+    imputer = SimpleImputer(strategy='median')
+    X_train = scaler.fit_transform(imputer.fit_transform(train_panel[f_cols]))
+    X_test = scaler.transform(imputer.transform(test_panel[f_cols]))
     y_test = test_panel['event'].values
     
     plt.figure(figsize=(8, 6))
     plt.plot([0, 1], [0, 1], "k:", label="Perfekt kalibriert")
     
-    # 1. Extended Logistic Hazard Delta
-    lh_model_path = data_dir / "models" / "extended_logistic_hazard_delta.keras"
-    if lh_model_path.exists():
-        lh_model = tf.keras.models.load_model(lh_model_path)
-        y_prob_lh = lh_model.predict(X_test, verbose=0).flatten()
-        prob_true_lh, prob_pred_lh = calibration_curve(y_test, y_prob_lh, n_bins=10)
-        brier_lh = brier_score_loss(y_test, y_prob_lh)
-        plt.plot(prob_pred_lh, prob_true_lh, "s-", label=f"Logistic Hazard Delta (Brier={brier_lh:.4f})")
-        print(f"Logistic Hazard Delta Brier Score: {brier_lh:.4f}")
+    metrics = {}
+    
+    # 1. Extended Logistic Hazard
+    for name in ["extended_logistic_hazard_prev.keras", "extended_logistic_hazard_cum.keras", "extended_logistic_hazard_delta.keras", "extended_logistic_hazard.keras"]:
+        lh_model_path = data_dir / "models" / name
+        if lh_model_path.exists():
+            try:
+                lh_model = tf.keras.models.load_model(lh_model_path, custom_objects={'masked_binary_crossentropy': masked_binary_crossentropy})
+                if lh_model.input_shape[-1] == X_test.shape[1]:
+                    y_prob_lh = lh_model.predict(X_test, verbose=0).flatten()
+                    prob_true_lh, prob_pred_lh = calibration_curve(y_test, y_prob_lh, n_bins=10)
+                    brier_lh = brier_score_loss(y_test, y_prob_lh)
+                    plt.plot(prob_pred_lh, prob_true_lh, "s-", label=f"Logistic Hazard ({name.replace('.keras', '')}, Brier={brier_lh:.4f})")
+                    print(f"Logistic Hazard Brier Score ({name}): {brier_lh:.4f}")
+                    metrics[f"Brier_{name.replace('.keras', '')}"] = float(brier_lh)
+                    break
+            except Exception as e:
+                print(f"Fehler bei {name}: {e}")
 
-    # 2. Dynamic DeepHit Delta (Dropout / Event 1)
-    dh_model_path = data_dir / "models" / "dynamic_deephit_delta.keras"
-    if dh_model_path.exists():
-        try:
-            dh_model = tf.keras.models.load_model(dh_model_path)
-            dh_preds = dh_model.predict(X_test, verbose=0)
-            if isinstance(dh_preds, list):
-                y_prob_dh = dh_preds[0].flatten()
-            else:
-                y_prob_dh = dh_preds[:, 0]
-                
-            prob_true_dh, prob_pred_dh = calibration_curve(y_test, y_prob_dh, n_bins=10)
-            brier_dh = brier_score_loss(y_test, y_prob_dh)
-            plt.plot(prob_pred_dh, prob_true_dh, "o-", label=f"DeepHit Delta (Brier={brier_dh:.4f})")
-            print(f"DeepHit Delta (Dropout) Brier Score: {brier_dh:.4f}")
-        except Exception as e:
-            print(f"DeepHit Kalibrierungskurve übersprungen: {e}")
+    # 2. Dynamic DeepHit (Dropout / Event 1)
+    for name in ["dynamic_deephit_prev.keras", "dynamic_deephit_cum.keras", "dynamic_deephit_delta.keras", "dynamic_deephit.keras"]:
+        dh_model_path = data_dir / "models" / name
+        if dh_model_path.exists():
+            try:
+                dh_model = tf.keras.models.load_model(dh_model_path)
+                studis_dh, X_seq_dh, y_seq_dh, _, _, _ = fb.build_semester_sequence_tensor(data_dir, mode='standard', temporal='prev', target_type='competing_risks')
+                test_idx = np.where(np.isin(studis_dh, test_ids))[0]
+                X_test_dh = X_seq_dh[test_idx]
+                y_test_dh = y_seq_dh[test_idx, :, 0].flatten()
+                valid_m = (y_test_dh != PADDING_VALUE)
+                dh_preds = dh_model.predict(X_test_dh, verbose=0)
+                if isinstance(dh_preds, list):
+                    y_prob_dh = dh_preds[0].flatten()
+                else:
+                    y_prob_dh = dh_preds[:, :, 0].flatten()
+                y_prob_dh_v = y_prob_dh[valid_m]
+                y_true_dh_v = y_test_dh[valid_m]
+                prob_true_dh, prob_pred_dh = calibration_curve(y_true_dh_v, y_prob_dh_v, n_bins=10)
+                brier_dh = brier_score_loss(y_true_dh_v, y_prob_dh_v)
+                plt.plot(prob_pred_dh, prob_true_dh, "o-", label=f"DeepHit ({name.replace('.keras', '')}, Brier={brier_dh:.4f})")
+                print(f"DeepHit Brier Score ({name}): {brier_dh:.4f}")
+                metrics[f"Brier_{name.replace('.keras', '')}"] = float(brier_dh)
+                break
+            except Exception as e:
+                print(f"DeepHit Kalibrierungskurve übersprungen: {e}")
 
     plt.xlabel("Vorhergesagte Abbruchwahrscheinlichkeit")
     plt.ylabel("Tatsächlicher Anteil Abbrüche")
@@ -115,12 +125,11 @@ def main(data_dir=None):
     plt.close()
     
     print(f"Kalibrierungsdiagramm erfolgreich gespeichert unter: {out_plot}")
-    
-    metrics = {}
-    if 'brier_lh' in locals(): metrics["Brier_Logistic_Hazard_Delta"] = float(brier_lh)
-    if 'brier_dh' in locals(): metrics["Brier_DeepHit_Delta"] = float(brier_dh)
-    if 'brier_rnn' in locals(): metrics["Brier_Recurrent_Delta"] = float(brier_rnn)
     save_metrics("calibration_analysis", metrics, data_dir)
 
 if __name__ == '__main__':
-    main()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data_dir', type=str, default=None)
+    args = parser.parse_args()
+    main(data_dir=args.data_dir)

@@ -1,0 +1,9 @@
+{
+    "model_type": "timeseries_semester_transformer_cum_standard",
+    "temporal": "cum",
+    "mode": "standard",
+    "R2": 0.9889852508145556,
+    "RMSE": 0.06283466548489212,
+    "MAE": 0.04515963326417552,
+    "MSE": 0.003948195186598294
+}

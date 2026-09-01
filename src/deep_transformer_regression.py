@@ -227,10 +227,11 @@ def train_deep_transformer_models(data_dir: Path = Path('src/output_dl'),
         "Deep_Exam_Survival_ROC_AUC": auc_sv,
         "Deep_Exam_Survival_PR_AUC": pr_auc_sv
     }
-    save_metrics("deep_transformer_benchmark", metrics_dict, base_dir)
-    save_keras_model(m_sem_reg, "deep_semester_transformer_regressor", base_dir)
-    save_keras_model(m_ex_reg, "deep_exam_transformer_regressor", base_dir)
-    save_keras_model(m_sv, "deep_exam_transformer_survival", base_dir)
+    bench_name = f"deep_transformer_benchmark_{temporal}_{mode}" if (temporal != 'prev' or mode != 'standard') else "deep_transformer_benchmark"
+    save_metrics(bench_name, metrics_dict, base_dir)
+    save_keras_model(m_sem_reg, f"deep_semester_transformer_regressor_{mode}" if mode != 'standard' else "deep_semester_transformer_regressor", base_dir)
+    save_keras_model(m_ex_reg, f"deep_exam_transformer_regressor_{mode}" if mode != 'standard' else "deep_exam_transformer_regressor", base_dir)
+    save_keras_model(m_sv, f"deep_exam_transformer_survival_{mode}" if mode != 'standard' else "deep_exam_transformer_survival", base_dir)
 
     print(f"\n[OK] Deep Transformer Suite erfolgreich abgeschlossen.")
     return metrics_dict

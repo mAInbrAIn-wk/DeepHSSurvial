@@ -192,8 +192,8 @@ def train_extended_deep_survival(data_dir: Path = Path('src/output_dl'),
     # METRICS LOGGING & MODEL SAVING
     # -------------------------------------------------------------------------
     base_dir = data_dir
-    ds_name = f"extended_deepsurv_{temporal}"
-    lh_name = f"extended_logistic_hazard_{temporal}"
+    ds_name = f"extended_deepsurv_{temporal}_{mode}"
+    lh_name = f"extended_logistic_hazard_{temporal}_{mode}"
 
     metrics_ds = {
         "model_type": ds_name,
@@ -208,8 +208,10 @@ def train_extended_deep_survival(data_dir: Path = Path('src/output_dl'),
     plot_roc_curve(test_panel[target_col], test_risk, ds_name, base_dir)
     plot_pr_curve(test_panel[target_col], test_risk, ds_name, base_dir)
 
-    # Abwärtskompatible Keys für Standard-Delta-Pipelines
-    if temporal == 'prev':
+    # Abwärtskompatible Standard-Modellnamen
+    save_metrics(f"extended_deepsurv_{temporal}", metrics_ds, base_dir)
+    save_keras_model(deepsurv, f"extended_deepsurv_{temporal}", base_dir)
+    if temporal == 'prev' and mode == 'standard':
         save_metrics("extended_deepsurv_delta", metrics_ds, base_dir)
         save_keras_model(deepsurv, "extended_deepsurv_delta", base_dir)
 
@@ -227,7 +229,9 @@ def train_extended_deep_survival(data_dir: Path = Path('src/output_dl'),
     plot_roc_curve(test_panel[target_col], test_h_pred, lh_name, base_dir)
     plot_pr_curve(test_panel[target_col], test_h_pred, lh_name, base_dir)
 
-    if temporal == 'prev':
+    save_metrics(f"extended_logistic_hazard_{temporal}", metrics_dtl, base_dir)
+    save_keras_model(dtl_hazard, f"extended_logistic_hazard_{temporal}", base_dir)
+    if temporal == 'prev' and mode == 'standard':
         save_metrics("extended_logistic_hazard_delta", metrics_dtl, base_dir)
         save_keras_model(dtl_hazard, "extended_logistic_hazard_delta", base_dir)
 

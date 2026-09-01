@@ -1,4 +1,4 @@
-﻿"""
+"""
 Fast Core Suite Runner (V4.1)
 =============================
 Fuehrt alle leichten und mittelschweren Modellklassen sowie saemtliche
@@ -127,29 +127,21 @@ def run_fast_suite(data_dir: Path, temporal: str = 'prev', modes: list = None, p
         tracker.run_step(f"Timeseries Exam GRU [{mode}]", lambda m=mode: __import__('timeseries_exam').train_timeseries_exam(data_dir, 40, temporal, m))
         tracker.run_step(f"Timeseries Exam Transformer [{mode}]", lambda m=mode: __import__('timeseries_exam_transformer').train_timeseries_exam_transformer(data_dir, 40, temporal, m))
 
-    # 2. SCHNELLE SPEZIAL- & DELTA-MODELLE
-    print(f"\n{'='*80}\n   FAST SUITE -> DELTA- UND STATISTISCHE SPEZIALMODELLE\n{'='*80}")
+    # 2. SCHNELLE SPEZIAL- & DIAGNOSE-MODELLE
+    print(f"\n{'='*80}\n   FAST SUITE -> SPEZIAL- UND STATISTISCHE DIAGNOSEMODELLE\n{'='*80}")
     tracker.run_step("Oracle Models (Lift Analysis)", lambda: __import__('train_oracle_models').train_oracle_models(data_dir, temporal))
     tracker.run_step("DSGVO Realistic Models", lambda: __import__('train_erwerb_blind_models').train_erwerb_blind_models(data_dir, temporal))
     tracker.run_step("Strukturelle Mediationsanalyse", lambda: __import__('structural_mediation_analysis').run_structural_mediation_analysis(data_dir))
     tracker.run_step("Deep Survival Landmark (LH & DS)", lambda: __import__('deep_survival').train_deep_survival(data_dir=data_dir))
-    tracker.run_step("Dynamic DeepHit Delta Model", lambda: __import__('dynamic_deephit_delta_model').train_dynamic_deephit_delta_model(data_dir, temporal=temporal))
-    tracker.run_step("Extended Deep Survival Delta", lambda: __import__('extended_deep_survival_delta').train_extended_deep_survival_delta(data_dir, temporal=temporal))
-    tracker.run_step("Extended Exam Survival", lambda: __import__('extended_exam_survival').train_extended_exam_survival(data_dir, temporal=temporal))
-    tracker.run_step("Extended Cox Delta", lambda: __import__('extended_cox_delta').fit_extended_cox_delta(__import__('extended_cox_delta').build_delta_panel(data_dir), data_dir))
-    tracker.run_step("Recurrent Survival Model Delta", lambda: __import__('recurrent_survival_model_delta').train_recurrent_survival_model_delta(data_dir, temporal=temporal))
-    tracker.run_step("Recurrent Exam Survival Delta", lambda: __import__('recurrent_exam_survival_delta').train_recurrent_exam_survival_delta(data_dir, temporal=temporal))
-    tracker.run_step("Recurrent Exam Survival V2", lambda: __import__('recurrent_exam_survival_v2').train_recurrent_exam_survival_v2(data_dir, temporal=temporal))
     tracker.run_step("Plot Calibration Curves", lambda: __import__('plot_calibration_curves').main(data_dir=data_dir))
-    tracker.run_step("Feature Grid Experiments", lambda: __import__('run_feature_grid_experiments').main(data_dir=data_dir))
+    tracker.run_step("Feature Grid Experiments (Cross-Mode)", lambda: __import__('run_feature_grid_experiments').main(data_dir=data_dir))
 
     # 3. KONTRAFAKTISCHE INFERENZ-SUITE (VOLLSTAENDIG & AUTARK)
     print(f"\n{'='*80}\n   FAST SUITE -> KONTRAFAKTISCHE INFERENZ-SUITE\n{'='*80}")
-    tracker.run_step("Counterfactual HR Delta", lambda: __import__('counterfactual_hr_delta').analyze_counterfactual_hr_delta(data_dir))
-    tracker.run_step("Counterfactual RR Logistic Hazard Delta", lambda: __import__('counterfactual_rr_logistic_hazard_delta').analyze_counterfactual_rr_logistic_hazard_delta(data_dir))
-    tracker.run_step("Counterfactual RR DeepHit Delta", lambda: __import__('counterfactual_rr_deephit_delta').main(data_dir=data_dir))
-    tracker.run_step("Counterfactual Inference Semester Transformer", lambda: __import__('counterfactual_inference_semester_transformer').run_counterfactual_transformer(data_dir=data_dir))
-    tracker.run_step("Counterfactual RR Exam RNN Delta", lambda: __import__('counterfactual_rr_exam_rnn_delta').main(data_dir=data_dir))
+    tracker.run_step("Counterfactual HR Analyzer (Extended Cox/Panel)", lambda: __import__('counterfactual_hr_analyzer').analyze_counterfactual_hr(data_dir))
+    tracker.run_step("Counterfactual DeepHit Competing Risks", lambda: __import__('counterfactual_deephit_fixed').main(data_dir=data_dir))
+    tracker.run_step("Counterfactual Grade Transformer", lambda: __import__('counterfactual_grade_transformer').main(data_dir=data_dir))
+    tracker.run_step("Counterfactual Oracle Logistic Hazard", lambda: __import__('counterfactual_oracle_logistic_hazard').main(data_dir=data_dir))
 
     tracker.export_report(data_dir)
     total_elapsed = time.time() - total_t0

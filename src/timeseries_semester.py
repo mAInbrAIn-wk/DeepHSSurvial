@@ -123,7 +123,7 @@ def train_timeseries_semester(data_dir: Path = Path('src/output_dl'),
 
     # Logging
     base_dir = data_dir
-    model_name = f"timeseries_semester_lstm_{temporal}" if temporal != 'prev' else "timeseries_semester_lstm"
+    model_name = f"timeseries_semester_lstm_{temporal}_{mode}" if (temporal != 'prev' or mode != 'standard') else "timeseries_semester_lstm"
 
     metrics_dict = {
         "model_type": model_name,

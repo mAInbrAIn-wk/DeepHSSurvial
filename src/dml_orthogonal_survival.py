@@ -190,7 +190,7 @@ def train_dml_orthogonal_survival(data_dir: Path = Path('src/output_dl'),
 
     # Logging
     base_dir = data_dir
-    model_name = f"dml_orthogonal_survival_{temporal}" if temporal != 'prev' else "dml_orthogonal_survival"
+    model_name = f"dml_orthogonal_survival_{temporal}_{mode}" if (temporal != 'prev' or mode != 'standard') else "dml_orthogonal_survival"
 
     metrics_dict = {
         "model_type": model_name,

@@ -6,7 +6,10 @@ import pandas as pd
 from pathlib import Path
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from xgboost import XGBClassifier, XGBRegressor
+try:
+    from xgboost import XGBClassifier, XGBRegressor
+except Exception:
+    from sklearn.ensemble import HistGradientBoostingClassifier as XGBClassifier, HistGradientBoostingRegressor as XGBRegressor
 from sklearn.metrics import r2_score, accuracy_score, classification_report, roc_auc_score
 import tensorflow as tf
 from tensorflow.keras.models import load_model, Model

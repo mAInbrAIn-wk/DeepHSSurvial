@@ -1,0 +1,13 @@
+# Metriken: dml_orthogonal_survival_cum_standard
+
+| Metrik | Wert |
+| :--- | :---: |
+| **model_type** | dml_orthogonal_survival_cum_standard |
+| **temporal** | cum |
+| **mode** | standard |
+| **ROC-AUC_Panel** | 0.8360 |
+| **PR-AUC_Panel** | 0.2691 |
+| **Brier_Score** | 0.0342 |
+| **fach** | {'partial': {'mean_rr': 1.0277456045150757, 'median_rr': 1.0277456045150757, 'ate': 0.0012139853788539767}, 'isolated': {'mean_rr': 1.0294733047485352, 'median_rr': 1.0294733047485352, 'ate': 0.0012993516866117716}} |
+| **uebf** | {'partial': {'mean_rr': 0.9634601473808289, 'median_rr': 0.9634601473808289, 'ate': -0.001617496833205223}, 'isolated': {'mean_rr': 0.9635837078094482, 'median_rr': 0.9635837078094482, 'ate': -0.001605226076208055}} |
+| **psych** | {'partial': {'mean_rr': 0.9869422316551208, 'median_rr': 0.9869422316551208, 'ate': -0.0005761520587839186}, 'isolated': {'mean_rr': 0.9849932193756104, 'median_rr': 0.9849932193756104, 'ate': -0.0006614403100684285}} |

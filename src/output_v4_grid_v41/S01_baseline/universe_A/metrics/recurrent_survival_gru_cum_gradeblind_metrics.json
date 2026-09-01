@@ -1,0 +1,9 @@
+{
+    "model_type": "recurrent_survival_gru_cum_gradeblind",
+    "temporal": "cum",
+    "mode": "gradeblind",
+    "ROC-AUC_Semester": 0.8158628521853322,
+    "PR-AUC_Semester": 0.27077866654114124,
+    "Brier_Score": 0.03519613668322563,
+    "ROC-AUC_Student": 0.3033261411325466
+}

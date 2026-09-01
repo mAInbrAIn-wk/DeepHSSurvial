@@ -1,0 +1,449 @@
+{
+    "semester_gru": {
+        "standard": {
+            "n_features": 18,
+            "roc_auc": 0.811314523437481,
+            "pr_auc": 0.2740861995556334,
+            "brier_score": 0.03521818667650223,
+            "counterfactual": {
+                "fach_partial": {
+                    "mean_rr": 1.0140762329101562,
+                    "median_rr": 1.0184272527694702
+                },
+                "fach_isolated": {
+                    "mean_rr": 1.0127135515213013,
+                    "median_rr": 1.0186080932617188
+                },
+                "uebf_partial": {
+                    "mean_rr": 1.0033842325210571,
+                    "median_rr": 1.0047329664230347
+                },
+                "uebf_isolated": {
+                    "mean_rr": 1.0030678510665894,
+                    "median_rr": 1.004504680633545
+                },
+                "psych_partial": {
+                    "mean_rr": 1.006932020187378,
+                    "median_rr": 1.0108978748321533
+                },
+                "psych_isolated": {
+                    "mean_rr": 1.0067064762115479,
+                    "median_rr": 1.0103328227996826
+                }
+            }
+        },
+        "gradeblind": {
+            "n_features": 17,
+            "roc_auc": 0.8119047725253206,
+            "pr_auc": 0.2676121473227621,
+            "brier_score": 0.03541352227330208,
+            "counterfactual": {
+                "fach_partial": {
+                    "mean_rr": 1.0169991254806519,
+                    "median_rr": 1.0219998359680176
+                },
+                "fach_isolated": {
+                    "mean_rr": 1.0159862041473389,
+                    "median_rr": 1.0212064981460571
+                },
+                "uebf_partial": {
+                    "mean_rr": 1.0148029327392578,
+                    "median_rr": 1.0138366222381592
+                },
+                "uebf_isolated": {
+                    "mean_rr": 1.014532208442688,
+                    "median_rr": 1.0142157077789307
+                },
+                "psych_partial": {
+                    "mean_rr": 1.0118941068649292,
+                    "median_rr": 1.011258602142334
+                },
+                "psych_isolated": {
+                    "mean_rr": 1.012375831604004,
+                    "median_rr": 1.0117462873458862
+                }
+            }
+        },
+        "blind": {
+            "n_features": 13,
+            "roc_auc": 0.7814759809556575,
+            "pr_auc": 0.17190330901213896,
+            "brier_score": 0.037809617817401886,
+            "counterfactual": {
+                "fach_partial": {
+                    "mean_rr": 1.0223790407180786,
+                    "median_rr": 1.0205190181732178
+                },
+                "fach_isolated": {
+                    "mean_rr": 1.0231651067733765,
+                    "median_rr": 1.021665096282959
+                },
+                "uebf_partial": {
+                    "mean_rr": 1.0883221626281738,
+                    "median_rr": 1.0595321655273438
+                },
+                "uebf_isolated": {
+                    "mean_rr": 1.0890798568725586,
+                    "median_rr": 1.0616722106933594
+                },
+                "psych_partial": {
+                    "mean_rr": 1.0489475727081299,
+                    "median_rr": 1.0542335510253906
+                },
+                "psych_isolated": {
+                    "mean_rr": 1.0480018854141235,
+                    "median_rr": 1.0526906251907349
+                }
+            }
+        },
+        "oracle": {
+            "n_features": 23,
+            "roc_auc": 0.8117940324226445,
+            "pr_auc": 0.2695147053845196,
+            "brier_score": 0.035395365208387375,
+            "counterfactual": {
+                "fach_partial": {
+                    "mean_rr": 1.020438313484192,
+                    "median_rr": 1.0242937803268433
+                },
+                "fach_isolated": {
+                    "mean_rr": 1.020933985710144,
+                    "median_rr": 1.025111436843872
+                },
+                "uebf_partial": {
+                    "mean_rr": 1.0047253370285034,
+                    "median_rr": 0.9906018972396851
+                },
+                "uebf_isolated": {
+                    "mean_rr": 1.004998803138733,
+                    "median_rr": 0.9899461269378662
+                },
+                "psych_partial": {
+                    "mean_rr": 1.0284714698791504,
+                    "median_rr": 1.0089199542999268
+                },
+                "psych_isolated": {
+                    "mean_rr": 1.0301510095596313,
+                    "median_rr": 1.0089349746704102
+                }
+            }
+        },
+        "realistic": {
+            "n_features": 14,
+            "roc_auc": 0.8079610774444022,
+            "pr_auc": 0.2673572269254696,
+            "brier_score": 0.03534463047981262,
+            "counterfactual": {
+                "fach_partial": {
+                    "mean_rr": 1.0039739608764648,
+                    "median_rr": 0.9886254072189331
+                },
+                "fach_isolated": {
+                    "mean_rr": 1.0057471990585327,
+                    "median_rr": 0.9904567003250122
+                },
+                "uebf_partial": {
+                    "mean_rr": 1.0207420587539673,
+                    "median_rr": 1.0056830644607544
+                },
+                "uebf_isolated": {
+                    "mean_rr": 1.022733211517334,
+                    "median_rr": 1.0062587261199951
+                },
+                "psych_partial": {
+                    "mean_rr": null,
+                    "median_rr": null
+                },
+                "psych_isolated": {
+                    "mean_rr": null,
+                    "median_rr": null
+                }
+            }
+        }
+    },
+    "semester_transformer": {
+        "standard": {
+            "n_features": 18,
+            "roc_auc": 0.8173991430428271,
+            "pr_auc": 0.28555721026696673,
+            "brier_score": 0.03491486608982086,
+            "counterfactual": {
+                "fach_partial": {
+                    "mean_rr": 0.9995517730712891,
+                    "median_rr": 1.0107181072235107
+                },
+                "fach_isolated": {
+                    "mean_rr": 0.9995024800300598,
+                    "median_rr": 1.0112318992614746
+                },
+                "uebf_partial": {
+                    "mean_rr": 1.0009195804595947,
+                    "median_rr": 0.9940393567085266
+                },
+                "uebf_isolated": {
+                    "mean_rr": 1.0005336999893188,
+                    "median_rr": 0.9937679767608643
+                },
+                "psych_partial": {
+                    "mean_rr": 1.0029064416885376,
+                    "median_rr": 1.004421353340149
+                },
+                "psych_isolated": {
+                    "mean_rr": 1.0028290748596191,
+                    "median_rr": 1.0045480728149414
+                }
+            }
+        },
+        "gradeblind": {
+            "n_features": 17,
+            "roc_auc": 0.8174638037741162,
+            "pr_auc": 0.2874022669678438,
+            "brier_score": 0.034892503172159195,
+            "counterfactual": {
+                "fach_partial": {
+                    "mean_rr": 1.0014910697937012,
+                    "median_rr": 1.0063332319259644
+                },
+                "fach_isolated": {
+                    "mean_rr": 1.000939130783081,
+                    "median_rr": 1.0059677362442017
+                },
+                "uebf_partial": {
+                    "mean_rr": 1.0024893283843994,
+                    "median_rr": 0.990179181098938
+                },
+                "uebf_isolated": {
+                    "mean_rr": 1.0021743774414062,
+                    "median_rr": 0.9900225400924683
+                },
+                "psych_partial": {
+                    "mean_rr": 1.0006277561187744,
+                    "median_rr": 1.0145034790039062
+                },
+                "psych_isolated": {
+                    "mean_rr": 1.0001459121704102,
+                    "median_rr": 1.0143733024597168
+                }
+            }
+        },
+        "blind": {
+            "n_features": 13,
+            "roc_auc": 0.7856003363558611,
+            "pr_auc": 0.19682195745336417,
+            "brier_score": 0.03723598271608353,
+            "counterfactual": {
+                "fach_partial": {
+                    "mean_rr": 1.0269464254379272,
+                    "median_rr": 1.0349020957946777
+                },
+                "fach_isolated": {
+                    "mean_rr": 1.0279240608215332,
+                    "median_rr": 1.0356823205947876
+                },
+                "uebf_partial": {
+                    "mean_rr": 1.0334711074829102,
+                    "median_rr": 1.0017913579940796
+                },
+                "uebf_isolated": {
+                    "mean_rr": 1.0346107482910156,
+                    "median_rr": 1.0019309520721436
+                },
+                "psych_partial": {
+                    "mean_rr": 1.0076404809951782,
+                    "median_rr": 1.0274677276611328
+                },
+                "psych_isolated": {
+                    "mean_rr": 1.0078157186508179,
+                    "median_rr": 1.027383804321289
+                }
+            }
+        },
+        "oracle": {
+            "n_features": 23,
+            "roc_auc": 0.8143745741906371,
+            "pr_auc": 0.28817417916576793,
+            "brier_score": 0.03492565453052521,
+            "counterfactual": {
+                "fach_partial": {
+                    "mean_rr": 1.0088889598846436,
+                    "median_rr": 1.020019769668579
+                },
+                "fach_isolated": {
+                    "mean_rr": 1.0092693567276,
+                    "median_rr": 1.0196495056152344
+                },
+                "uebf_partial": {
+                    "mean_rr": 1.0004242658615112,
+                    "median_rr": 0.995833158493042
+                },
+                "uebf_isolated": {
+                    "mean_rr": 0.9999245405197144,
+                    "median_rr": 0.9955099821090698
+                },
+                "psych_partial": {
+                    "mean_rr": 1.0068937540054321,
+                    "median_rr": 1.007727861404419
+                },
+                "psych_isolated": {
+                    "mean_rr": 1.0067354440689087,
+                    "median_rr": 1.0073907375335693
+                }
+            }
+        },
+        "realistic": {
+            "n_features": 14,
+            "roc_auc": 0.8145783319160429,
+            "pr_auc": 0.28599981484183284,
+            "brier_score": 0.034898437559604645,
+            "counterfactual": {
+                "fach_partial": {
+                    "mean_rr": 1.0024124383926392,
+                    "median_rr": 1.010690689086914
+                },
+                "fach_isolated": {
+                    "mean_rr": 1.0021119117736816,
+                    "median_rr": 1.0105695724487305
+                },
+                "uebf_partial": {
+                    "mean_rr": 0.9954178333282471,
+                    "median_rr": 0.994178831577301
+                },
+                "uebf_isolated": {
+                    "mean_rr": 0.9951659440994263,
+                    "median_rr": 0.9939938187599182
+                },
+                "psych_partial": {
+                    "mean_rr": null,
+                    "median_rr": null
+                },
+                "psych_isolated": {
+                    "mean_rr": null,
+                    "median_rr": null
+                }
+            }
+        }
+    },
+    "panel_models": {
+        "cox": {
+            "standard": {
+                "n_features": 16,
+                "hr_fach": 1.089889645259162,
+                "hr_uebf": 1.027996667996206,
+                "hr_psych": 1.0233164217054735
+            },
+            "gradeblind": {
+                "n_features": 15,
+                "hr_fach": 1.11962628422603,
+                "hr_uebf": 1.0344489038626978,
+                "hr_psych": 1.0287623255108496
+            },
+            "blind": {
+                "n_features": 12,
+                "hr_fach": 1.1147817179776114,
+                "hr_uebf": 1.0510690456847758,
+                "hr_psych": 1.038448746224381
+            },
+            "oracle": {
+                "n_features": 21,
+                "hr_fach": 1.0596068414436188,
+                "hr_uebf": 1.0036714617689548,
+                "hr_psych": 0.9956465170434774
+            },
+            "realistic": {
+                "n_features": 12,
+                "hr_fach": 1.0230956566783271,
+                "hr_uebf": 1.0188686686620423,
+                "hr_psych": null
+            }
+        },
+        "hazard": {
+            "standard": {
+                "n_features": 16,
+                "roc_auc": 0.795760682367268,
+                "pr_auc": 0.19100242771336262,
+                "brier_score": 0.03645306080579758,
+                "counterfactual": {
+                    "fach": 0.9953606128692627,
+                    "uebf": 1.0069866180419922,
+                    "psych": 0.9923822283744812
+                }
+            },
+            "gradeblind": {
+                "n_features": 15,
+                "roc_auc": 0.7925830817460144,
+                "pr_auc": 0.188619637270307,
+                "brier_score": 0.036516930907964706,
+                "counterfactual": {
+                    "fach": 0.9975361824035645,
+                    "uebf": 1.0010404586791992,
+                    "psych": 0.9997732639312744
+                }
+            },
+            "blind": {
+                "n_features": 12,
+                "roc_auc": 0.7768071797501188,
+                "pr_auc": 0.13739124560787108,
+                "brier_score": 0.03745555877685547,
+                "counterfactual": {
+                    "fach": 1.004920482635498,
+                    "uebf": 0.9859347343444824,
+                    "psych": 0.9827635884284973
+                }
+            },
+            "oracle": {
+                "n_features": 21,
+                "roc_auc": 0.8015887309112845,
+                "pr_auc": 0.20694595507582958,
+                "brier_score": 0.036027636379003525,
+                "counterfactual": {
+                    "fach": 0.9971375465393066,
+                    "uebf": 0.9934427738189697,
+                    "psych": 0.9906270503997803
+                }
+            },
+            "realistic": {
+                "n_features": 12,
+                "roc_auc": 0.7757675282006875,
+                "pr_auc": 0.177581611351554,
+                "brier_score": 0.03676137700676918,
+                "counterfactual": {
+                    "fach": 0.9906797409057617,
+                    "uebf": 0.9769678115844727,
+                    "psych": null
+                }
+            }
+        }
+    },
+    "exam_gru": {
+        "standard": {
+            "n_features": 24,
+            "roc_auc": 0.8932575040980817,
+            "pr_auc": 0.191103098670721,
+            "brier_score": 0.015159083530306816
+        },
+        "gradeblind": {
+            "n_features": 23,
+            "roc_auc": 0.8959437462257391,
+            "pr_auc": 0.19714800632262686,
+            "brier_score": 0.015103988349437714
+        },
+        "blind": {
+            "n_features": 20,
+            "roc_auc": 0.8878733448590223,
+            "pr_auc": 0.16262776328751405,
+            "brier_score": 0.015463552437722683
+        },
+        "oracle": {
+            "n_features": 29,
+            "roc_auc": 0.9116380505963191,
+            "pr_auc": 0.2850320558499563,
+            "brier_score": 0.014046178199350834
+        },
+        "realistic": {
+            "n_features": 18,
+            "roc_auc": 0.8890357599371495,
+            "pr_auc": 0.18914347604514092,
+            "brier_score": 0.015182225033640862
+        }
+    }
+}

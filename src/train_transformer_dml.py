@@ -214,7 +214,7 @@ def train_transformer_dml(data_dir: Path = Path('src/output_dl'),
 
     # Logging
     base_dir = data_dir
-    model_name = f"transformer_dml_{temporal}" if temporal != 'prev' else "transformer_dml"
+    model_name = f"transformer_dml_{temporal}_{mode}" if (temporal != 'prev' or mode != 'standard') else "transformer_dml"
 
     metrics_dict = {
         "model_type": model_name,
