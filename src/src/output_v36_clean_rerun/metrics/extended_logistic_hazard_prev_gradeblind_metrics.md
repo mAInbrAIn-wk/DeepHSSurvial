@@ -1,4 +1,4 @@
-# Metriken: extended_logistic_hazard_prev
+# Metriken: extended_logistic_hazard_prev_gradeblind
 
 | Metrik | Wert |
 | :--- | :---: |

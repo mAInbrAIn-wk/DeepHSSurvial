@@ -1,4 +1,4 @@
-# Metriken: extended_deepsurv_prev
+# Metriken: extended_deepsurv_prev_gradeblind
 
 | Metrik | Wert |
 | :--- | :---: |
