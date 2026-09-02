@@ -1,0 +1,138 @@
+"""
+Counterfactual Inference Wrapper für Semester-Transformer Survival
+==================================================================
+Lädt das Semester-Level Transformer Survival Modell (transformer_survival.keras)
+und berechnet die Counterfactual Hazard Ratio für fachlichen Support.
+"""
+
+import os
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+from pathlib import Path
+import numpy as np
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+from recurrent_survival_model import build_recurrent_survival_dataset, masked_binary_crossentropy, PADDING_VALUE
+from transformer_survival_model import PositionalEncoding
+
+from metrics_logger import save_metrics
+
+def run_counterfactual_transformer(data_dir=None):
+    print("Starte Counterfactual Inference für Transformer (Semester-Ebene)...")
+    
+    if data_dir is not None:
+        data_dir = Path(data_dir)
+    elif os.environ.get('DATA_DIR'):
+        data_dir = Path(os.environ['DATA_DIR'])
+    else:
+        data_dir = Path('output_dl') if (Path('output_dl/models/transformer_survival.keras').exists() or Path('output_dl/agg_abschluesse.csv').exists()) else Path('../output_dl')
+    
+    model_path = data_dir / 'models' / 'transformer_survival.keras'
+    if not model_path.exists():
+        model_path = data_dir / 'transformer_survival.keras'
+    if not model_path.exists():
+        model_path = Path('../output_dl/models/transformer_survival.keras')
+    if not model_path.exists():
+        model_path = Path('output_dl/transformer_survival.keras')
+    
+    if not model_path.exists():
+        print(f"Modell nicht gefunden: {model_path}")
+        return
+        
+    custom_obj = {
+        'masked_binary_crossentropy': masked_binary_crossentropy,
+        'PositionalEncoding': PositionalEncoding
+    }
+    
+    model = tf.keras.models.load_model(model_path, custom_objects=custom_obj)
+    
+    # 8 Features: [sem_gpa, sem_cp, sem_fails, fach_count, uebf_count, psych_count, hzb_note, erwerb_std]
+    studis, X_seq, y_seq, studi_events = build_recurrent_survival_dataset(data_dir, max_semesters=16)
+    N, K_max, F = X_seq.shape
+    
+    train_idx, temp_idx, _, y_temp_event = train_test_split(
+        np.arange(N), studi_events, test_size=0.30, random_state=42, stratify=studi_events
+    )
+    val_idx, test_idx, _, _ = train_test_split(
+        temp_idx, y_temp_event, test_size=0.50, random_state=42, stratify=y_temp_event
+    )
+    
+    X_train = X_seq[train_idx].copy()
+    X_test = X_seq[test_idx].copy()
+    
+    scaler = StandardScaler()
+    valid_mask_train = (X_train[:, :, 0] != PADDING_VALUE)
+    scaler.fit(X_train[valid_mask_train])
+    
+    valid_mask_test = (X_test[:, :, 0] != PADDING_VALUE)
+    
+    print("\n==========================================================================")
+    print("   COUNTERFACTUAL INFERENCE (TRANSFORMER - SEMESTER LEVEL - DUAL STRAND)")
+    print("==========================================================================")
+    
+    metrics_all = {}
+    
+    for feat_idx, prefix, label in [
+        (4, 'fach',  'Fachlicher Support'),
+        (5, 'uebf',  'Überfachlicher Support'),
+        (6, 'psych', 'Psychosozialer Support'),
+    ]:
+        # 1. PARTIELL (≙ A vs C/D/E): Ziel-Support 0 vs. beobachtet, andere beobachtet
+        X_c_part = X_test.copy()
+        X_t_part = X_test.copy()
+        X_c_part[valid_mask_test, feat_idx] = 0.0
+        
+        X_c_part[valid_mask_test] = scaler.transform(X_c_part[valid_mask_test])
+        X_t_part[valid_mask_test] = scaler.transform(X_t_part[valid_mask_test])
+        
+        p0_p = model.predict(X_c_part, verbose=0).flatten()[valid_mask_test.flatten()]
+        p1_p = model.predict(X_t_part, verbose=0).flatten()[valid_mask_test.flatten()]
+        hrs_p = p1_p / np.clip(p0_p, 1e-7, 1.0)
+        
+        mean_hr_p   = float(np.mean(hrs_p))
+        median_hr_p = float(np.median(hrs_p))
+        q05_p       = float(np.quantile(hrs_p, 0.05))
+        q95_p       = float(np.quantile(hrs_p, 0.95))
+        
+        # 2. ISOLIERT REALISTISCH (≙ B vs F/G/H): Alle 0 vs. nur Ziel beobachtet, andere 0
+        X_c_iso = X_test.copy()
+        X_t_iso = X_test.copy()
+        X_c_iso[valid_mask_test, 4] = 0.0
+        X_c_iso[valid_mask_test, 5] = 0.0
+        X_c_iso[valid_mask_test, 6] = 0.0
+        
+        X_t_iso[valid_mask_test, 4] = 0.0
+        X_t_iso[valid_mask_test, 5] = 0.0
+        X_t_iso[valid_mask_test, 6] = 0.0
+        X_t_iso[valid_mask_test, feat_idx] = X_test[valid_mask_test, feat_idx] # beobachtete Dosis
+        
+        X_c_iso[valid_mask_test] = scaler.transform(X_c_iso[valid_mask_test])
+        X_t_iso[valid_mask_test] = scaler.transform(X_t_iso[valid_mask_test])
+        
+        p0_i = model.predict(X_c_iso, verbose=0).flatten()[valid_mask_test.flatten()]
+        p1_i = model.predict(X_t_iso, verbose=0).flatten()[valid_mask_test.flatten()]
+        hrs_i = p1_i / np.clip(p0_i, 1e-7, 1.0)
+        
+        mean_hr_i   = float(np.mean(hrs_i))
+        median_hr_i = float(np.median(hrs_i))
+        q05_i       = float(np.quantile(hrs_i, 0.05))
+        q95_i       = float(np.quantile(hrs_i, 0.95))
+        
+        print(f"\n--- {label} ({prefix}) ---")
+        print(f"  PARTIELL:           Mean HR = {mean_hr_p:.4f}, Median HR = {median_hr_p:.4f} [{q05_p:.4f}, {q95_p:.4f}]")
+        print(f"  ISOLIERT (realist): Mean HR = {mean_hr_i:.4f}, Median HR = {median_hr_i:.4f} [{q05_i:.4f}, {q95_i:.4f}]")
+        
+        metrics_all[f"{prefix}_partial"] = {"mean_hr": mean_hr_p, "median_hr": median_hr_p, "q05": q05_p, "q95": q95_p}
+        metrics_all[f"{prefix}_isolated"] = {"mean_hr": mean_hr_i, "median_hr": median_hr_i, "q05": q05_i, "q95": q95_i}
+        
+        # Abwärtskompatible Keys
+        metrics_all[f"Mean_HR_{prefix}"]   = mean_hr_p
+        metrics_all[f"Median_HR_{prefix}"] = median_hr_p
+
+    print("==========================================================================")
+    save_metrics("transformer_survival_counterfactual", metrics_all, data_dir)
+    print("Counterfactual Inference für Semester-Transformer abgeschlossen.")
+
+if __name__ == "__main__":
+    run_counterfactual_transformer()
