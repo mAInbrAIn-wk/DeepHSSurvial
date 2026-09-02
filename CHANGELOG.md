@@ -2,6 +2,22 @@
 
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
+## [Unreleased / V4 Master Refactoring] - 2026-09-02
+### Added
+- **`deepsupport/` Package:** Vollständig modulare Architektur. Alle Keras/Scikit-Modelle wurden isoliert (`src/deepsupport/models/`).
+- **Annotation Tracking Pattern:** Einführung von `docs/07_conversation_logs/` zur transparenten Aufzeichnung von Design-Entscheidungen und User-Prompts.
+- **Git LFS im Archiv:** Das `archive/` Subrepo ist jetzt vollständig auf Git LFS konfiguriert, um große CSV/JSONs effizient zu verwalten.
+
+### Changed
+- **Orchestrierung (`grid_runner.py`):** Massiv gehärtet. Der Runner iteriert nun fehlerfrei über die Cross-Szenarien (`S01` bis `S15`) und trennt I/O streng (`data_root` vs `output_root`), sodass Ground-Truth-Daten nie wieder überschrieben werden.
+- **Metrics Logger:** Keine `0.0`-Imputation mehr! Fehlende Werte werden strikt als `null` getrackt, um fehlerhafte Aggregationen zu unterbinden.
+- **Repository Struktur:** 129 irrelevante Skripte wurden in `legacy_code/` historisiert. Das Projekt-Root-Verzeichnis ist nun 100% sauber.
+
+### Fixed
+- Alle 16 Causal Inference-Skripte wurden an die neuen Modulpfade angepasst (Regex-Massenupsdate der `.keras` Imports).
+- Beseitigung diverser harter Pfade (z.B. `src/output_dl` Fallbacks im `feature_builder.py`).
+
+
 
 ## [V4.1.1 Quality Fixes] — 2026-08-30
 
