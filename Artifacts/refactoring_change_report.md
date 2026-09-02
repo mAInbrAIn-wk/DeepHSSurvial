@@ -1,83 +1,46 @@
-# Änderungsbericht: Codebase Refactoring & Archivierung (Phase 1)
+# Aktualisierter Änderungsbericht: Codebase Refactoring & Archivierung (Phase 1)
 
-Dieser Bericht definiert die exakten Pfade und Zuweisungen für das anstehende Refactoring aller 104 Skripte im `src/`-Verzeichnis. Das Ziel ist eine saubere, modulare Package-Struktur, in der Legacy-Skripte archiviert werden und Runner-Skripte ihrer Namensgebung gerecht werden.
+Deine Einwände sind ein Volltreffer. Ich habe den Code der `metrics_logger.py` und der `run_feature_grid_experiments.py` gerade noch einmal tief analysiert. 
 
-> [!TIP]
-> **Das neue Paradigma: "One Model = One Script + Wrapper"**
-> Auf Deinen Vorschlag hin etablieren wir ein strenges Design-Pattern: Die Skripte in `src/deepsupport/models/` enthalten **nur noch die reine Architektur und einen `train_model(X, y)`-Einstiegspunkt**. Die gesamte Logik rund um Modus-Schleifen (`standard`, `oracle` etc.), das Laden via Feature-Builder und das Logging wird **strikt** in die Runner bzw. Grid-Wrapper ausgelagert. Dadurch werden die Modellskripte universell einsetzbare Bausteine.
+Du hast vollkommen recht: Der Grid-Runner durchbricht aktuell das Paradigma komplett, weil er (auf über 500 Zeilen) die Keras-Architekturen einfach **hartcodiert per Copy-Paste** in sich selbst definiert, anstatt sie aus den Modelldateien zu importieren! Und der Metrics-Logger nimmt einfach dumme Strings (wie `f"{model}_{mode}"`) entgegen, statt die Metadaten sauber zu strukturieren.
 
-## 1. Die neue Verzeichnisstruktur
+Hier ist der entsprechend **gehärtete Plan** für die Umsetzung:
+
+## 1. Das "Strict Wrapper" Paradigma (Der neue Workflow)
 
 ```text
-Abschlussprojekt/
-├── src/deepsupport/
-│   ├── data_engine/     (Datenaggregation & Feature Engineering)
-│   ├── simulation/      (Data Generating Process)
-│   ├── models/          (Die reinen Modellarchitekturen)
-│   ├── evaluation/      (Metriken & Kausal-Inferenz)
-│   └── runners/         (Wrapper, Fast Suite & Heavy Suite)
-├── archive/             (Eingefrorene Legacy- & Einmal-Analysen)
-└── Artifacts/           (Berichte, Dashboards & Registry)
+src/deepsupport/
+├── data_engine/     (feature_builder.py etc.)
+├── models/          (JEDE Architektur hat eine Datei mit `build_model()` und `train()`)
+├── runners/         (Grid-Runner importiert `build_model` und steuert die Schleifen)
+└── evaluation/      (Der NEUE metrics_logger.py)
 ```
 
-## 2. Zuordnung der aktiven Skripte (Verschiebung in Packages)
+## 2. Refactoring der Kern-Komponenten (Deine Punkte)
 
-### A. `src/deepsupport/data_engine/`
-* `feature_builder.py` -> `feature_builder.py`
-* `aggregate.py` -> `aggregate.py`
-* `config.py` -> `config.py`
+### A. Der neue Metrics Logger (`metrics_logger.py`)
+Er wird komplett überarbeitet, um Parameter "durchzureichen", statt sie in Dateinamen-Strings zu verstecken.
+* **Neu:** `save_metrics(architecture_name, mode, dataset_scenario, metrics_dict, base_dir)`
+* Er erzwingt ein **einheitliches JSON-Schema** (immer `roc_auc`, `pr_auc`, `brier` – auch wenn sie 0.0 sind), sodass asymmetrische Daten (wie wir sie bei S01 gesehen haben) künftig unmöglich sind.
 
-### B. `src/deepsupport/simulation/`
-* `simulation_v4.py` -> `engine.py`
-* `run_v4_simulation_grid.py` -> `sensitivity_grid.py`
-* `simulate_universes_fgh.py` -> `simulate_universes_fgh.py`
-* `calculate_true_effect.py` -> `ground_truth.py`
+### B. Reparatur des Grid-Runners (`run_feature_grid_experiments.py`)
+Dieses 500-Zeilen-Skript wird radikal gekürzt. Es darf künftig **keine einzige Keras-Schicht** mehr selbst definieren!
+* **Ablauf künftig:** Der Runner iteriert über `MODES`. Für jeden Modus importiert er z.B. `build_exam_gru()` aus `models/exam_gru.py`, füttert es mit den Feature-Builder-Daten, und übergibt die Ergebnisse an den neuen `metrics_logger`. 
+* So operiert der Grid-Runner wirklich auf einer reinen "Verteiler-Ebene", wie Du es intuitiv gefordert hast.
 
-### C. `src/deepsupport/models/`
-Hier verbleiben **nur die Kernarchitekturen** (und wir trennen sie trennscharf nach Architektur, z.B. GRU vs. Transformer).
-* `train_mlp_baseline.py` & `train_mlp_regression.py` -> `landmark_mlp.py`
-* `extended_cox_survival.py` -> `extended_cox.py`
-* `deep_survival.py` & `extended_deep_survival.py` -> `deep_survival.py`
-* `logistic_hazard_landmark.py` & `extended_logistic_hazard.py` -> `neural_hazard.py`
-* `recurrent_survival_model.py` -> `semester_gru.py`
-* `transformer_survival_model.py` -> `semester_transformer.py`
-* `recurrent_exam_survival.py` -> `exam_gru.py`
-* `transformer_exam_survival.py` -> `exam_transformer.py`
-* `dynamic_deephit_model.py` -> `dynamic_deephit.py`
-* `dml_orthogonal_survival.py` & `train_transformer_dml.py` -> `dml_causal.py`
-* **Trennung der Autoregressiven Modelle:**
-  * `autoregressive_next_exam.py` (RNN/Linear-basiert) -> `autoregressive_gru.py`
-  * `autoregressive_deep_transformer.py` (Attention-basiert) -> `autoregressive_transformer.py`
+### C. Die MLPs / Baselines
+Da Du (völlig richtig) angemerkt hast, dass die scikit-learn Modelle rasend schnell sind, brechen wir diese nicht in 10 Mini-Skripte auf. 
+Wir fassen sie in **`models/baseline_classifiers.py`** und **`models/baseline_regressors.py`** zusammen. Sie stellen Funktionen wie `run_random_forest()`, `run_svm()`, `run_mlp()` bereit, die vom Runner bequem aufgerufen werden können.
 
-### D. `src/deepsupport/evaluation/`
-* `analyze_cross_scenario_models.py` -> `cross_scenario_engine.py`
-* `metrics_logger.py` -> `metrics_logger.py`
-* `audit_data_completeness.py` -> `completeness_auditor.py`
-* `counterfactual_deephit_fixed.py` -> `causal_inference_deephit.py`
-* `counterfactual_hr_analyzer.py` -> `causal_inference_hr.py`
-* `structural_mediation_analysis.py` -> `mediation_analysis.py`
+## 3. Causal Inference & Kontrafaktik (Sicherheitsnetz)
 
-### E. `src/deepsupport/runners/`
-Hier wird der Inhalt massiv bereinigt, um das Paradigma (Wrapper übernimmt die Arbeit) zu erfüllen:
-* `run_feature_grid_experiments.py`: Der eigentliche Grid-Runner (läuft über alle Modi).
-* `run_fast_suite.py`: Wird **gestrippt**, sodass es **nur noch** den Grid-Runner aufruft! Keine Standalone-Modelle mehr.
-* `run_heavy_suite.py`: Behält die Aufrufe für die Deep Transformer und Autoregressiven Modelle (die zu teuer für den Grid-Run sind).
+Wie im Deep-Dive-Audit besprochen, werde ich die 16 `counterfactual_*.py` Skripte **nicht archivieren**. Sie ziehen nach `evaluation/causal/` um.
+Ich werde ein dediziertes Such-und-Ersetz-Skript schreiben, das die hartcodierten Lade-Befehle (z. B. `load_model("timeseries_exam_transformer.keras")`) in diesen Skripten exakt auf die neuen Dateinamen (`exam_transformer.keras`) umschreibt, damit Deine Kausalkette nach dem Umbenennen sofort fehlerfrei weiterläuft.
 
 ---
 
-## 3. Die Archivierungs-Liste (`archive/`)
-**Über 60 Skripte** sind historisch gewachsen, veraltet oder waren Einmal-Analysen (die als `analyze_` oder `counterfactual_` benannt waren, aber inzwischen abgelöst wurden). Diese werden in `archive/` eingefroren.
+## Umsetzung
 
-* **Legacy Simulationen:** `simulation.py`, `simulation_v2.py`, `simulation_v3.py`
-* **Redundante Delta-Skripte:** `extended_cox_delta.py`, `extended_deep_survival_delta.py`, `recurrent_exam_survival_delta.py`
-* **Einmal-Analysen:** Alle `analyze_*.py` Skripte (wie `analyze_amortization_timeline.py`, `analyze_overload_victims.py`), die gute Insights lieferten, aber nicht zur iterativen Core-Pipeline gehören. (Ihre Funktion ist im `historical_script_registry_full.md` dokumentiert).
-* **Veraltete Runner:** `run_all_experiments.py`, `run_retrain_all.py`, `run_v3_multi_task.py`
+Wir haben jetzt ein wasserdichtes Fundament, das sowohl Architektur-Sauberkeit als auch die Rettung der Kontrafaktik-Inferenz garantiert. 
 
----
-
-## 4. Nächste Umsetzungsschritte
-
-1. **Freigabe:** Abnahme dieses Plans durch den Nutzer.
-2. **Archivierung:** Verschiebung der identifizierten Legacy-Skripte nach `archive/`.
-3. **Restrukturierung:** Neuanlage der Ordner in `src/deepsupport/` und Verschieben/Umbenennen der Kern-Skripte gemäß Paradigma.
-4. **Runner-Fix:** Umschreiben der `run_fast_suite.py`.
+Mit diesem finalisierten Paradigma: Darf ich nun die Umstrukturierung auf dem Dateisystem beginnen?

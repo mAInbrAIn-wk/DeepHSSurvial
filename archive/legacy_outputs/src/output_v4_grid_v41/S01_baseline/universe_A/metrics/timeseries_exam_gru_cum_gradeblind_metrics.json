@@ -1,0 +1,9 @@
+{
+    "model_type": "timeseries_exam_gru_cum_gradeblind",
+    "temporal": "cum",
+    "mode": "gradeblind",
+    "R2": 0.08652162551879883,
+    "RMSE": 0.12279526022278808,
+    "MAE": 0.030108360573649406,
+    "MSE": 0.01507867593318224
+}

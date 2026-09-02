@@ -1,0 +1,42 @@
+{
+  "timestamp": "2026-09-01 09:02:03",
+  "total_duration_s": 1328.22,
+  "steps": [
+    {
+      "step_name": "Autoregressive Next-Exam Prediction (Dual-Head Multi-Task)",
+      "status": "PASSED",
+      "duration_s": 1293.45,
+      "ram_start_mb": 19.3,
+      "ram_end_mb": 637.0,
+      "ram_delta_mb": 617.8,
+      "error": null
+    },
+    {
+      "step_name": "Evaluation Autoregressive Fail/Grade",
+      "status": "FAILED",
+      "duration_s": 32.05,
+      "ram_start_mb": 637.0,
+      "ram_end_mb": 1974.0,
+      "ram_delta_mb": 1336.9,
+      "error": "File not found: filepath=src\\output_dl_seed99999\\models\\autoregressive_next_exam_dual_head.keras. Please ensure the file is an accessible `.keras` zip file."
+    },
+    {
+      "step_name": "Autoregressive Deep Transformer (Pruefungs-Ebene)",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 662.7,
+      "ram_end_mb": 662.7,
+      "ram_delta_mb": 0.0,
+      "error": "module 'autoregressive_deep_transformer' has no attribute 'train_autoregressive_deep_transformer'"
+    },
+    {
+      "step_name": "Landmark Representation Learning (Gekoepfter Transformer)",
+      "status": "FAILED",
+      "duration_s": 2.72,
+      "ram_start_mb": 662.7,
+      "ram_end_mb": 660.9,
+      "ram_delta_mb": -1.8,
+      "error": "File not found: filepath=output_v4_grid_v41\\S01_baseline\\universe_A\\models\\autoregressive_deep_transformer.keras. Please ensure the file is an accessible `.keras` zip file."
+    }
+  ]
+}

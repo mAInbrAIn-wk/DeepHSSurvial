@@ -1,0 +1,20 @@
+{
+    "Mean_HR_fach_supp": 0.8784379363059998,
+    "Median_HR_fach_supp": 0.8479264378547668,
+    "Min_HR_fach_supp": 0.45013225078582764,
+    "Max_HR_fach_supp": 1.5109044313430786,
+    "Q05_HR_fach_supp": 0.6393688321113586,
+    "Q95_HR_fach_supp": 1.2065497636795044,
+    "Mean_HR_uebf_supp": 0.9495466351509094,
+    "Median_HR_uebf_supp": 0.9156534075737,
+    "Min_HR_uebf_supp": 0.5596491694450378,
+    "Max_HR_uebf_supp": 1.7128733396530151,
+    "Q05_HR_uebf_supp": 0.7085170745849609,
+    "Q95_HR_uebf_supp": 1.2760272026062012,
+    "Mean_HR_psych_supp": 1.0909755229949951,
+    "Median_HR_psych_supp": 1.071212649345398,
+    "Min_HR_psych_supp": 0.7475820779800415,
+    "Max_HR_psych_supp": 1.8150020837783813,
+    "Q05_HR_psych_supp": 0.906802773475647,
+    "Q95_HR_psych_supp": 1.3348926305770874
+}

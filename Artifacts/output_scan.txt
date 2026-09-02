@@ -1,0 +1,103 @@
+output_dl:
+  Size: 1058.2 MB
+  Info Files: []
+  Models: 2 | Metrics: 5 | Universes: 4
+
+output_dl_v1:
+  Size: 210.9 MB
+  Info Files: ['DATENSATZ_DOKU.md']
+  Models: 27 | Metrics: 50 | Universes: 0
+
+output_dl_v2:
+  Size: 945.7 MB
+  Info Files: ['DATENSATZ_DOKU.md']
+  Models: 25 | Metrics: 35 | Universes: 4
+
+output_dl_v3.1:
+  Size: 1021.9 MB
+  Info Files: []
+  Models: 0 | Metrics: 1 | Universes: 4
+
+output_dl_v3.2_carryover:
+  Size: 1083.2 MB
+  Info Files: ['DATENSATZ_DOKU.md']
+  Models: 25 | Metrics: 37 | Universes: 4
+
+output_dl_v3.2_nocap:
+  Size: 1071.7 MB
+  Info Files: []
+  Models: 3 | Metrics: 14 | Universes: 4
+
+output_dl_v3halfbacked:
+  Size: 987.6 MB
+  Info Files: ['DATENSATZ_DOKU.md']
+  Models: 0 | Metrics: 1 | Universes: 4
+
+output_v4_grid_v41:
+  Size: 0.1 MB
+  Info Files: []
+  Models: 0 | Metrics: 1 | Universes: 1
+  Cross-Scenarios: 0 found, containing 0 DL metrics total.
+
+src\output_dl:
+  Size: 1739.1 MB
+  Info Files: []
+  Models: 47 | Metrics: 90 | Universes: 7
+
+src\output_dl_seed99999:
+  Size: 1722.6 MB
+  Info Files: []
+  Models: 33 | Metrics: 34 | Universes: 7
+
+src\output_dl_transfer:
+  Size: 0.0 MB
+  Info Files: []
+  Models: 0 | Metrics: 0 | Universes: 0
+
+src\output_dl_v36_clean:
+  Size: 1837.1 MB
+  Info Files: []
+  Models: 62 | Metrics: 78 | Universes: 7
+
+src\output_dl_v4:
+  Size: 1797.7 MB
+  Info Files: []
+  Models: 34 | Metrics: 39 | Universes: 7
+
+src\output_v36_clean_rerun:
+  Size: 248.1 MB
+  Info Files: []
+  Models: 48 | Metrics: 70 | Universes: 0
+
+src\output_v4_grid:
+  Size: 2083.3 MB
+  Info Files: []
+  Models: 0 | Metrics: 13 | Universes: 48
+  Cross-Scenarios: 14 found, containing 11 DL metrics total.
+
+src\output_v4_grid_v41:
+  Size: 10680.7 MB
+  Info Files: []
+  Models: 72 | Metrics: 108 | Universes: 120
+  Cross-Scenarios: 14 found, containing 14 DL metrics total.
+
+src\output_v4_test:
+  Size: 223.6 MB
+  Info Files: ['DATENSATZ_DOKU.md']
+  Models: 0 | Metrics: 0 | Universes: 0
+
+src\output_v4_universes:
+  Size: 700.2 MB
+  Info Files: []
+  Models: 0 | Metrics: 1 | Universes: 8
+
+src\src\output_dl:
+  Size: 13.1 MB
+  Info Files: []
+  Models: 26 | Metrics: 28 | Universes: 0
+
+src\src\output_v36_clean_rerun:
+  Size: 30.6 MB
+  Info Files: []
+  Models: 48 | Metrics: 70 | Universes: 0
+

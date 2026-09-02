@@ -1,0 +1,13 @@
+# Metriken: dml_orthogonal_survival
+
+| Metrik | Wert |
+| :--- | :---: |
+| **model_type** | dml_orthogonal_survival |
+| **temporal** | prev |
+| **mode** | gradeblind |
+| **ROC-AUC_Panel** | 0.7487 |
+| **PR-AUC_Panel** | 0.1583 |
+| **Brier_Score** | 0.0372 |
+| **fach** | {'partial': {'mean_rr': 0.8903607726097107, 'median_rr': 0.8903607726097107, 'ate': -0.004952610470354557}, 'isolated': {'mean_rr': 0.888803243637085, 'median_rr': 0.888803243637085, 'ate': -0.0050192102789878845}} |
+| **uebf** | {'partial': {'mean_rr': 1.0036858320236206, 'median_rr': 1.0036858320236206, 'ate': 0.00016464368673041463}, 'isolated': {'mean_rr': 1.007781982421875, 'median_rr': 1.007781982421875, 'ate': 0.00035137313534505665}} |
+| **psych** | {'partial': {'mean_rr': 0.9903057813644409, 'median_rr': 0.9903057813644409, 'ate': -0.0004343008913565427}, 'isolated': {'mean_rr': 0.991827130317688, 'median_rr': 0.991827130317688, 'ate': -0.0003688087745103985}} |

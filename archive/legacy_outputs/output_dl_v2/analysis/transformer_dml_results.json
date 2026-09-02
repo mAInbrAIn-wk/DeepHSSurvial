@@ -1,0 +1,6 @@
+{
+    "standard_dml_rr": 0.8953,
+    "ground_truth_rr": 0.9972,
+    "transformer_dml_rr": 0.9067166374325999,
+    "transformer_beta": -0.0040363616526454755
+}

@@ -1,0 +1,19 @@
+{
+    "model_type": "extended_cox_prev_realistic",
+    "temporal": "prev",
+    "mode": "realistic",
+    "Support_HR_Fach_count": 0.8681520008680113,
+    "Support_HR_Uebf_count": 1.0275890278259807,
+    "Support_HR_Psych_count": 1.0,
+    "fach_partial": "{'mean_hr': 0.8681520008680113, 'median_hr': 0.8681520008680113}",
+    "fach_isolated": "{'mean_hr': 0.8681520008680113, 'median_hr': 0.8681520008680113}",
+    "uebf_partial": "{'mean_hr': 1.0275890278259807, 'median_hr': 1.0275890278259807}",
+    "uebf_isolated": "{'mean_hr': 1.0275890278259807, 'median_hr': 1.0275890278259807}",
+    "psych_partial": "{'mean_hr': 1.0, 'median_hr': 1.0}",
+    "psych_isolated": "{'mean_hr': 1.0, 'median_hr': 1.0}",
+    "Support_HR_Fach_tv": 0.8681520008680113,
+    "Support_HR_Uebf_tv": 1.0275890278259807,
+    "Support_HR_Psych_tv": 1.0,
+    "HR_fails_prev": 1.0063848608145713,
+    "HR_delta_cp_prev": 0.9161784398648282
+}

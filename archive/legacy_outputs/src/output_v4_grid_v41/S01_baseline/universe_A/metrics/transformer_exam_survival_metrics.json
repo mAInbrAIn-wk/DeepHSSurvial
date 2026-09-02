@@ -1,0 +1,9 @@
+{
+    "model_type": "transformer_exam_survival_prev",
+    "temporal": "prev",
+    "mode": "standard",
+    "ROC-AUC_Exam": 0.8858704982237654,
+    "PR-AUC_Exam": 0.16123798294180852,
+    "Brier_Score": 0.015458287671208382,
+    "ROC-AUC_Student": 0.7141327040622899
+}
