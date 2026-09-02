@@ -1,0 +1,9 @@
+[submodule "legacy_projects/DataAnalysis"]
+	path = legacy_projects/DataAnalysis
+	url = https://github.com/mAInbrAIn-wk/DataAnalysis.git
+[submodule "legacy_projects/DataEngineering"]
+	path = legacy_projects/DataEngineering
+	url = https://github.com/mAInbrAIn-wk/DataEngineering.git
+[submodule "legacy_projects/DeepLearning"]
+	path = legacy_projects/DeepLearning
+	url = https://github.com/mAInbrAIn-wk/DeepLearning.git
