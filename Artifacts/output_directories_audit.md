@@ -49,3 +49,15 @@ Da wir jetzt den perfekten historischen Überblick haben:
 1. **Einfrieren (Archive):** Alle Ordner der **V1, V2 und V3 Ära** sowie die abgebrochenen V4-Tests werden physisch nach `archive/legacy_outputs/` verschoben. Sie bleiben zu 100% erhalten, müllen aber den Workspace nicht mehr zu.
 2. **Den Gold-Standard bewahren:** Den 10.6 GB großen Ordner `src/output_v4_grid_v41` behalten wir! Er enthält unsere neuesten Daten. Um seine Rolle klarzumachen, benenne ich ihn um in `data_v4_grid` (denn er ist eine Datenquelle, kein reiner Output-Ordner).
 3. **Clean Slate für Modelle:** Die alten V4-Modelle und Metriken in `S01_baseline` verschiebe ich ebenfalls ins Archiv. So haben wir eine völlig saubere Datenquelle, über die unser neuer, refactorierter Grid-Runner laufen kann.
+
+---
+## 4. Orchestrierung & I/O Sicherheit (Update)
+Der `grid_runner.py` wurde massiv gehärtet:
+- **I/O Trennung:** Er nimmt nun `data_root` (z.B. `data_v4_grid`) und `output_root` (z.B. `output_v4_models`) entgegen.
+- **Cross-Scenario Looping:** Er sucht selbstständig nach allen `S01` bis `S15` Ordnern und legt für jedes Szenario einen dedizierten, namensgleichen Ausgabeordner an. **Es werden keine Rohdaten mehr überschrieben!**
+- **Fallback Cleanup:** Hardcodierte Pfade in `feature_builder.py` wurden entfernt.
+
+## 5. Git & Subrepo Strategie
+Um das GitHub-Repository schlank (GitHub-kompatibel) zu halten:
+- Alle Gigabyte-schweren Datenordner (`data_v4_grid`, `output_dl_v1`, etc.) wurden aus dem Haupt-Repo **entfernt** (`git rm --cached`) und in die `.gitignore` eingetragen.
+- Das `archive/` Verzeichnis wurde als **eigenständiges Git-Repository** (`git init`) initialisiert. Es kapselt nun seine eigene 15GB-Historie separat und wird beim Klonen des Haupt-Repos standardmäßig *nicht* mitgeladen.

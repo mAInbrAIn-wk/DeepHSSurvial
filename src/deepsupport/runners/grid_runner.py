@@ -1,8 +1,8 @@
 """
-Feature Grid Master Evaluation & Benchmark Pipeline (Refactored)
-================================================================
-Trainiert und evaluiert die zentralen Modell-Klassen über das vollständige Feature-Grid.
-Nutzt generische Modell-Builder und kapselt Kausalevaluation ein.
+Feature Grid Master Evaluation & Benchmark Pipeline
+===================================================
+Orchestriert das Cross-Szenario Training (S01-S15).
+Strikte Trennung von Input-Daten und Output-Modellen/Metriken.
 """
 
 import os
@@ -40,7 +40,6 @@ def run_causal_evaluation(model, X_test, valid_mask_test, f_indices):
             cf_results[f"{prefix}_isolated"] = {"mean_rr": None, "median_rr": None}
             continue
             
-        # Partiell (nur 1 Support auf 0 setzen)
         X_c_part = X_test.copy()
         X_t_part = X_test.copy()
         X_c_part[valid_mask_test, feat_idx] = 0.0
@@ -49,7 +48,6 @@ def run_causal_evaluation(model, X_test, valid_mask_test, f_indices):
         p1_p = model.predict(X_t_part, verbose=0).flatten()[valid_mask_test.flatten()]
         rrs_p = p1_p / np.clip(p0_p, 1e-7, 1.0)
         
-        # Isoliert (alle anderen Supports auf 0 setzen)
         X_c_iso = X_test.copy()
         X_t_iso = X_test.copy()
         for _, other_key, _ in supp_configs:
@@ -68,11 +66,7 @@ def run_causal_evaluation(model, X_test, valid_mask_test, f_indices):
         
     return cf_results
 
-def run_grid_evaluation(architecture_name: str, build_model_fn, data_dir: Path, max_timesteps: int, level: str = 'semester'):
-    print("\n" + "="*80)
-    print(f"   [GRID EVALUATION] {architecture_name.upper()}")
-    print("="*80)
-    
+def run_grid_evaluation(architecture_name: str, build_model_fn, data_dir: Path, output_dir: Path, max_timesteps: int, level: str = 'semester'):
     results = {}
     
     for mode in MODES:
@@ -89,7 +83,6 @@ def run_grid_evaluation(architecture_name: str, build_model_fn, data_dir: Path, 
             
         N, T, F = X_seq.shape
         
-        # 3-Way Split
         train_idx, temp_idx, _, y_temp = train_test_split(
             np.arange(N), studi_events, test_size=0.30, random_state=42, stratify=studi_events
         )
@@ -100,7 +93,6 @@ def run_grid_evaluation(architecture_name: str, build_model_fn, data_dir: Path, 
         X_train, X_val, X_test = X_seq[train_idx].copy(), X_seq[val_idx].copy(), X_seq[test_idx].copy()
         y_train, y_val, y_test = y_seq[train_idx], y_seq[val_idx], y_seq[test_idx]
         
-        # Standard Scaling
         scaler = StandardScaler()
         valid_mask_train = (X_train[:, :, 0] != PADDING_VALUE)
         scaler.fit(X_train[valid_mask_train])
@@ -109,7 +101,6 @@ def run_grid_evaluation(architecture_name: str, build_model_fn, data_dir: Path, 
             valid_mask = (X_split[:, :, 0] != PADDING_VALUE)
             X_split[valid_mask] = scaler.transform(X_split[valid_mask])
             
-        # Model Build & Train
         tf.random.set_seed(42)
         model = build_model_fn(sequence_length=T, feature_dim=F)
         
@@ -127,7 +118,6 @@ def run_grid_evaluation(architecture_name: str, build_model_fn, data_dir: Path, 
             verbose=0
         )
         
-        # Evaluation
         valid_mask_test = (X_test[:, :, 0] != PADDING_VALUE)
         y_pred = model.predict(X_test, verbose=0)
         
@@ -140,7 +130,6 @@ def run_grid_evaluation(architecture_name: str, build_model_fn, data_dir: Path, 
         
         print(f"   --> PR-AUC: {prauc:.4f} | ROC-AUC: {auc:.4f} | Brier: {brier:.4f}")
         
-        # Causal Counterfactuals
         cf_results = run_causal_evaluation(model, X_test, valid_mask_test, f_indices)
         
         results[mode] = {
@@ -151,28 +140,41 @@ def run_grid_evaluation(architecture_name: str, build_model_fn, data_dir: Path, 
             "counterfactual": cf_results
         }
         
-        # Save dynamically using the new metrics_logger
-        save_metrics(architecture_name, results[mode], data_dir, mode=mode, temporal_type='flat')
+        # Save dynamically using the new metrics_logger to the OUTPUT DIR
+        save_metrics(architecture_name, results[mode], output_dir, mode=mode, temporal_type='flat')
         
     return results
 
-def main(data_dir: Optional[Union[str, Path]] = None):
-    if data_dir is None:
-        if 'DATA_DIR' in os.environ:
-            data_dir = Path(os.environ['DATA_DIR'])
-        else:
-            data_dir = Path('data_v4_grid')
-    else:
-        data_dir = Path(data_dir)
+def main(data_root: Optional[Union[str, Path]] = None, output_root: Optional[Union[str, Path]] = None):
+    data_root = Path(data_root) if data_root else Path('data_v4_grid')
+    output_root = Path(output_root) if output_root else Path('output_v4_models')
+    
+    if not data_root.exists():
+        raise FileNotFoundError(f"Datenquelle {data_root} nicht gefunden!")
         
-    print(f"Starte Master Grid Evaluation Pipeline (Data Dir: {data_dir}) ...")
+    print(f"Starte Master Grid Orchestrierung...")
+    print(f"Lese Rohdaten von: {data_root}")
+    print(f"Schreibe Modelle/Metriken nach: {output_root}")
     
-    # Run the 3 core models sequentially across all modes
-    run_grid_evaluation('grid_semester_gru', build_gru_model, data_dir, max_timesteps=16, level='semester')
-    run_grid_evaluation('grid_semester_transformer', build_causal_transformer_survival_model, data_dir, max_timesteps=16, level='semester')
-    run_grid_evaluation('grid_exam_gru', build_gru_model, data_dir, max_timesteps=40, level='exam')
-    
-    print("\n[OK] Grid Evaluation abgeschlossen.")
+    # 1. Finde alle Szenarien (S01_baseline, S02_supp_half, etc.)
+    scenarios = sorted([d for d in data_root.iterdir() if d.is_dir() and d.name.startswith('S')])
+    if not scenarios:
+        # Fallback: Wenn data_root direkt auf ein Szenario zeigt
+        scenarios = [data_root]
+        
+    for scenario_dir in scenarios:
+        scenario_name = scenario_dir.name
+        print("\n" + "="*80)
+        print(f"   SZENARIO: {scenario_name}")
+        print("="*80)
+        
+        scenario_out = output_root / scenario_name
+        scenario_out.mkdir(parents=True, exist_ok=True)
+        
+        # Core Models trainieren und isoliert in scenario_out speichern
+        run_grid_evaluation('grid_semester_gru', build_gru_model, scenario_dir, scenario_out, max_timesteps=16, level='semester')
+        run_grid_evaluation('grid_semester_transformer', build_causal_transformer_survival_model, scenario_dir, scenario_out, max_timesteps=16, level='semester')
+        run_grid_evaluation('grid_exam_gru', build_gru_model, scenario_dir, scenario_out, max_timesteps=40, level='exam')
 
 if __name__ == "__main__":
     main()

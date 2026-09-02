@@ -69,7 +69,7 @@ def _load_raw_data(data_dir: Union[str, Path]) -> Tuple[pd.DataFrame, pd.DataFra
     agg_pruefungen_path = data_dir / 'agg_pruefungen.csv'
 
     if not agg_abschluesse_path.exists():
-        candidates = [Path('output_dl'), Path('../output_dl'), Path('src/output_dl'), Path('output_dl_v3')]
+        candidates = [Path('output_dl'), Path('../output_dl'), Path('output_dl_v3')]
         for c in candidates:
             if (c / 'agg_abschluesse.csv').exists():
                 agg_abschluesse_path = c / 'agg_abschluesse.csv'
