@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeepSupport V4.1 - Cross-Szenario & Modell-Dashboard</title>
+    <title>DeepSupport V4.1 - Vollständiges Cross-Szenario & Modell-Dashboard</title>
     <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
     <style>
         .tooltip {
@@ -41,15 +41,15 @@
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-6 shadow-lg">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-slate-100 tracking-tight">DeepSupport V4.1 - Cross-Szenario & Modell-Dashboard</h1>
+                <h1 class="text-2xl font-bold text-slate-100 tracking-tight">DeepSupport V4.1 - Vollständiges Modell- & Kausalsynopse-Dashboard</h1>
                 <p class="text-sm text-slate-400 mt-1">
-                    Systematische Synthese: 15 DGP-Szenarien, 11 Modellklassen, 5 Feature-Modi, N = 50.000 / Universum
+                    Systematischer Vergleich aller 91 Modelle getrennt nach 6 distinkten Zielgrößen (kein Äpfel-mit-Birnen-Vergleich)
                 </p>
             </div>
             <div class="flex flex-wrap gap-2 text-xs font-semibold">
-                <span class="px-3 py-1 bg-sky-950/80 text-sky-400 border border-sky-800 rounded-full">120 Simulationen</span>
-                <span class="px-3 py-1 bg-emerald-950/80 text-emerald-400 border border-emerald-800 rounded-full">180 Modellmetriken</span>
-                <span class="px-3 py-1 bg-indigo-950/80 text-indigo-400 border border-indigo-800 rounded-full">Ground Truth Validiert</span>
+                <span class="px-3 py-1 bg-sky-950/80 text-sky-400 border border-sky-800 rounded-full">91 Modelle Vollständig</span>
+                <span class="px-3 py-1 bg-emerald-950/80 text-emerald-400 border border-emerald-800 rounded-full">6 Zielgrößen Separiert</span>
+                <span class="px-3 py-1 bg-indigo-950/80 text-indigo-400 border border-indigo-800 rounded-full">15 DGP-Szenarien</span>
             </div>
         </div>
     </div>
@@ -58,44 +58,46 @@
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-6 shadow-md">
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-center">
             <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Zielgröße / Task (Strikte Trennung)</label>
+                <select id="filter-target" onchange="applyFilters()" class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
+                    <option value="all">Alle Zielgrößen (91 Modelle)</option>
+                    <option value="1">1. Terminal / Semester Dropout (39 Modelle)</option>
+                    <option value="2">2. Klausur-Ebene Fail / Hazard (27 Modelle)</option>
+                    <option value="3">3. Competing Risks Dropout vs. Abschluss (7 Modelle)</option>
+                    <option value="4">4. Kumulativer GPA / Abschlussnote (6 Modelle)</option>
+                    <option value="5">5. Nächste Klausurnote Next-Exam (Autoregression)</option>
+                    <option value="6">6. Kausale Effekte & Schützer RR/HR (12 Modelle)</option>
+                </select>
+            </div>
+            <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Feature-Modus</label>
                 <select id="filter-mode" onchange="applyFilters()" class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
-                    <option value="all">Alle Modi</option>
-                    <option value="standard">standard (vollständig)</option>
-                    <option value="gradeblind">gradeblind (ohne Noten)</option>
-                    <option value="oracle">oracle (latente Motivation)</option>
-                    <option value="realistic">realistic (DSGVO-konform)</option>
-                    <option value="blind">blind (nur statisch)</option>
+                    <option value="all">Alle Modi (standard, gradeblind, oracle, realistic, blind)</option>
+                    <option value="standard">standard</option>
+                    <option value="gradeblind">gradeblind</option>
+                    <option value="oracle">oracle</option>
+                    <option value="realistic">realistic</option>
+                    <option value="blind">blind</option>
                 </select>
             </div>
             <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Temporal-Typ</label>
                 <select id="filter-temporal" onchange="applyFilters()" class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
-                    <option value="all">Alle Temporal-Typen</option>
+                    <option value="all">Alle Temporal-Typen (prev & cum)</option>
                     <option value="prev">prev (Vorsemester-Fluss t-1)</option>
                     <option value="cum">cum (Kumulierter Bestand)</option>
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Modellklasse</label>
-                <select id="filter-class" onchange="applyFilters()" class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
-                    <option value="all">Alle Modellklassen</option>
-                    <option value="Transformer">Transformer & Attention</option>
-                    <option value="GRU/LSTM">Recurrent (GRU / LSTM)</option>
-                    <option value="Survival">Survival (Cox / DeepSurv / DeepHit)</option>
-                    <option value="Causal">Kausale Schätzer (DML)</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Suche / Modellfilter</label>
-                <input type="text" id="filter-search" oninput="applyFilters()" placeholder="Modellname filtern..." class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
+                <label class="block text-xs font-medium text-slate-400 mb-1">Live-Suche</label>
+                <input type="text" id="filter-search" oninput="applyFilters()" placeholder="Modell filtern..." class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
             </div>
         </div>
     </div>
 
     <!-- TABS -->
     <div class="flex border-b border-slate-800 mb-6 gap-2 text-sm font-semibold overflow-x-auto">
-        <button class="tab-btn active px-4 py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-colors" onclick="switchTab(event, 'tab-leaderboard')">1. Modell-Leaderboard & Güte</button>
+        <button class="tab-btn active px-4 py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-colors" onclick="switchTab(event, 'tab-leaderboard')">1. Modell-Leaderboard (Alle 91 Modelle)</button>
         <button class="tab-btn px-4 py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-colors" onclick="switchTab(event, 'tab-causal')">2. Kausale Ground Truth Kalibrierung</button>
         <button class="tab-btn px-4 py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-colors" onclick="switchTab(event, 'tab-stress')">3. Parameter-Stresstests (DGP-Sensitivität)</button>
         <button class="tab-btn px-4 py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-colors" onclick="switchTab(event, 'tab-moe')">4. Ensemble & MoE Synergien</button>
@@ -108,53 +110,47 @@
             <!-- Chart 1: Survival Scatter -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-md">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-semibold text-slate-100 text-base">Survival & Dropout-Prädiktion (ROC-AUC vs. PR-AUC)</h3>
-                    <span class="text-xs text-slate-400">Punkte hovern für Details</span>
+                    <h3 class="font-semibold text-slate-100 text-base">Klassifikations- & Survival-Güte (ROC-AUC vs. PR-AUC)</h3>
+                    <span class="text-xs text-slate-400" id="scatter-count">Modelle geladen</span>
                 </div>
                 <div class="relative w-full overflow-hidden flex justify-center">
                     <svg id="svg-survival" width="520" height="340" class="overflow-visible"></svg>
-                </div>
-                <div class="flex justify-between text-xs text-slate-400 mt-2 px-6">
-                    <span>Baseline ROC-AUC = 0.50</span>
-                    <span>Projekt-Maximum = 0.9411</span>
                 </div>
             </div>
 
             <!-- Chart 2: Regression Bar -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-md">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-semibold text-slate-100 text-base">Noten- & GPA-Regressoren (R² Bestimmtheitsmaß)</h3>
-                    <span class="text-xs text-slate-400">Test-Set V4.1 Baseline</span>
+                    <h3 class="font-semibold text-slate-100 text-base">Regressions-Güte (R² Bestimmtheitsmaß)</h3>
+                    <span class="text-xs text-slate-400">Separiert nach GPA vs. Next-Exam</span>
                 </div>
                 <div class="relative w-full overflow-hidden flex justify-center">
                     <svg id="svg-regression" width="520" height="340" class="overflow-visible"></svg>
-                </div>
-                <div class="flex justify-between text-xs text-slate-400 mt-2 px-6">
-                    <span>Statisch Landmark: R² ~0.38</span>
-                    <span>Prüfungs-Transformer (cum): R² = 0.8023</span>
                 </div>
             </div>
         </div>
 
         <!-- Table -->
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-md">
-            <h3 class="font-semibold text-slate-100 text-base mb-3">Gefilterte Modell-Matrix</h3>
-            <div class="overflow-x-auto">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-semibold text-slate-100 text-base">Vollständige Modell-Tabelle (<span id="table-count">91</span> Modelle)</h3>
+                <span class="text-xs text-slate-400">Sortierbar und dynamisch gefiltert</span>
+            </div>
+            <div class="overflow-x-auto max-h-96">
                 <table class="w-full text-left text-sm border-collapse">
-                    <thead>
-                        <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-950/50">
-                            <th class="p-3">Modell</th>
-                            <th class="p-3">Klasse</th>
+                    <thead class="sticky top-0 bg-slate-950 border-b border-slate-800">
+                        <tr class="text-slate-400 text-xs uppercase">
+                            <th class="p-3">Modellname</th>
+                            <th class="p-3">Zielgröße (Task)</th>
                             <th class="p-3">Modus</th>
                             <th class="p-3">Temporal</th>
                             <th class="p-3 text-right">ROC-AUC</th>
-                            <th class="p-3 text-right">PR-AUC (Dropout)</th>
+                            <th class="p-3 text-right">PR-AUC</th>
                             <th class="p-3 text-right">R² Score</th>
                             <th class="p-3 text-right">Brier Score</th>
                         </tr>
                     </thead>
                     <tbody id="table-body" class="divide-y divide-slate-800/60 font-mono text-xs">
-                        <!-- Dynamically populated -->
                     </tbody>
                 </table>
             </div>
@@ -164,16 +160,13 @@
     <!-- TAB 2: CAUSAL GROUND TRUTH -->
     <div id="tab-causal" class="tab-pane hidden space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Forest Plot -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-md">
                 <h3 class="font-semibold text-slate-100 text-base mb-2">Kausale Forest Plot: Modell-RR vs. Wahre Simulations-RR</h3>
-                <p class="text-xs text-slate-400 mb-4">Referenz RR = 1.0 (Kein Effekt), Wahre Ground Truth RR = 0.787 (ARR = 7.9 pp)</p>
+                <p class="text-xs text-slate-400 mb-4">Referenz RR = 1.0, Wahre Ground Truth RR = 0.787 (ARR = 7.9 pp)</p>
                 <div class="relative w-full overflow-hidden flex justify-center">
                     <svg id="svg-forest" width="520" height="340" class="overflow-visible"></svg>
                 </div>
             </div>
-
-            <!-- Bias Scorecard -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-md">
                 <h3 class="font-semibold text-slate-100 text-base mb-2">Kausalitäts-Bias Scorecard (|RR_Modell - RR_GroundTruth|)</h3>
                 <p class="text-xs text-slate-400 mb-4">Geringerer Bias = Höhere kausale Treue zur realen Intervention</p>
@@ -182,30 +175,11 @@
                 </div>
             </div>
         </div>
-
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-md">
-            <h3 class="font-semibold text-slate-100 text-base mb-3">Erkenntnisse zur Kausalitäts-Validierung</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs leading-relaxed text-slate-300">
-                <div class="p-4 bg-slate-950 rounded-lg border border-slate-800">
-                    <div class="font-bold text-sky-400 mb-1">1. Double Machine Learning (DML)</div>
-                    Mit <b>RR = 0.8839</b> (Bias nur +0.0969) entfernt DML den endogenen Selektionsbias am effektivsten. Die Neyman-Orthogonalisierung schützt vor Confounding.
-                </div>
-                <div class="p-4 bg-slate-950 rounded-lg border border-slate-800">
-                    <div class="font-bold text-emerald-400 mb-1">2. Dynamic DeepHit Competing Risks</div>
-                    Mit <b>RR = 0.9508</b> liefert DeepHit eine robuste, konservative Schutzschätzung unter simultaner Berücksichtigung von regulärem Abschluss und Dropout.
-                </div>
-                <div class="p-4 bg-slate-950 rounded-lg border border-slate-800">
-                    <div class="font-bold text-rose-400 mb-1">3. Extended Cox Panel (PHReg)</div>
-                    Zeigt mit <b>HR = 1.0899</b> einen scheinbaren Scheineffekt, weil gefährdete Studierende häufiger Support suchen (negative Selektion ohne DML-Entzerrung).
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- TAB 3: STRESSTESTS -->
     <div id="tab-stress" class="tab-pane hidden space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Noise Stress -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-md">
                 <h3 class="font-semibold text-slate-100 text-base mb-2">Rauschen-Stresstest (S07 0.5x -> S01 Base -> S08 2.0x)</h3>
                 <p class="text-xs text-slate-400 mb-4">Diskriminierungs-Stabilität der Modellfamilien</p>
@@ -213,8 +187,6 @@
                     <svg id="svg-noise" width="520" height="300" class="overflow-visible"></svg>
                 </div>
             </div>
-
-            <!-- Overload Stress -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-md">
                 <h3 class="font-semibold text-slate-100 text-base mb-2">Overload- & Workload-Sensitivität (S12 -> S01 -> S13 -> S14)</h3>
                 <p class="text-xs text-slate-400 mb-4">Dropout-Raten Welt A (Full Support) vs. Welt B (No Support)</p>
@@ -228,7 +200,6 @@
     <!-- TAB 4: MOE -->
     <div id="tab-moe" class="tab-pane hidden space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- MoE Heatmap -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-md">
                 <h3 class="font-semibold text-slate-100 text-base mb-2">Inter-Modell Residuen-Korrelation</h3>
                 <p class="text-xs text-slate-400 mb-4">Geringe Werte = Hohe Fehler-Orthogonalität für Ensembling</p>
@@ -236,20 +207,18 @@
                     <svg id="svg-moe-matrix" width="520" height="320" class="overflow-visible"></svg>
                 </div>
             </div>
-
-            <!-- MoE Concept -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-md flex flex-col justify-between">
                 <div>
                     <h3 class="font-semibold text-slate-100 text-base mb-3">Mixture-of-Experts (MoE) Architektur-Hypothese</h3>
                     <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
                         <div class="p-3 bg-slate-950 rounded border border-slate-800">
-                            <span class="font-bold text-sky-400">Router / Gating Netzwerk:</span> Bewertet den Studierenden-Zustand (Workload, bisherige Fehlversuche, CP-Rückstand).
+                            <span class="font-bold text-sky-400">Router / Gating Netzwerk:</span> Bewertet Workload, Fehlversuche und CP-Rückstand.
                         </div>
                         <div class="p-3 bg-slate-950 rounded border border-slate-800">
-                            <span class="font-bold text-emerald-400">Experte A (Autoregressiver Exam-Transformer):</span> Aktiviert bei Standard-Studienverlauf. Liefert höchste Frühwarn-Güte (ROC = 0.9411).
+                            <span class="font-bold text-emerald-400">Experte A (Autoregressiver Exam-Transformer):</span> Aktiviert bei Standard-Studienverlauf (ROC = 0.9411).
                         </div>
                         <div class="p-3 bg-slate-950 rounded border border-slate-800">
-                            <span class="font-bold text-purple-400">Experte B (Dynamic DeepHit):</span> Aktiviert bei extremen Workload-Spitzen und drohender Zwangsexmatrikulation.
+                            <span class="font-bold text-purple-400">Experte B (Dynamic DeepHit):</span> Aktiviert bei extremen Workload-Spitzen und drohender Exmatrikulation.
                         </div>
                     </div>
                 </div>
@@ -275,25 +244,1191 @@
     <div id="tooltip" class="tooltip"></div>
 
     <script>
-        // DATA STORE
-        const RAW_DATA = [
-            { name: "Autoregressiver Deep Transformer", class: "Transformer", mode: "standard", temporal: "prev", roc: 0.9411, pr: 0.3120, r2: 0.7036, brier: 0.0120 },
-            { name: "Recurrent Exam GRU (Oracle)", class: "GRU/LSTM", mode: "oracle", temporal: "cum", roc: 0.9116, pr: 0.2850, r2: null, brier: 0.0152 },
-            { name: "Recurrent Exam GRU (Gradeblind)", class: "GRU/LSTM", mode: "gradeblind", temporal: "cum", roc: 0.8959, pr: 0.1971, r2: null, brier: 0.0163 },
-            { name: "Recurrent Exam GRU (Standard)", class: "GRU/LSTM", mode: "standard", temporal: "cum", roc: 0.8933, pr: 0.1911, r2: null, brier: 0.0165 },
-            { name: "Recurrent Exam GRU (Prev)", class: "GRU/LSTM", mode: "standard", temporal: "prev", roc: 0.8857, pr: 0.2065, r2: null, brier: 0.0168 },
-            { name: "Timeseries Exam Transformer (Gradeblind)", class: "Transformer", mode: "gradeblind", temporal: "cum", roc: null, pr: null, r2: 0.8023, brier: null },
-            { name: "Timeseries Exam GRU (Regressor)", class: "GRU/LSTM", mode: "standard", temporal: "cum", roc: null, pr: null, r2: 0.6540, brier: null },
-            { name: "Dynamic DeepHit Competing Risks", class: "Survival", mode: "standard", temporal: "cum", roc: 0.8116, pr: 0.1820, r2: null, brier: 0.0354 },
-            { name: "Dynamic DeepHit (Prev)", class: "Survival", mode: "standard", temporal: "prev", roc: 0.7692, pr: 0.1668, r2: null, brier: 0.0377 },
-            { name: "Double Machine Learning (DML)", class: "Causal", mode: "standard", temporal: "prev", roc: 0.7522, pr: 0.1618, r2: null, brier: 0.0371 },
-            { name: "Extended Logistic Hazard", class: "Survival", mode: "standard", temporal: "prev", roc: 0.7510, pr: 0.1580, r2: null, brier: 0.0380 },
-            { name: "Extended Cox Panel (PHReg)", class: "Survival", mode: "standard", temporal: "prev", roc: 0.7510, pr: null, r2: null, brier: null },
-            { name: "DSGVO Realistic Hazard", class: "Survival", mode: "realistic", temporal: "prev", roc: 0.7341, pr: 0.1490, r2: null, brier: 0.0392 },
-            { name: "Semester Transformer Regressor", class: "Transformer", mode: "standard", temporal: "prev", roc: null, pr: null, r2: 0.5120, brier: null },
-            { name: "Semester LSTM Regressor", class: "GRU/LSTM", mode: "standard", temporal: "prev", roc: null, pr: null, r2: 0.4210, brier: null },
-            { name: "MLP GPA Regressor (Landmark)", class: "Survival", mode: "standard", temporal: "prev", roc: null, pr: null, r2: 0.3850, brier: null }
-        ];
+        const ALL_MODELS = [
+  {
+    "name": "autoregressive_deep_transformer",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "autoregressive_fail",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "autoregressive_next_exam_dual_head",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "counterfactual_deephit_fixed",
+    "target_id": 3,
+    "target_name": "3. Competing Risks (Dropout vs. Abschluss)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": 0.9508235454559326
+  },
+  {
+    "name": "counterfactual_grade_transformer",
+    "target_id": 6,
+    "target_name": "6. Kausale Effekte & Sch\u00fctzer (RR / HR)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "counterfactual_hr_analyzer",
+    "target_id": 6,
+    "target_name": "6. Kausale Effekte & Sch\u00fctzer (RR / HR)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "counterfactual_oracle_logistic_hazard",
+    "target_id": 6,
+    "target_name": "6. Kausale Effekte & Sch\u00fctzer (RR / HR)",
+    "mode": "oracle",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": 0.993440568447113
+  },
+  {
+    "name": "deep_survival",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": 0.8710032788891614,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "dml_orthogonal_survival_cum_gradeblind",
+    "target_id": 6,
+    "target_name": "6. Kausale Effekte & Sch\u00fctzer (RR / HR)",
+    "mode": "gradeblind",
+    "temporal": "cum",
+    "roc": 0.8359475359118969,
+    "pr": 0.2653154255315677,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0343398116528987,
+    "rr": null
+  },
+  {
+    "name": "dml_orthogonal_survival_cum_standard",
+    "target_id": 6,
+    "target_name": "6. Kausale Effekte & Sch\u00fctzer (RR / HR)",
+    "mode": "standard",
+    "temporal": "cum",
+    "roc": 0.8360339285208138,
+    "pr": 0.2691176354567686,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0342450626194477,
+    "rr": null
+  },
+  {
+    "name": "dml_orthogonal_survival",
+    "target_id": 6,
+    "target_name": "6. Kausale Effekte & Sch\u00fctzer (RR / HR)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": 0.8039670173602314,
+    "pr": 0.1953021905039003,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0360079668462276,
+    "rr": null
+  },
+  {
+    "name": "dml_orthogonal_survival_prev_gradeblind",
+    "target_id": 6,
+    "target_name": "6. Kausale Effekte & Sch\u00fctzer (RR / HR)",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": 0.8004724599340822,
+    "pr": 0.193947930523135,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0360928028821945,
+    "rr": null
+  },
+  {
+    "name": "dynamic_deephit_cum_gradeblind",
+    "target_id": 3,
+    "target_name": "3. Competing Risks (Dropout vs. Abschluss)",
+    "mode": "gradeblind",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "dynamic_deephit_cum",
+    "target_id": 3,
+    "target_name": "3. Competing Risks (Dropout vs. Abschluss)",
+    "mode": "standard",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "dynamic_deephit_delta",
+    "target_id": 3,
+    "target_name": "3. Competing Risks (Dropout vs. Abschluss)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "dynamic_deephit",
+    "target_id": 3,
+    "target_name": "3. Competing Risks (Dropout vs. Abschluss)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "dynamic_deephit_prev_gradeblind",
+    "target_id": 3,
+    "target_name": "3. Competing Risks (Dropout vs. Abschluss)",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "dynamic_deephit_prev",
+    "target_id": 3,
+    "target_name": "3. Competing Risks (Dropout vs. Abschluss)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "erwerb_blind_models",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "blind",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "extended_cox_delta",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "extended_cox_panel",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "extended_deepsurv_cum",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "cum",
+    "roc": 0.5425391918890123,
+    "pr": 0.0559982246992875,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "extended_deepsurv_delta",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": 0.5569565934640848,
+    "pr": 0.0547559818132537,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "extended_deepsurv_prev",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": 0.5569565934640848,
+    "pr": 0.0547559818132537,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "extended_logistic_hazard_cum",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "cum",
+    "roc": 0.834929174772701,
+    "pr": 0.2663705225810049,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0343217998743057,
+    "rr": null
+  },
+  {
+    "name": "extended_logistic_hazard_delta",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": 0.8002483914970865,
+    "pr": 0.189747321809907,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0361599288880825,
+    "rr": null
+  },
+  {
+    "name": "extended_logistic_hazard_prev",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": 0.8002483914970865,
+    "pr": 0.189747321809907,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0361599288880825,
+    "rr": null
+  },
+  {
+    "name": "grid_exam_gru_blind",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "blind",
+    "temporal": "prev",
+    "roc": 0.8878733448590223,
+    "pr": 0.162627763287514,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0154635524377226,
+    "rr": null
+  },
+  {
+    "name": "grid_exam_gru_gradeblind",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": 0.8959437462257391,
+    "pr": 0.1971480063226268,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0151039883494377,
+    "rr": null
+  },
+  {
+    "name": "grid_exam_gru_oracle",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "oracle",
+    "temporal": "prev",
+    "roc": 0.9116380505963192,
+    "pr": 0.2850320558499563,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0140461781993508,
+    "rr": null
+  },
+  {
+    "name": "grid_exam_gru_realistic",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "realistic",
+    "temporal": "prev",
+    "roc": 0.8890357599371495,
+    "pr": 0.1891434760451409,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0151822250336408,
+    "rr": null
+  },
+  {
+    "name": "grid_exam_gru_standard",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": 0.8932575040980817,
+    "pr": 0.191103098670721,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0151590835303068,
+    "rr": null
+  },
+  {
+    "name": "grid_semester_gru_blind",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "blind",
+    "temporal": "prev",
+    "roc": 0.7814759809556575,
+    "pr": 0.1719033090121389,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0378096178174018,
+    "rr": null
+  },
+  {
+    "name": "grid_semester_gru_gradeblind",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": 0.8119047725253206,
+    "pr": 0.2676121473227621,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.035413522273302,
+    "rr": null
+  },
+  {
+    "name": "grid_semester_gru_oracle",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "oracle",
+    "temporal": "prev",
+    "roc": 0.8117940324226445,
+    "pr": 0.2695147053845196,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0353953652083873,
+    "rr": null
+  },
+  {
+    "name": "grid_semester_gru_realistic",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "realistic",
+    "temporal": "prev",
+    "roc": 0.8079610774444022,
+    "pr": 0.2673572269254696,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0353446304798126,
+    "rr": null
+  },
+  {
+    "name": "grid_semester_gru_standard",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": 0.811314523437481,
+    "pr": 0.2740861995556334,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0352181866765022,
+    "rr": null
+  },
+  {
+    "name": "grid_semester_transformer_blind",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "blind",
+    "temporal": "prev",
+    "roc": 0.7856003363558611,
+    "pr": 0.1968219574533641,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0372359827160835,
+    "rr": null
+  },
+  {
+    "name": "grid_semester_transformer_gradeblind",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": 0.8174638037741162,
+    "pr": 0.2874022669678438,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0348925031721591,
+    "rr": null
+  },
+  {
+    "name": "grid_semester_transformer_oracle",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "oracle",
+    "temporal": "prev",
+    "roc": 0.8143745741906371,
+    "pr": 0.2881741791657679,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0349256545305252,
+    "rr": null
+  },
+  {
+    "name": "grid_semester_transformer_realistic",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "realistic",
+    "temporal": "prev",
+    "roc": 0.8145783319160429,
+    "pr": 0.2859998148418328,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0348984375596046,
+    "rr": null
+  },
+  {
+    "name": "grid_semester_transformer_standard",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": 0.8173991430428271,
+    "pr": 0.2855572102669667,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0349148660898208,
+    "rr": null
+  },
+  {
+    "name": "logistic_hazard_landmark",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": 0.8750500952509703,
+    "pr": 0.7709244142384774,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.1135160624980926,
+    "rr": null
+  },
+  {
+    "name": "mlp_baseline_gradeblind",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "mlp_baseline",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "mlp_regression_gradeblind",
+    "target_id": 4,
+    "target_name": "4. Kumulativer GPA / Abschlussnote",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "mlp_regression",
+    "target_id": 4,
+    "target_name": "4. Kumulativer GPA / Abschlussnote",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "oracle_lift",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "oracle",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "recurrent_exam_survival_cum_gradeblind",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "gradeblind",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0152697078883647,
+    "rr": null
+  },
+  {
+    "name": "recurrent_exam_survival_cum",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "standard",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0152466818690299,
+    "rr": null
+  },
+  {
+    "name": "recurrent_exam_survival_delta",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0149422548711299,
+    "rr": null
+  },
+  {
+    "name": "recurrent_exam_survival",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0149422548711299,
+    "rr": null
+  },
+  {
+    "name": "recurrent_exam_survival_prev_gradeblind",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0150107881054282,
+    "rr": null
+  },
+  {
+    "name": "recurrent_exam_survival_prev",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0149422548711299,
+    "rr": null
+  },
+  {
+    "name": "recurrent_survival_gru_cum_gradeblind",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0351961366832256,
+    "rr": null
+  },
+  {
+    "name": "recurrent_survival_gru_cum",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "standard",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0349431037902832,
+    "rr": null
+  },
+  {
+    "name": "recurrent_survival_gru",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0348593890666961,
+    "rr": null
+  },
+  {
+    "name": "recurrent_survival_gru_prev_gradeblind",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0348163992166519,
+    "rr": null
+  },
+  {
+    "name": "recurrent_survival_gru_prev",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0348593890666961,
+    "rr": null
+  },
+  {
+    "name": "recurrent_survival_model_delta",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0348593890666961,
+    "rr": null
+  },
+  {
+    "name": "structural_mediation_analysis",
+    "target_id": 6,
+    "target_name": "6. Kausale Effekte & Sch\u00fctzer (RR / HR)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_exam_gru_cum_gradeblind",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "gradeblind",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": 0.0865216255187988,
+    "rmse": 0.122795260222788,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_exam_gru_cum_standard",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "standard",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": 0.0815658569335937,
+    "rmse": 0.1231279030689986,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_exam_gru",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": 0.1019916534423828,
+    "rmse": 0.1217510320386677,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_exam_gru_prev_gradeblind",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": 0.0944057703018188,
+    "rmse": 0.1222641969176915,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_exam_transformer_cum_gradeblind",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "gradeblind",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": 0.8023158232119774,
+    "rmse": 0.2661938119258206,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_exam_transformer_cum_standard",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "standard",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": 0.99161796075493,
+    "rmse": 0.0548134131910541,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_exam_transformer",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": 0.9927605712078292,
+    "rmse": 0.0509406112083741,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_exam_transformer_prev_gradeblind",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": 0.8031133592842331,
+    "rmse": 0.2656563037438849,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_semester_lstm_cum_gradeblind",
+    "target_id": 4,
+    "target_name": "4. Kumulativer GPA / Abschlussnote",
+    "mode": "gradeblind",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": 0.7718595266342163,
+    "rmse": 0.5713587009339265,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_semester_lstm_cum_standard",
+    "target_id": 4,
+    "target_name": "4. Kumulativer GPA / Abschlussnote",
+    "mode": "standard",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": 0.7940221428871155,
+    "rmse": 0.542897638288523,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_semester_lstm",
+    "target_id": 4,
+    "target_name": "4. Kumulativer GPA / Abschlussnote",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": 0.7930763363838196,
+    "rmse": 0.5441426821393892,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_semester_lstm_prev_gradeblind",
+    "target_id": 4,
+    "target_name": "4. Kumulativer GPA / Abschlussnote",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": 0.7716121077537537,
+    "rmse": 0.5716684499977849,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_semester_transformer_cum_gradeblind",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": 0.7993412895804539,
+    "rmse": 0.2681890300475094,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_semester_transformer_cum_standard",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "standard",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": 0.9889852508145556,
+    "rmse": 0.0628346654848921,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_semester_transformer",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": 0.9898994100423802,
+    "rmse": 0.0601707426315281,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "timeseries_semester_transformer_prev_gradeblind",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": 0.8013515625473597,
+    "rmse": 0.2668422400893409,
+    "brier": null,
+    "rr": null
+  },
+  {
+    "name": "transformer_dml_cum_gradeblind",
+    "target_id": 6,
+    "target_name": "6. Kausale Effekte & Sch\u00fctzer (RR / HR)",
+    "mode": "gradeblind",
+    "temporal": "cum",
+    "roc": 0.8293457054347411,
+    "pr": 0.2621191307858969,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0344451442360878,
+    "rr": null
+  },
+  {
+    "name": "transformer_dml_cum_standard",
+    "target_id": 6,
+    "target_name": "6. Kausale Effekte & Sch\u00fctzer (RR / HR)",
+    "mode": "standard",
+    "temporal": "cum",
+    "roc": 0.8276100543170632,
+    "pr": 0.2669264666140274,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0343073345720768,
+    "rr": null
+  },
+  {
+    "name": "transformer_dml",
+    "target_id": 6,
+    "target_name": "6. Kausale Effekte & Sch\u00fctzer (RR / HR)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": 0.8013597922830874,
+    "pr": 0.1928560165618287,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0360956378281116,
+    "rr": null
+  },
+  {
+    "name": "transformer_dml_prev_gradeblind",
+    "target_id": 6,
+    "target_name": "6. Kausale Effekte & Sch\u00fctzer (RR / HR)",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": 0.8010780249135134,
+    "pr": 0.1923300787669074,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0361161977052688,
+    "rr": null
+  },
+  {
+    "name": "transformer_exam_survival_cum_gradeblind",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "gradeblind",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0152919553220272,
+    "rr": null
+  },
+  {
+    "name": "transformer_exam_survival_cum",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "standard",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0152623523026704,
+    "rr": null
+  },
+  {
+    "name": "transformer_exam_survival",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0154582876712083,
+    "rr": null
+  },
+  {
+    "name": "transformer_exam_survival_prev_gradeblind",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0154456617310643,
+    "rr": null
+  },
+  {
+    "name": "transformer_exam_survival_prev",
+    "target_id": 2,
+    "target_name": "2. Klausur-Ebene (Exam-Level Fail/Hazard)",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0154582876712083,
+    "rr": null
+  },
+  {
+    "name": "transformer_survival_cum_gradeblind",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0349267609417438,
+    "rr": null
+  },
+  {
+    "name": "transformer_survival_cum",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "standard",
+    "temporal": "cum",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.035026729106903,
+    "rr": null
+  },
+  {
+    "name": "transformer_survival",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0348428152501583,
+    "rr": null
+  },
+  {
+    "name": "transformer_survival_prev_gradeblind",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "gradeblind",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0349292680621147,
+    "rr": null
+  },
+  {
+    "name": "transformer_survival_prev",
+    "target_id": 1,
+    "target_name": "1. Terminal / Semester Dropout",
+    "mode": "standard",
+    "temporal": "prev",
+    "roc": null,
+    "pr": null,
+    "r2": null,
+    "rmse": null,
+    "brier": 0.0348428152501583,
+    "rr": null
+  }
+];
 
         const tooltip = document.getElementById('tooltip');
 
@@ -315,28 +1450,30 @@
         }
 
         function applyFilters() {
+            const targetId = document.getElementById('filter-target').value;
             const mode = document.getElementById('filter-mode').value;
             const temp = document.getElementById('filter-temporal').value;
-            const cls = document.getElementById('filter-class').value;
             const search = document.getElementById('filter-search').value.toLowerCase();
 
-            const filtered = RAW_DATA.filter(d => {
+            const filtered = ALL_MODELS.filter(d => {
+                if (targetId !== 'all' && d.target_id !== parseInt(targetId)) return false;
                 if (mode !== 'all' && d.mode !== mode) return false;
                 if (temp !== 'all' && d.temporal !== temp) return false;
-                if (cls !== 'all' && d.class !== cls) return false;
                 if (search && !d.name.toLowerCase().includes(search)) return false;
                 return true;
             });
 
             renderTable(filtered);
             renderSurvivalScatter(filtered);
+            renderRegressionBar(filtered);
         }
 
         function renderTable(data) {
             const tbody = document.getElementById('table-body');
+            document.getElementById('table-count').innerText = data.length;
             tbody.innerHTML = '';
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-500 font-sans">Keine Modelle für diese Filterkombination gefunden.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-500 font-sans">Keine Modelle fuer diese Filterkombination gefunden.</td></tr>';
                 return;
             }
             data.forEach(d => {
@@ -348,7 +1485,7 @@
                 const brierStr = d.brier !== null ? d.brier.toFixed(4) : '-';
                 tr.innerHTML = `
                     <td class="p-3 font-medium text-slate-200">${d.name}</td>
-                    <td class="p-3 text-slate-400">${d.class}</td>
+                    <td class="p-3 text-slate-400 text-xs">${d.target_name}</td>
                     <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">${d.mode}</span></td>
                     <td class="p-3 text-slate-400">${d.temporal}</td>
                     <td class="p-3 text-right">${rocStr}</td>
@@ -365,6 +1502,7 @@
             const svg = document.getElementById('svg-survival');
             svg.innerHTML = '';
             const survData = data.filter(d => d.roc !== null && d.pr !== null);
+            document.getElementById('scatter-count').innerText = `${survData.length} Modelle mit ROC/PR-AUC`;
 
             const w = 520, h = 340, pad = 50;
             const minX = 0.70, maxX = 0.98;
@@ -373,12 +1511,11 @@
             const mapX = val => pad + (val - minX) / (maxX - minX) * (w - 2 * pad);
             const mapY = val => h - pad - (val - minY) / (maxY - minY) * (h - 2 * pad);
 
-            // Gridlines & Axes
             let gridHtml = `
                 <line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" stroke="#334155" stroke-width="1.5"/>
                 <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${h-pad}" stroke="#334155" stroke-width="1.5"/>
                 <text x="${w/2}" y="${h-12}" fill="#94a3b8" font-size="11" text-anchor="middle">ROC-AUC</text>
-                <text x="16" y="${h/2}" fill="#94a3b8" font-size="11" text-anchor="middle" transform="rotate(-90 16 ${h/2})">PR-AUC (Dropout)</text>
+                <text x="16" y="${h/2}" fill="#94a3b8" font-size="11" text-anchor="middle" transform="rotate(-90 16 ${h/2})">PR-AUC (Dropout / Fail)</text>
             `;
 
             for (let x = 0.70; x <= 0.95; x += 0.05) {
@@ -393,36 +1530,28 @@
             }
             svg.innerHTML = gridHtml;
 
-            // Points
             survData.forEach(d => {
                 const cx = mapX(d.roc);
                 const cy = mapY(d.pr);
                 const color = d.roc >= 0.90 ? '#38bdf8' : (d.roc >= 0.80 ? '#34d399' : '#a78bfa');
                 const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                 g.innerHTML = `
-                    <circle cx="${cx}" cy="${cy}" r="6" fill="${color}" stroke="#0f172a" stroke-width="1.5" class="svg-point transition-all cursor-pointer"/>
-                    <text x="${cx}" y="${cy - 9}" fill="#cbd5e1" font-size="9.5" text-anchor="middle" font-weight="500">${d.name.split(' ')[0]}</text>
+                    <circle cx="${cx}" cy="${cy}" r="5.5" fill="${color}" stroke="#0f172a" stroke-width="1.5" class="svg-point transition-all cursor-pointer"/>
                 `;
-                g.addEventListener('mousemove', e => showTooltip(e, `<b>${d.name}</b><br>ROC-AUC: ${d.roc.toFixed(4)}<br>PR-AUC: ${d.pr.toFixed(4)}<br>Modus: ${d.mode}`));
+                g.addEventListener('mousemove', e => showTooltip(e, `<b>${d.name}</b><br>Zielgröße: ${d.target_name}<br>ROC-AUC: ${d.roc.toFixed(4)}<br>PR-AUC: ${d.pr.toFixed(4)}<br>Modus: ${d.mode} (${d.temporal})`));
                 g.addEventListener('mouseleave', hideTooltip);
                 svg.appendChild(g);
             });
         }
 
-        // SVG 2: Regression Bars
-        function renderRegressionBar() {
+        // SVG 2: Regression Bar
+        function renderRegressionBar(data) {
             const svg = document.getElementById('svg-regression');
-            const data = [
-                { name: 'Exam Transformer (cum)', r2: 0.8023, color: '#38bdf8' },
-                { name: 'Deep Transformer Multi', r2: 0.7036, color: '#38bdf8' },
-                { name: 'Exam GRU Regressor', r2: 0.6540, color: '#34d399' },
-                { name: 'Semester Transformer', r2: 0.5120, color: '#a78bfa' },
-                { name: 'Semester LSTM', r2: 0.4210, color: '#64748b' },
-                { name: 'Landmark MLP GPA', r2: 0.3850, color: '#475569' }
-            ];
+            svg.innerHTML = '';
+            const regData = (data ? data.filter(d => d.r2 !== null) : ALL_MODELS.filter(d => d.r2 !== null)).sort((a,b) => b.r2 - a.r2).slice(0, 7);
 
-            const w = 520, h = 340, padL = 160, padR = 40, padT = 30, padB = 40;
-            const barH = 32, gap = 16;
+            const w = 520, h = 340, padL = 190, padR = 40, padT = 30, padB = 40;
+            const barH = 26, gap = 14;
 
             let html = `
                 <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h-padB}" stroke="#334155" stroke-width="1.5"/>
@@ -437,22 +1566,24 @@
             }
             svg.innerHTML = html;
 
-            data.forEach((d, i) => {
+            regData.forEach((d, i) => {
                 const py = padT + i * (barH + gap);
-                const barW = d.r2 * (w - padL - padR);
+                const barW = Math.max(0, d.r2 * (w - padL - padR));
+                const color = d.target_id === 5 ? '#38bdf8' : (d.r2 >= 0.70 ? '#34d399' : '#a78bfa');
                 const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const labelName = d.name.length > 24 ? d.name.substring(0, 22) + '...' : d.name;
                 g.innerHTML = `
-                    <text x="${padL - 10}" y="${py + barH/2 + 4}" fill="#cbd5e1" font-size="10.5" text-anchor="end">${d.name}</text>
-                    <rect x="${padL}" y="${py}" width="${barW}" height="${barH}" rx="4" fill="${d.color}" class="svg-bar transition-all cursor-pointer"/>
-                    <text x="${padL + barW + 8}" y="${py + barH/2 + 4}" fill="#f8fafc" font-size="11" font-weight="600">${d.r2.toFixed(4)}</text>
+                    <text x="${padL - 10}" y="${py + barH/2 + 4}" fill="#cbd5e1" font-size="10" text-anchor="end">${labelName}</text>
+                    <rect x="${padL}" y="${py}" width="${barW}" height="${barH}" rx="3" fill="${color}" class="svg-bar transition-all cursor-pointer"/>
+                    <text x="${padL + barW + 6}" y="${py + barH/2 + 4}" fill="#f8fafc" font-size="10.5" font-weight="600">${d.r2.toFixed(4)}</text>
                 `;
-                g.addEventListener('mousemove', e => showTooltip(e, `<b>${d.name}</b><br>R² Score: ${d.r2.toFixed(4)}`));
+                g.addEventListener('mousemove', e => showTooltip(e, `<b>${d.name}</b><br>Zielgröße: ${d.target_name}<br>R² Score: ${d.r2.toFixed(4)}`));
                 g.addEventListener('mouseleave', hideTooltip);
                 svg.appendChild(g);
             });
         }
 
-        // SVG 3: Forest Plot
+        // Static helper plots
         function renderForestPlot() {
             const svg = document.getElementById('svg-forest');
             const data = [
@@ -470,9 +1601,7 @@
             let html = `
                 <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h-padB}" stroke="#334155" stroke-width="1.5"/>
                 <line x1="${padL}" y1="${h-padB}" x2="${w-padR}" y2="${h-padB}" stroke="#334155" stroke-width="1.5"/>
-                <!-- Referenz 1.0 -->
                 <line x1="${mapX(1.0)}" y1="${padT}" x2="${mapX(1.0)}" y2="${h-padB}" stroke="#64748b" stroke-dasharray="4,4" stroke-width="1.5"/>
-                <!-- Ground Truth 0.787 -->
                 <line x1="${mapX(0.787)}" y1="${padT}" x2="${mapX(0.787)}" y2="${h-padB}" stroke="#10b981" stroke-dasharray="3,3" stroke-width="1.5"/>
                 <text x="${(padL + w - padR)/2}" y="${h-10}" fill="#94a3b8" font-size="11" text-anchor="middle">Relative Risk (RR) - Schutzeffekt < 1.0</text>
             `;
@@ -504,7 +1633,6 @@
             });
         }
 
-        // SVG 4: Bias Bar
         function renderBiasPlot() {
             const svg = document.getElementById('svg-bias');
             const data = [
@@ -544,7 +1672,6 @@
             });
         }
 
-        // SVG 5: Noise Stress
         function renderNoisePlot() {
             const svg = document.getElementById('svg-noise');
             const lines = [
@@ -587,7 +1714,6 @@
             });
         }
 
-        // SVG 6: Overload Stress
         function renderOverloadPlot() {
             const svg = document.getElementById('svg-overload');
             const data = [
@@ -633,7 +1759,6 @@
             });
         }
 
-        // SVG 7: MoE Matrix
         function renderMoeMatrix() {
             const svg = document.getElementById('svg-moe-matrix');
             const models = ['Deep Transformer', 'Exam GRU', 'Extended Cox', 'DeepHit'];
@@ -656,7 +1781,6 @@
                 row.forEach((val, j) => {
                     const x = padL + j * cellSize;
                     const y = padT + i * cellSize;
-                    // Farbskala von tiefblau (0.35) bis hell (1.0)
                     const intensity = Math.floor((val - 0.35) / 0.65 * 200 + 40);
                     const fill = i === j ? '#1e293b' : `rgb(30, ${intensity}, ${Math.min(255, intensity + 80)})`;
                     html += `
@@ -668,7 +1792,6 @@
             svg.innerHTML = html;
         }
 
-        // SVG 8: Version Diff
         function renderVersionDiff() {
             const svg = document.getElementById('svg-version-diff');
             const data = [
@@ -709,10 +1832,8 @@
             });
         }
 
-        // INITIALIZE ALL
         window.addEventListener('DOMContentLoaded', () => {
             applyFilters();
-            renderRegressionBar();
             renderForestPlot();
             renderBiasPlot();
             renderNoisePlot();

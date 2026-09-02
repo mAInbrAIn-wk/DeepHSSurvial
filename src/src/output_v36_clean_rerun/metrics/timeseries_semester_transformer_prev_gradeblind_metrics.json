@@ -1,0 +1,9 @@
+{
+    "model_type": "timeseries_semester_transformer_prev_gradeblind",
+    "temporal": "prev",
+    "mode": "gradeblind",
+    "R2": 0.7194066306714044,
+    "RMSE": 0.33299328369932035,
+    "MAE": 0.2621552048356208,
+    "MSE": 0.11088452698885606
+}

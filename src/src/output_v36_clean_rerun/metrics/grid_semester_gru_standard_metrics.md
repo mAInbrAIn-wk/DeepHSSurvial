@@ -1,0 +1,9 @@
+# Metriken: grid_semester_gru_standard
+
+| Metrik | Wert |
+| :--- | :---: |
+| **n_features** | 18 |
+| **roc_auc** | 0.7645 |
+| **pr_auc** | 0.1852 |
+| **brier_score** | 0.0380 |
+| **counterfactual** | {'fach_partial': {'mean_rr': 1.0053212642669678, 'median_rr': 0.9981154203414917}, 'fach_isolated': {'mean_rr': 1.0059266090393066, 'median_rr': 0.9983582496643066}, 'uebf_partial': {'mean_rr': 0.996779203414917, 'median_rr': 0.9950212240219116}, 'uebf_isolated': {'mean_rr': 0.9964884519577026, 'median_rr': 0.9937726259231567}, 'psych_partial': {'mean_rr': 1.0403969287872314, 'median_rr': 1.026924729347229}, 'psych_isolated': {'mean_rr': 1.03941810131073, 'median_rr': 1.027430534362793}} |
