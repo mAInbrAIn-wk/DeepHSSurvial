@@ -1,8 +1,0 @@
-{
-    "model_type": "extended_logistic_hazard_cum",
-    "temporal": "cum",
-    "mode": "gradeblind",
-    "ROC-AUC_Panel": 0.834929174772701,
-    "PR-AUC_Panel": 0.2663705225810049,
-    "Brier_Score": 0.034321799874305725
-}

@@ -42,4 +42,10 @@ ENV/
 .gemini/
 
 # Todo
-ToDo.md
+ToDo.mdarchive/
+data_v4_grid/
+output_dl_v1/
+output_dl_v2/
+src/output_dl_v36_clean/
+src/output_v36_clean_rerun/
+output_v4_models/

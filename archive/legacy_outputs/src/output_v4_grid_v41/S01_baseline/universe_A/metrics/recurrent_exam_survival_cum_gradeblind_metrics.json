@@ -1,9 +1,0 @@
-{
-    "model_type": "recurrent_exam_survival_cum_gradeblind",
-    "temporal": "cum",
-    "mode": "gradeblind",
-    "ROC-AUC_Exam": 0.9010445722504528,
-    "PR-AUC_Exam": 0.19425118255202972,
-    "Brier_Score": 0.015269707888364792,
-    "ROC-AUC_Student": 0.697623033771897
-}

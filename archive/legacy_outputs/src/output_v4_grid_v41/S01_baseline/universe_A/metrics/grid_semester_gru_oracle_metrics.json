@@ -1,7 +1,0 @@
-{
-    "n_features": 23,
-    "roc_auc": 0.8117940324226445,
-    "pr_auc": 0.2695147053845196,
-    "brier_score": 0.035395365208387375,
-    "counterfactual": "{'fach_partial': {'mean_rr': 1.020438313484192, 'median_rr': 1.0242937803268433}, 'fach_isolated': {'mean_rr': 1.020933985710144, 'median_rr': 1.025111436843872}, 'uebf_partial': {'mean_rr': 1.0047253370285034, 'median_rr': 0.9906018972396851}, 'uebf_isolated': {'mean_rr': 1.004998803138733, 'median_rr': 0.9899461269378662}, 'psych_partial': {'mean_rr': 1.0284714698791504, 'median_rr': 1.0089199542999268}, 'psych_isolated': {'mean_rr': 1.0301510095596313, 'median_rr': 1.0089349746704102}}"
-}

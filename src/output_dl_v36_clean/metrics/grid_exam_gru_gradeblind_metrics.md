@@ -1,8 +1,0 @@
-# Metriken: grid_exam_gru_gradeblind
-
-| Metrik | Wert |
-| :--- | :---: |
-| **n_features** | 23 |
-| **roc_auc** | 0.8860 |
-| **pr_auc** | 0.2096 |
-| **brier_score** | 0.0167 |

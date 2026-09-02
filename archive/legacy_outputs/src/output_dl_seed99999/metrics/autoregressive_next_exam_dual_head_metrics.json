@@ -1,8 +1,0 @@
-{
-    "Next_Exam_Grade_R2": 0.476889967918396,
-    "Next_Exam_Grade_RMSE": 0.9342354520359687,
-    "Next_Exam_Grade_MAE": 0.6778429746627808,
-    "Next_Exam_Pass_ROC_AUC": 0.9273281785018774,
-    "Next_Exam_Pass_PR_AUC": 0.9896749162060529,
-    "Next_Exam_Pass_Brier_Score": 0.06887496262788773
-}

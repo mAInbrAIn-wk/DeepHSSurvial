@@ -1,9 +1,0 @@
-# Metriken: grid_semester_gru_gradeblind
-
-| Metrik | Wert |
-| :--- | :---: |
-| **n_features** | 17 |
-| **roc_auc** | 0.7661 |
-| **pr_auc** | 0.1855 |
-| **brier_score** | 0.0380 |
-| **counterfactual** | {'fach_partial': {'mean_rr': 1.0411394834518433, 'median_rr': 1.0138293504714966}, 'fach_isolated': {'mean_rr': 1.041236162185669, 'median_rr': 1.0129687786102295}, 'uebf_partial': {'mean_rr': 1.0057529211044312, 'median_rr': 0.9924530982971191}, 'uebf_isolated': {'mean_rr': 0.9993508458137512, 'median_rr': 0.990772008895874}, 'psych_partial': {'mean_rr': 1.0618312358856201, 'median_rr': 1.03278386592865}, 'psych_isolated': {'mean_rr': 1.0624674558639526, 'median_rr': 1.032602310180664}} |

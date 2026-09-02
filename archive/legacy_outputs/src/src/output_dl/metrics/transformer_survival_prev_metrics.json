@@ -1,9 +1,0 @@
-{
-    "model_type": "transformer_survival_prev",
-    "temporal": "prev",
-    "mode": "standard",
-    "ROC-AUC_Semester": 0.7632089989676738,
-    "PR-AUC_Semester": 0.1532138847889922,
-    "Brier_Score": 0.02822381630539894,
-    "ROC-AUC_Student": 0.3733770773410035
-}

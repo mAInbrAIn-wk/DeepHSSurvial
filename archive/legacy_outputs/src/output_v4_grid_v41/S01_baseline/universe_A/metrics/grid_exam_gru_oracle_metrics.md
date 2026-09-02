@@ -1,8 +1,0 @@
-# Metriken: grid_exam_gru_oracle
-
-| Metrik | Wert |
-| :--- | :---: |
-| **n_features** | 29 |
-| **roc_auc** | 0.9116 |
-| **pr_auc** | 0.2850 |
-| **brier_score** | 0.0140 |

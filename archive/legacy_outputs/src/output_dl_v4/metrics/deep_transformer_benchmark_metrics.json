@@ -1,8 +1,0 @@
-{
-    "Deep_Semester_Transformer_R2": 0.9869325777499094,
-    "Deep_Semester_Transformer_RMSE": 0.07086962180442287,
-    "Deep_Exam_Transformer_R2": 0.9917753003930175,
-    "Deep_Exam_Transformer_RMSE": 0.05622444476133092,
-    "Deep_Exam_Survival_ROC_AUC": 0.8937503759758029,
-    "Deep_Exam_Survival_PR_AUC": 0.15065822878152801
-}

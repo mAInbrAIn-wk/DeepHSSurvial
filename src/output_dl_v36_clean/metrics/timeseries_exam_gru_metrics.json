@@ -1,9 +1,0 @@
-{
-    "model_type": "timeseries_exam_gru",
-    "temporal": "prev",
-    "mode": "realistic",
-    "R2": 0.03198838233947754,
-    "RMSE": 0.1332627476240569,
-    "MAE": 0.03450543060898781,
-    "MSE": 0.017758959904313087
-}

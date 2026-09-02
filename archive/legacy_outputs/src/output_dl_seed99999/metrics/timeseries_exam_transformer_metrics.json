@@ -1,9 +1,0 @@
-{
-    "model_type": "timeseries_exam_transformer",
-    "temporal": "prev",
-    "mode": "gradeblind",
-    "R2": 0.7229780720655418,
-    "RMSE": 0.3269994799869268,
-    "MAE": 0.255055798487994,
-    "MSE": 0.10692865991172054
-}

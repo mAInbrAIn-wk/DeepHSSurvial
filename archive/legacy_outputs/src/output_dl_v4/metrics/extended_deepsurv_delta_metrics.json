@@ -1,7 +1,0 @@
-{
-    "model_type": "extended_deepsurv_prev",
-    "temporal": "prev",
-    "mode": "standard",
-    "ROC-AUC_Panel": 0.5694796385679666,
-    "PR-AUC_Panel": 0.05118624358973159
-}

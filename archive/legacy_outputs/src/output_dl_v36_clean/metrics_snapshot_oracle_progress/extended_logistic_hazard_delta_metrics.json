@@ -1,8 +1,0 @@
-{
-    "model_type": "extended_logistic_hazard_prev",
-    "temporal": "prev",
-    "mode": "oracle",
-    "ROC-AUC_Panel": 0.75994104322631,
-    "PR-AUC_Panel": 0.17326937357882402,
-    "Brier_Score": 0.036850616335868835
-}

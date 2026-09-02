@@ -1,9 +1,0 @@
-{
-    "model_type": "transformer_exam_survival_prev_gradeblind",
-    "temporal": "prev",
-    "mode": "gradeblind",
-    "ROC-AUC_Exam": 0.885356302090919,
-    "PR-AUC_Exam": 0.1615484377425406,
-    "Brier_Score": 0.01544566173106432,
-    "ROC-AUC_Student": 0.7140009937670899
-}

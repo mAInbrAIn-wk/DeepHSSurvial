@@ -1,8 +1,0 @@
-{
-    "ROC-AUC_Dropout": 0.827579863980591,
-    "PR-AUC_Dropout": 0.29440819024376763,
-    "Brier_Dropout": 0.04290919005870819,
-    "ROC-AUC_Graduation": 0.999765974280906,
-    "PR-AUC_Graduation": 0.9969862239447739,
-    "Brier_Graduation": 0.0029307743534445763
-}
