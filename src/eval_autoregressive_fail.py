@@ -7,17 +7,20 @@ from sklearn.metrics import average_precision_score
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import load_model
 
-sys.path.insert(0, str(Path('src').absolute()))
-from autoregressive_next_exam import prepare_next_exam_dataset
-from sklearn.preprocessing import StandardScaler
+from deepsupport.models.autoregressive_gru import prepare_next_exam_dataset, PADDING_VALUE
 
 import json
 
-def main(data_dir=None):
+def main(data_dir=None, output_dir=None):
     if data_dir is None:
-        data_dir = Path(os.environ.get('DATA_DIR', 'output_v4_grid_v41/S01_baseline/universe_A'))
+        data_dir = Path(os.environ.get('DATA_DIR', 'data_v4_grid/S01_baseline/universe_A'))
     else:
         data_dir = Path(data_dir)
+        
+    if output_dir is None:
+        output_dir = data_dir
+    else:
+        output_dir = Path(output_dir)
         
     print(f"Loading data from {data_dir}...")
     X_hist, X_ctx, y_grades, y_pass, student_ids = prepare_next_exam_dataset(data_dir)
@@ -47,12 +50,15 @@ def main(data_dir=None):
     y_pass_test = y_pass[test_idx]
     y_fail_test = 1 - y_pass_test
     
-    model_path = data_dir / 'models' / 'autoregressive_next_exam_dual_head.keras'
+    model_path = output_dir / 'models' / 'autoregressive_next_exam_dual_head.keras'
+    if not model_path.exists():
+        model_path = data_dir / 'models' / 'autoregressive_next_exam_dual_head.keras'
+        
     if not model_path.exists():
         print(f"Model not found: {model_path}")
         return
         
-    print("Loading model...")
+    print(f"Loading model from {model_path}...")
     model = load_model(model_path)
     
     print("Predicting...")
@@ -68,8 +74,8 @@ def main(data_dir=None):
         'Next_Exam_Fail_PR_AUC': pr_auc_fail,
         'Prevalence_of_Fail': float(np.mean(y_fail_test))
     }
-    (data_dir / 'metrics').mkdir(exist_ok=True, parents=True)
-    with open(data_dir / 'metrics' / 'autoregressive_fail_metrics.json', 'w', encoding='utf-8') as f:
+    (output_dir / 'metrics').mkdir(exist_ok=True, parents=True)
+    with open(output_dir / 'metrics' / 'autoregressive_fail_metrics.json', 'w', encoding='utf-8') as f:
         json.dump(metrics_out, f, indent=4)
 
 if __name__ == '__main__':

@@ -1,9 +1,11 @@
 """
-Heavy Deep Suite Runner (V4.1)
-==============================
-Fuehrt die rechenintensiven Deep Transformer- und Autoregressor-Architekturen
-sowie das Repraesentationslernen gezielt auf Baseline-Daten aus.
-Laufzeit pro Datensatz: ca. 2 bis 3 Stunden.
+Heavy Deep Suite Runner (V4.2 Refactored)
+=========================================
+Führt die rechenintensiven autoregressiven Next-Exam-Modelle,
+den Deep Transformer Autoregressor (mit Sin/Cos Positional Encoding)
+und das Landmark Representation Learning aus.
+Unterstützt selektive Szenarien (z.B. S01_baseline, S07_noise_half, S08_noise_double).
+Strikte Trennung von Input-Daten (data_root) und Output-Artefakten (output_root).
 """
 
 import os
@@ -15,14 +17,21 @@ import time
 import json
 import argparse
 from pathlib import Path
+from typing import List, Optional, Union
 import psutil
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# Korrektes Projekt-Root (3 Ebenen über src/deepsupport/runners/heavy_suite.py)
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 SRC_DIR = PROJECT_ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-os.chdir(SRC_DIR)
+from deepsupport.data_engine.aggregate import aggregiere_daten
+from deepsupport.models.autoregressive_gru import train_autoregressive_next_exam
+from deepsupport.models.autoregressive_transformer import train_autoregressive_deep_transformer
+import eval_autoregressive_fail
+import landmark_prediction
+
 
 class PipelineBenchmarkTracker:
     def __init__(self):
@@ -32,7 +41,7 @@ class PipelineBenchmarkTracker:
     def run_step(self, step_name: str, func, *args, **kwargs):
         print("\n" + "=" * 80)
         print(f"   START: {step_name}")
-        print(f"   Zeit: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"   Zeit:  {time.strftime('%Y-%m-%d %H:%M:%S')}")
         print("=" * 80)
 
         mem_start = self.process.memory_info().rss / (1024 * 1024)
@@ -92,76 +101,100 @@ class PipelineBenchmarkTracker:
         print(f"\n[REPORT] Heavy Suite Benchmark gespeichert unter: {md_path}")
 
 
-def run_heavy_suite(data_dir: Path, temporal: str = 'prev', modes: list = None, population_seed: int = 42, include_deep_transformers: bool = False):
-    if modes is None:
-        modes = ['standard', 'gradeblind']
-
-    os.environ['DATA_DIR'] = str(data_dir)
+def run_heavy_suite_for_scenario(uni_dir: Path, scenario_out: Path, epochs_gru: int = 20, batch_size: int = 256):
+    """Führt die Heavy Suite für ein einzelnes Szenario (universe_A) aus."""
     tracker = PipelineBenchmarkTracker()
     total_t0 = time.time()
 
-    print("*" * 80)
-    print("   HEAVY DEEP SUITE RUNNER (V4.1)")
-    print(f"   Start: {time.strftime('%Y-%m-%d %H:%M:%S')} | Temporal: {temporal} | Seed: {population_seed}")
-    print(f"   Data Dir: {data_dir.resolve()}")
-    print(f"   Aktive Modi: {modes}")
-    print(f"   Deep Transformer Suite (d=128): {'AKTIVIERT' if include_deep_transformers else 'DEAKTIVIERT (UNDER REVISION)'}")
-    print("*" * 80)
+    print("\n" + "#" * 80)
+    print(f"   HEAVY DEEP SUITE: {uni_dir.parent.name}")
+    print(f"   Input:  {uni_dir}")
+    print(f"   Output: {scenario_out}")
+    print("#" * 80)
 
-    # 1. DEEP TRANSFORMER SUITE (4 SUB-MODELLE) - UNDER REVISION
-    if include_deep_transformers:
-        for mode in modes:
-            tracker.run_step(
-                f"Deep Transformer Suite (4 Sub-Modelle) [{mode}]",
-                lambda m=mode: __import__('deep_transformer_regression').train_deep_transformer_models(data_dir, temporal, m)
-            )
-    else:
-        print("\n[INFO] Deep Transformer Suite (d=128) ist temporär deaktiviert (Under Revision: Positional Encoding & Regularisierung).")
+    # 1. Sicherstellen, dass aggregierte Daten da sind (DuckDB)
+    if not (uni_dir / 'agg_abschluesse.csv').exists():
+        print(f"Aggregierte Daten fehlen in {uni_dir}. Starte DuckDB Aggregation...")
+        aggregiere_daten(uni_dir, backend='duckdb')
 
-    # 2. AUTOREGRESSIVE NEXT-EXAM MULTI-TASK
+    # 2. AUTOREGRESSIVE NEXT-EXAM PREDICTION (Dual-Head GRU Multi-Task)
     tracker.run_step(
-        "Autoregressive Next-Exam Prediction (Dual-Head Multi-Task)",
-        lambda: __import__('autoregressive_next_exam').train_autoregressive_next_exam(data_dir)
+        "1. Autoregressive Next-Exam Prediction (Dual-Head GRU)",
+        lambda: train_autoregressive_next_exam(data_dir=uni_dir, output_dir=scenario_out, epochs=epochs_gru, batch_size=batch_size)
     )
 
+    # 3. EVALUATION AUTOREGRESSIVE FAIL / PR-AUC
     tracker.run_step(
-        "Evaluation Autoregressive Fail/Grade",
-        lambda: __import__('eval_autoregressive_fail').main() if hasattr(__import__('eval_autoregressive_fail'), 'main') else None
+        "2. Evaluation Autoregressive Next-Exam Fail PR-AUC",
+        lambda: eval_autoregressive_fail.main(data_dir=uni_dir, output_dir=scenario_out)
     )
 
-    # 3. DEEP TRANSFORMER AUTOREGRESSOR
+    # 4. DEEP TRANSFORMER AUTOREGRESSOR (Prüfungs-Ebene mit Sin/Cos PosEnc)
     tracker.run_step(
-        "Autoregressive Deep Transformer (Pruefungs-Ebene)",
-        lambda: __import__('autoregressive_deep_transformer').train_autoregressive_deep_transformer(data_dir)
+        "3. Autoregressive Deep Transformer (Sin/Cos PosEnc)",
+        lambda: train_autoregressive_deep_transformer(data_dir=uni_dir, output_dir=scenario_out)
     )
 
-    # 4. LANDMARK REPRESENTATION LEARNING (GEKOEPFTER TRANSFORMER)
+    # 5. LANDMARK REPRESENTATION LEARNING (Geköpfter Transformer -> XGBoost)
     tracker.run_step(
-        "Landmark Representation Learning (Gekoepfter Transformer)",
-        lambda: __import__('landmark_prediction').main(data_dir=data_dir)
+        "4. Landmark Representation Learning (Ende Sem 2)",
+        lambda: landmark_prediction.main(data_dir=uni_dir, output_dir=scenario_out)
     )
 
-    tracker.export_report(data_dir)
-    total_elapsed = time.time() - total_t0
-    print("\n" + "=" * 80)
-    print(f"   HEAVY DEEP SUITE ERFOLGREICH BEENDET ({total_elapsed/60:.2f} Minuten)")
-    print("=" * 80)
+    tracker.export_report(scenario_out)
+    elapsed = time.time() - total_t0
+    print(f"\n[OK] Szenario {uni_dir.parent.name} abgeschlossen in {elapsed/60:.2f} Minuten.")
     return tracker
 
+
+def main(data_root: Optional[Union[str, Path]] = None,
+         output_root: Optional[Union[str, Path]] = None,
+         scenarios: Optional[List[str]] = None,
+         epochs_gru: int = 20,
+         batch_size: int = 256):
+    
+    data_root = Path(data_root) if data_root else Path('data_v4_grid')
+    output_root = Path(output_root) if output_root else Path('output_v4_heavy')
+    
+    if scenarios is None:
+        scenarios = ['S01_baseline', 'S07_noise_half', 'S08_noise_double']
+        
+    print("=" * 80)
+    print("   HEAVY DEEP SUITE ORCHESTRATION")
+    print(f"   Data Root:   {data_root.resolve()}")
+    print(f"   Output Root: {output_root.resolve()}")
+    print(f"   Szenarien:   {scenarios}")
+    print("=" * 80)
+
+    for sc_name in scenarios:
+        uni_dir = data_root / sc_name / 'universe_A'
+        if not uni_dir.exists():
+            print(f"\n[WARNUNG] Szenario-Verzeichnis {uni_dir} existiert nicht. Überspringe...")
+            continue
+
+        scenario_out = output_root / sc_name
+        scenario_out.mkdir(parents=True, exist_ok=True)
+        run_heavy_suite_for_scenario(uni_dir, scenario_out, epochs_gru=epochs_gru, batch_size=batch_size)
+
+    print("\n" + "=" * 80)
+    print("   ALLE HEAVY DEEP SUITE SZENARIEN ERFOLGREICH BEENDET!")
+    print("=" * 80)
+
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Heavy Deep Suite Runner V4.1")
-    parser.add_argument('--data_dir', type=str, default="output_v4_grid_v41/S01_baseline/universe_A")
-    parser.add_argument('--temporal', type=str, default='prev', choices=['prev', 'cum'])
-    parser.add_argument('--modes', type=str, default='standard,gradeblind')
-    parser.add_argument('--seed', type=int, default=42)
-    parser.add_argument('--include_deep_transformers', action='store_true', default=False, help="Aktiviere experimentelle Deep Transformer Suite (d=128, Under Revision)")
+    parser = argparse.ArgumentParser(description="Heavy Deep Suite Runner V4.2")
+    parser.add_argument('--data_root', type=str, default='data_v4_grid')
+    parser.add_argument('--output_root', type=str, default='output_v4_heavy')
+    parser.add_argument('--scenarios', type=str, default='S01_baseline,S07_noise_half,S08_noise_double')
+    parser.add_argument('--epochs_gru', type=int, default=20)
+    parser.add_argument('--batch_size', type=int, default=256)
     args = parser.parse_args()
 
-    mode_list = [m.strip() for m in args.modes.split(',') if m.strip()]
-    run_heavy_suite(
-        data_dir=Path(args.data_dir),
-        temporal=args.temporal,
-        modes=mode_list,
-        population_seed=args.seed,
-        include_deep_transformers=args.include_deep_transformers
+    sc_list = [s.strip() for s in args.scenarios.split(',') if s.strip()]
+    main(
+        data_root=Path(args.data_root),
+        output_root=Path(args.output_root),
+        scenarios=sc_list,
+        epochs_gru=args.epochs_gru,
+        batch_size=args.batch_size
     )

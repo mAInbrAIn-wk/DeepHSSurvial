@@ -14,10 +14,9 @@ from sklearn.metrics import r2_score, accuracy_score, classification_report, roc
 import tensorflow as tf
 from tensorflow.keras.models import load_model, Model
 
-sys.path.insert(0, str(Path('src').absolute()))
-import feature_builder as fb
-from autoregressive_deep_transformer import SinCosPositionalEncoding
-from autoregressive_next_exam import PADDING_VALUE
+import deepsupport.data_engine.feature_builder as fb
+from deepsupport.models.autoregressive_transformer import SinCosPositionalEncoding
+from deepsupport.models.autoregressive_gru import PADDING_VALUE
 
 def build_landmark_dataset(df_ab, df_pr, max_semester=2, max_seq_len=30):
     # Nur Studenten, die das Landmark-Semester berlebt haben (Studiendauer > 2)
@@ -69,17 +68,24 @@ def build_landmark_dataset(df_ab, df_pr, max_semester=2, max_seq_len=30):
     X = np.array(X_list, dtype=np.float32)
     return X, np.array(y_status), np.array(y_grade), valid_ids
 
-def main(data_dir=None):
+def main(data_dir=None, output_dir=None):
     if data_dir is not None:
         data_dir = Path(data_dir)
     elif os.environ.get('DATA_DIR'):
         data_dir = Path(os.environ['DATA_DIR'])
     else:
-        data_dir = Path('src/output_dl') if Path('src/output_dl').exists() else Path('output_dl')
+        data_dir = Path('data_v4_grid/S01_baseline/universe_A')
         
-    model_path = data_dir / 'models' / 'autoregressive_deep_transformer.keras'
+    if output_dir is not None:
+        output_dir = Path(output_dir)
+    else:
+        output_dir = data_dir
+        
+    model_path = output_dir / 'models' / 'autoregressive_deep_transformer.keras'
+    if not model_path.exists():
+        model_path = data_dir / 'models' / 'autoregressive_deep_transformer.keras'
     
-    print("1. Lade Deep Transformer Autoregressor...")
+    print(f"1. Lade Deep Transformer Autoregressor aus {model_path}...")
     with tf.keras.utils.custom_object_scope({'SinCosPositionalEncoding': SinCosPositionalEncoding}):
         full_model = load_model(model_path)
     
@@ -133,7 +139,16 @@ def main(data_dir=None):
     
     preds_grade = xgb_reg.predict(embeddings[te_grad])
     r2 = r2_score(y_grade[te_grad], preds_grade)
-    print(f"=> R2 Score fr Abschlussnote (conditional auf Abschluss): {r2:.4f}")
+    print(f"=> R2 Score fuer Abschlussnote (conditional auf Abschluss): {r2:.4f}")
+
+    metrics_out = {
+        'Landmark_Status_Accuracy': float(acc),
+        'Landmark_Grad_R2': float(r2)
+    }
+    (output_dir / 'metrics').mkdir(exist_ok=True, parents=True)
+    import json
+    with open(output_dir / 'metrics' / 'landmark_representation_learning_metrics.json', 'w', encoding='utf-8') as f:
+        json.dump(metrics_out, f, indent=4)
 
 if __name__ == '__main__':
     main()

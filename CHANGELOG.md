@@ -2,6 +2,20 @@
 
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
+
+## [V4.2 Causal Synthesis & Grid Intermediate Evaluations] - 2026-09-03
+### Added
+- **Synoptische Zwischenberichte (S01–S08):**
+  - `docs/03_evaluations_and_benchmarks/synopse_supportwirkung_s01_s02_s03.md`: Auswertung der Supportwirkung (0.5× bis 2.0×).
+  - `docs/03_evaluations_and_benchmarks/synopse_notenboost_s01_s04_s05_s06.md`: Isolierte Analyse des Notenboosts auf den fachlichen Support.
+  - `docs/03_evaluations_and_benchmarks/synopse_rauschen_s01_s07_s08.md`: Rausch-Resilienz und Brier-Score-Analyse across all models.
+- **Kausale Gesamtsynthese:**
+  - `docs/04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md`: Verifizierte empirische Auswertung mit voller Datenprovenienz (JSONs & CSVs).
+  - `docs/04_causal_and_simulation/03_Uebersicht_Kausale_Ansaetze.md` & `docs/07_conversation_logs/01_History_Selection_Bias_and_Confounding.md`.
+
+### Progress
+- **V4 Grid Runner:** S01 bis S09 vollständig durchgerechnet (120 Modelle, 5 Modi, fehlerfreie Persistierung). S10 in Ausführung.
+
 ## [Unreleased / V4 Master Refactoring] - 2026-09-02
 ### Added
 - **`deepsupport/` Package:** Vollständig modulare Architektur. Alle Keras/Scikit-Modelle wurden isoliert (`src/deepsupport/models/`).

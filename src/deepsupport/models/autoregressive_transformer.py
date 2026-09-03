@@ -97,14 +97,19 @@ def build_deep_transformer_dual_head(seq_timesteps: int, seq_features: int, cont
     model = Model(inputs=[seq_input, ctx_input], outputs=[out_grade, out_pass])
     return model
 
-def train_autoregressive_deep_transformer(data_dir=None):
+def train_autoregressive_deep_transformer(data_dir=None, output_dir=None):
     if data_dir is None:
-        data_dir = Path(os.environ.get('DATA_DIR', 'output_v4_grid_v41/S01_baseline/universe_A'))
+        data_dir = Path(os.environ.get('DATA_DIR', 'data_v4_grid/S01_baseline/universe_A'))
     else:
         data_dir = Path(data_dir)
         
+    if output_dir is None:
+        output_dir = data_dir
+    else:
+        output_dir = Path(output_dir)
+        
     print("="*70)
-    print(f" DEEP TRANSFORMER AUTOREGRESSOR + POSITIONAL ENCODING (dir={data_dir}) ")
+    print(f" DEEP TRANSFORMER AUTOREGRESSOR + POSITIONAL ENCODING (data={data_dir}) ")
     print("="*70)
     
     X_hist, X_ctx, y_grade, y_pass, student_ids = prepare_next_exam_dataset(data_dir)
@@ -164,15 +169,15 @@ def train_autoregressive_deep_transformer(data_dir=None):
     r2 = r2_score(y_grade[te_idx], preds[0].flatten())
     auc = roc_auc_score(y_pass[te_idx], preds[1].flatten())
     
-    (data_dir / 'models').mkdir(exist_ok=True, parents=True)
-    model.save(data_dir / 'models' / 'autoregressive_deep_transformer.keras')
+    (output_dir / 'models').mkdir(exist_ok=True, parents=True)
+    model.save(output_dir / 'models' / 'autoregressive_deep_transformer.keras')
 
     metrics_out = {
         'Next_Exam_Grade_R2': float(r2),
         'Next_Exam_Pass_ROC_AUC': float(auc)
     }
-    (data_dir / 'metrics').mkdir(exist_ok=True, parents=True)
-    with open(data_dir / 'metrics' / 'autoregressive_deep_transformer_metrics.json', 'w', encoding='utf-8') as f:
+    (output_dir / 'metrics').mkdir(exist_ok=True, parents=True)
+    with open(output_dir / 'metrics' / 'autoregressive_deep_transformer_metrics.json', 'w', encoding='utf-8') as f:
         json.dump(metrics_out, f, indent=4)
         
     print(f"\nERGEBNISSE DEEP TRANSFORMER AUTOREGRESSOR (mit PE):")

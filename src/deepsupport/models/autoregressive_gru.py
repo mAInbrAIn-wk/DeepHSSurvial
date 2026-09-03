@@ -17,10 +17,10 @@ os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
 import sys
 import argparse
-from pathlib import Path
 import pandas as pd
 import numpy as np
-
+from pathlib import Path
+from typing import Optional
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, roc_auc_score, average_precision_score, brier_score_loss
@@ -125,6 +125,7 @@ def prepare_next_exam_dataset(data_dir: Path, max_history_len: int = 30):
 
 
 def train_autoregressive_next_exam(data_dir: Path = Path('src/output_dl'),
+                                  output_dir: Optional[Path] = None,
                                   epochs: int = 25,
                                   batch_size: int = 256):
     print("\n" + "=" * 74)
@@ -218,7 +219,7 @@ def train_autoregressive_next_exam(data_dir: Path = Path('src/output_dl'),
     print("=" * 74)
 
     # Logging
-    base_dir = data_dir
+    base_dir = Path(output_dir) if output_dir is not None else data_dir
     model_name = "autoregressive_next_exam_dual_head"
 
     metrics_dict = {
