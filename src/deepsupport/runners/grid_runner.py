@@ -18,11 +18,13 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import roc_auc_score, average_precision_score, brier_score_loss
 
 import deepsupport.data_engine.feature_builder as fb
+from deepsupport.data_engine.aggregate import aggregiere_daten
+
 from deepsupport.evaluation.metrics_logger import save_metrics
 from deepsupport.models.semester_gru import build_gru_model, masked_binary_crossentropy
 from deepsupport.models.semester_transformer import build_causal_transformer_survival_model
 
-PADDING_VALUE = -999.0
+PADDING_VALUE = -99.0
 MODES = ["standard", "gradeblind", "blind", "oracle", "realistic"]
 
 def run_causal_evaluation(model, X_test, valid_mask_test, f_indices):
@@ -171,10 +173,18 @@ def main(data_root: Optional[Union[str, Path]] = None, output_root: Optional[Uni
         scenario_out = output_root / scenario_name
         scenario_out.mkdir(parents=True, exist_ok=True)
         
-        # Core Models trainieren und isoliert in scenario_out speichern
-        run_grid_evaluation('grid_semester_gru', build_gru_model, scenario_dir, scenario_out, max_timesteps=16, level='semester')
-        run_grid_evaluation('grid_semester_transformer', build_causal_transformer_survival_model, scenario_dir, scenario_out, max_timesteps=16, level='semester')
-        run_grid_evaluation('grid_exam_gru', build_gru_model, scenario_dir, scenario_out, max_timesteps=40, level='exam')
+        # Grid Runner needs to run on universe_A (the factual universe) for standard training
+        uni_dir = scenario_dir / 'universe_A'
+        if not uni_dir.exists():
+            continue
+            
+        if not (uni_dir / 'agg_abschluesse.csv').exists():
+            print(f'FEHLT: Aggregierte Daten fuer {scenario_name}. Starte Aggregation (DuckDB)...')
+            aggregiere_daten(uni_dir, backend='duckdb')
+        
+        run_grid_evaluation('grid_semester_gru', build_gru_model, uni_dir, scenario_out, max_timesteps=16, level='semester')
+        run_grid_evaluation('grid_semester_transformer', build_causal_transformer_survival_model, uni_dir, scenario_out, max_timesteps=16, level='semester')
+        run_grid_evaluation('grid_exam_gru', build_gru_model, uni_dir, scenario_out, max_timesteps=40, level='exam')
 
 if __name__ == "__main__":
     main()

@@ -162,3 +162,9 @@ kritisch waren. V4.1 restauriert alle verlorenen Features.
 ### Hinzugefügt
 - Simulation V3 mit stochastischem Zeitbudget, Überlastungsmechanismus und 5 Paralleluniversen A–E (`simulation_v3.py`).
 - Counterfactual Ground Truth Berechnung (`oracle_lift.py`, `compute_macro_effects.py`).
+
+### 2026-09-02 (Submodules, Synthesis & Grid Run)
+- **Portfolio Architecture**: Eingliederung der Legacy-Projekte (\DataAnalysis\, \DataEngineering\, \DeepLearning\) als Read-Only Git Submodules im Hauptprojekt.
+- **LFS-Archiv**: Migration historischer Modell- und Simulationsausgaben in ein separates LFS-Archiv (\rchive/\).
+- **Methodische Synthese**: Erstellung einer finalen Übersicht über die intellektuelle Projektentwicklung (Dropout-Paradoxon $\rightarrow$ Causal Panels $\rightarrow$ Masked Sequence Models).
+- **Grid Run**: Automatisierter Cross-Scenario Grid Run (S02-S15) inkl. automatischer DuckDB-Aggregation angestoßen.

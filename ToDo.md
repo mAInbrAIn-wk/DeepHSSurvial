@@ -1,22 +1,15 @@
-# ToDo / Erledigt
-- [x] Leakage-Fix in den 5 ML-Skripten (Student-Level Split implementiert)
-- [x] Future Leakage Fix: `cp_rueckstand` nutzt nun `cp_cum_prev` in Exam-Formaten
-- [x] Oracle Feature Extension: `hidden_overload` und `hidden_zeit_puffer` in Feature Builder ergänzt
-- [x] Feature Counts in README.md & Co. aktualisieren
-- [ ] PyTorch / PyCox Portierung 
-- [ ] Dropout-Regularisierung überprüfen, vielleicht besser L2-Regulierung?? Wie sehen die Lernkurven aus, gibt es da findetuning-Potential?
-- [ ] SQL Backend implementieren? Was lässt sich am besten wo umsetzen? DuckDB und Arrow könnten ja vielleicht sogar Performance bringen?
+# Aktuelle Baustellen (DeepSupport)
 
-## KI-Input
+## 🔄 Laufende & Nächste Schritte
+- [ ] **Cluster Grid Run:** S02 bis S15 ausführen (grid_runner.py), um echte Stress-Test-Metriken zu erhalten.
+- [ ] **DeepLearning README prüfen:** Review der neu hinzugefügten README im Submodul DeepLearning (Fehler, Leakage-Disclaimer).
+- [ ] **MoE / Stacking Router:** Router basierend auf kontrafaktischen Universen trainieren.
+- [ ] **Dashboard Erweitern:** Tabs 2-5 (Causal & Stress-Test Reports) in das interaktive HTML SVG Dashboard integrieren.
 
-2. Wie Data Warehousing / eine relationale DB DeepSupport massiv verbessert
-Hier schließt sich der Kreis zu Deinem ersten Projekt (Projekt_DE): Aktuell speichert DeepSupport Millionen von Datenzeilen in vielen flachen CSV-Dateien (output_dl/) und fügt sie über langwierige Pandas-Merges zusammen.
+## 📊 Daten & Visualisierung
+- [ ] **Neues ERD (Entity Relationship Diagram):** Ein aktuelles ERD für die finale V4 Datenarchitektur erstellen (das alte aus Projekt_DE ist veraltet).
+- [ ] **Interaktive EDA / Dashboards:** EDA auf Basis der neuen, finalen Daten re-runnen und interaktiv (Dashboards) für die finale Präsentation aufbereiten.
 
-Ein relationaler, eingebetteter DWH-Layer (z. B. mit DuckDB und Parquet) würde folgende Quantensprünge bringen:
-
-Feature Store mit SQL Window Functions: Zeitvariable Merkmale (rollierende GPAs, kumulierte Fehlversuche, CP-Rückstände) lassen sich in SQL-Fensterfunktionen in Millisekunden berechnen – statt in minutenlangen Pandas-Schleifen.
-Multi-Universen-Partitionierung: Alle 5 Universen liegen in einer einzigen, partitionierten DWH-Faktentabelle. Kontrafaktische Abfragen werden zu simplen, performanten SQL-Queries (WHERE UniverseID IN ('A', 'E')).
-Zero-Copy Data Streaming für TensorFlow: DuckDB kann Abfrageergebnisse via Apache Arrow speichereffizient und ohne RAM-Duplikation direkt an tf.data.Dataset übergeben.
-Reproduzierbarkeit & ACID: Feste Typen, keine stillen NaN/float-Konvertierungsfallen.
-
-review_abschlussprojekt_deepsupport.md
+## 🧠 Modellierung & Tuning
+- [ ] **PyTorch / PyCox Portierung:** Modelle auf PyTorch umstellen.
+- [ ] **Regularisierung:** Dropout-Regularisierung überprüfen, evtl. L2-Regulierung testen. Lernkurven analysieren (Finetuning-Potential).
