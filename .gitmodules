@@ -7,3 +7,7 @@
 [submodule "legacy_projects/DeepLearning"]
 	path = legacy_projects/DeepLearning
 	url = https://github.com/mAInbrAIn-wk/DeepLearning.git
+
+[submodule "archive"]
+	path = archive
+	url = https://github.com/mAInbrAIn-wk/DeepHSSurvial_Archive.git
