@@ -1,0 +1,42 @@
+{
+  "timestamp": "2026-09-04 04:59:50",
+  "total_duration_s": 6803.0599999999995,
+  "steps": [
+    {
+      "step_name": "1. Autoregressive Next-Exam Prediction (Dual-Head GRU)",
+      "status": "PASSED",
+      "duration_s": 1085.61,
+      "ram_start_mb": 2549.5,
+      "ram_end_mb": 2296.0,
+      "ram_delta_mb": -253.5,
+      "error": null
+    },
+    {
+      "step_name": "2. Evaluation Autoregressive Next-Exam Fail PR-AUC",
+      "status": "FAILED",
+      "duration_s": 57.63,
+      "ram_start_mb": 2296.0,
+      "ram_end_mb": 4586.1,
+      "ram_delta_mb": 2290.1,
+      "error": "name 'StandardScaler' is not defined"
+    },
+    {
+      "step_name": "3. Autoregressive Deep Transformer (Sin/Cos PosEnc)",
+      "status": "PASSED",
+      "duration_s": 5548.19,
+      "ram_start_mb": 3413.0,
+      "ram_end_mb": 2175.0,
+      "ram_delta_mb": -1238.0,
+      "error": null
+    },
+    {
+      "step_name": "4. Landmark Representation Learning (Ende Sem 2)",
+      "status": "FAILED",
+      "duration_s": 111.63,
+      "ram_start_mb": 2175.0,
+      "ram_end_mb": 2295.7,
+      "ram_delta_mb": 120.7,
+      "error": "HistGradientBoostingClassifier.__init__() got an unexpected keyword argument 'n_estimators'"
+    }
+  ]
+}
