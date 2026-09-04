@@ -120,9 +120,13 @@ def main(data_dir=None, output_dir=None):
     idx = np.arange(len(embeddings))
     tr_idx, te_idx = train_test_split(idx, test_size=0.3, random_state=42, stratify=y_status)
     
-    print("4. Trainiere XGBoost Status-Klassifikator (4 Klassen)...")
-    xgb_class = XGBClassifier(n_estimators=100, max_depth=4, learning_rate=0.1)
-    xgb_class.fit(embeddings[tr_idx], y_status[tr_idx])
+    print("4. Trainiere Status-Klassifikator (4 Klassen)...")
+    try:
+        xgb_class = XGBClassifier(n_estimators=100, max_depth=4, learning_rate=0.1)
+        xgb_class.fit(embeddings[tr_idx], y_status[tr_idx])
+    except TypeError:
+        xgb_class = XGBClassifier(max_iter=100, max_depth=4, learning_rate=0.1)
+        xgb_class.fit(embeddings[tr_idx], y_status[tr_idx])
     
     preds_status = xgb_class.predict(embeddings[te_idx])
     acc = accuracy_score(y_status[te_idx], preds_status)
@@ -130,12 +134,16 @@ def main(data_dir=None, output_dir=None):
     print(classification_report(y_status[te_idx], preds_status, 
                                 target_names=['Absolviert', 'Abbruch (Freiw)', 'Exma (Zwang)', 'Zeitueberschr.']))
     
-    print("\n5. Trainiere XGBoost Regressor (Nur fr Absolventen)...")
+    print("\n5. Trainiere Regressor (Nur fuer Absolventen)...")
     tr_grad = tr_idx[y_status[tr_idx] == 0]
     te_grad = te_idx[y_status[te_idx] == 0]
     
-    xgb_reg = XGBRegressor(n_estimators=100, max_depth=4, learning_rate=0.1)
-    xgb_reg.fit(embeddings[tr_grad], y_grade[tr_grad])
+    try:
+        xgb_reg = XGBRegressor(n_estimators=100, max_depth=4, learning_rate=0.1)
+        xgb_reg.fit(embeddings[tr_grad], y_grade[tr_grad])
+    except TypeError:
+        xgb_reg = XGBRegressor(max_iter=100, max_depth=4, learning_rate=0.1)
+        xgb_reg.fit(embeddings[tr_grad], y_grade[tr_grad])
     
     preds_grade = xgb_reg.predict(embeddings[te_grad])
     r2 = r2_score(y_grade[te_grad], preds_grade)

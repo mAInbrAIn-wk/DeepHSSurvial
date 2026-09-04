@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import load_model
 
 from deepsupport.models.autoregressive_gru import prepare_next_exam_dataset, PADDING_VALUE
+from sklearn.preprocessing import StandardScaler
 
 import json
 
