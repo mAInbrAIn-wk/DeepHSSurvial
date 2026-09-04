@@ -2,7 +2,7 @@
 
 **Autor:** Wilfried Keller  
 **Kontext:** Abschlussprojekt im Kurs *Deep Learning* (Dr. Bernd Ebenhoch)  
-**Datum:** August 2026 (Version 4.1)
+**Datum:** September 2026 (Version 4.2)
 
 ---
 
@@ -148,3 +148,28 @@ Vollständiger Sensitivitätslauf mit 15 Szenarien × 8 Universen = 120 Simulati
 
 > [!NOTE]
 > **Sensitivitäts-Ranking (ARR-Spanne):** Overload-Penalty (8,5pp) > Support-Wirkung (7,3pp) > Rauschen (6,4pp) > RCT-Selektion (3,5pp) > Notenboost (3,0pp) > Zeitkosten (1,2pp). Die ARR bleibt über alle Overload-Kalibrierungen hinweg robust (7,3–8,4pp).
+
+---
+
+## 8. V4.2 Master Sensitivity Grid Run (225 Modelle) & Heavy Deep Suite
+
+Im September 2026 wurde das Deep-Learning-Framework durch zwei orthogonale Rechenstränge auf allen 15 Sensitivitätswelten validiert:
+
+### A. Master Feature Grid (225 Modelle)
+- **15 Szenarien × 3 neuronale Architekturen** (`Semester GRU`, `Semester Transformer`, `Exam GRU`) **× 5 Feature-Modi** (`standard`, `gradeblind`, `blind`, `oracle`, `realistic`) = **225 Modelle** zu 100% trainiert und persistiert (`output_v4_models/`).
+- Detaillierte Synopsen aller 6 Dimensionen:
+  - 📄 [`docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md`](docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md): **Master-Synopse über alle 225 Modelle**
+  - 📄 [`docs/03_evaluations_and_benchmarks/synopse_supportwirkung_s01_s02_s03.md`](docs/03_evaluations_and_benchmarks/synopse_supportwirkung_s01_s02_s03.md): Support-Wirkung
+  - 📄 [`docs/03_evaluations_and_benchmarks/synopse_notenboost_s01_s04_s05_s06.md`](docs/03_evaluations_and_benchmarks/synopse_notenboost_s01_s04_s05_s06.md): Notenboost-Wirkung
+  - 📄 [`docs/03_evaluations_and_benchmarks/synopse_rauschen_s01_s07_s08.md`](docs/03_evaluations_and_benchmarks/synopse_rauschen_s01_s07_s08.md): Rausch-Resilienz
+  - 📄 [`docs/03_evaluations_and_benchmarks/synopse_zeitkosten_s01_s09_s10.md`](docs/03_evaluations_and_benchmarks/synopse_zeitkosten_s01_s09_s10.md): Zeitkosten & Abwürfe
+  - 📄 [`docs/03_evaluations_and_benchmarks/synopse_rct_selektion_s01_s11.md`](docs/03_evaluations_and_benchmarks/synopse_rct_selektion_s01_s11.md): RCT-Selektionsparadoxon
+  - 📄 [`docs/03_evaluations_and_benchmarks/synopse_overload_s01_s12_s13_s14.md`](docs/03_evaluations_and_benchmarks/synopse_overload_s01_s12_s13_s14.md): Overload-Penalty
+  - 📄 [`docs/03_evaluations_and_benchmarks/synopse_kombination_s01_s15.md`](docs/03_evaluations_and_benchmarks/synopse_kombination_s01_s15.md): Kombi-Effekt-Resilienz
+
+### B. Heavy Deep Suite (Homeserver Cluster Execution & Exam-Level Transformer)
+- Autonome Auslagerung auf den Cluster-Node (Lenovo ThinkCentre M70q LXC) zur Bewältigung der rechenintensiven Exam-Level-Pipelines.
+- **Deep Transformer schlägt GRU:** Bei der Next-Exam Notenvorhersage erreicht der Deep Transformer mit Sinusoidal Positional Encoding in S01 einen $R^2$ von **0,70** (vs. **0,57** beim GRU) und in S07 sogar **0,86** (vs. **0,61**).
+- **Landmark Prognosekraft:** Gefrorene Transformer-Embeddings nach nur 2 Semestern erklären **76,5% der Varianz der späteren finalen Studienabschlussnote** (S01; S07: **86,8%**) und erreichen **79,5% 4-Klassen Status-Genauigkeit**.
+- 📄 Ausführliche Gesamtauswertung: [`docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md`](docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md)
+
