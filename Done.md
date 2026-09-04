@@ -1,5 +1,17 @@
 # ✅ Abgeschlossene Aufgaben
 
+## 2026-09-04: Master Grid Run Vollendung (225 Modelle) & Heavy Suite Härtung
+- [x] **Vollendung V4.2 Master Sensitivity Grid (S01–S15):**
+  - Alle 15 Szenarien (S01 bis S15) × 3 Architekturen (`grid_semester_gru`, `grid_semester_transformer`, `grid_exam_gru`) × 5 Modi (`standard`, `gradeblind`, `blind`, `oracle`, `realistic`) = **225 DL-Modelle** erfolgreich trainiert, evaluiert und in `output_v4_models/` persistiert (Gesamtrechenzeit: ~23,5 Stunden, Exit-Code 0).
+  - Volle Metriken (PR-AUC, ROC-AUC, Brier Score, partielle & isolierte Counterfactual Relative Risks) für alle 225 Modelle vorliegend.
+- [x] **Heavy Suite Refactoring (`heavy_suite.py`):**
+  - Robuste Pfadauflösung (Repo-Root 3 Ebenen up), I/O-Trennung (`output_v4_heavy/`), automatische DuckDB-Voraggregation und CLI-Szenarienauswahl (`--scenarios`).
+  - Einbindung der modularen Architekturen (`autoregressive_gru`, `autoregressive_transformer`, `landmark_prediction`).
+  - Getestet, synchronisiert und auf GitHub gepusht.
+- [x] **Infrastruktur-Dokumentation:**
+  - `docs/06_misc/system_and_hardware_stack.md` erstellt (HP EliteDesk G5 Workstation vs. Lenovo ThinkCentre M70q LXC Debian).
+  - Evaluator-Klassen-Refactoring als priorisierte Aufgabe in `ToDo.md` verlinkt.
+
 ## 2026-09-03: Kausal-Synthese & V4 Grid Zwischenauswertungen
 - [x] **Kausale & Historische Dokumentation:**
   - `01_History_Selection_Bias_and_Confounding.md`: Vollständige Aufarbeitung des Dropout-Paradoxons, Immortal-Time Bias und der Genese der Paralleluniversen.

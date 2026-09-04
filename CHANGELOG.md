@@ -3,6 +3,17 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
+## [V4.2.1 Full Grid Completion & Heavy Suite Härtung] - 2026-09-04
+### Completed
+- **Master Feature Grid Run (S01–S15):**
+  - Alle 15 Simulationsszenarien × 15 Modelle = **225 Modelle** zu 100% fehlerfrei trainiert und geloggt (Laufzeit: 23,5 Stunden, Exit-Code 0).
+  - Umfassende Metriken (PR-AUC, ROC-AUC, Brier Score, Counterfactual RRs) über alle 15 Welten archiviert in `output_v4_models/`.
+- **Heavy Deep Suite Refactoring:**
+  - `heavy_suite.py` gehärtet: Saubere Pfadauflösung, I/O-Trennung (`output_v4_heavy/`), DuckDB-Voraggregation und CLI-Parameter (`--scenarios`).
+  - Autoregressive Modelle (`autoregressive_gru`, `autoregressive_transformer`, `landmark_prediction`) an modulare Architektur angebunden.
+- **Infrastruktur:**
+  - `docs/06_misc/system_and_hardware_stack.md`: Vollständige Hard- und Software-Dokumentation für Workstation (HP EliteDesk) und Cluster-Node (Lenovo ThinkCentre M70q LXC Debian).
+
 ## [V4.2 Causal Synthesis & Grid Intermediate Evaluations] - 2026-09-03
 ### Added
 - **Synoptische Zwischenberichte (S01–S08):**

@@ -1,7 +1,8 @@
 # Aktuelle Baustellen (DeepSupport)
 
 ## 🔄 Laufende & Nächste Schritte
-- [ ] **Cluster Grid Run:** S10 bis S15 finalisieren (S01–S09 sind 100% fertig, S10 läuft aktuell). ETA: Morgen Mittag (~13:00 Uhr).
+- [x] **Cluster Grid Run (V4.2 Master Sensitivity Grid):** Alle 15 Szenarien (S01–S15) × 15 Modelle = 225 DL-Modelle erfolgreich trainiert und evaluiert (N=50.000, Seed 99999).
+- [ ] **Cross-Szenario-Synthese (S01–S15):** Vollständige metrische Synopse über alle 15 Szenarien und 225 Modelle generieren (Erweiterung der Synopsen zu Overload, RCT und Kombi-Effekt).
 - [ ] **DeepLearning README prüfen:** Review der neu hinzugefügten README im Submodul DeepLearning (Fehler, Leakage-Disclaimer).
 - [ ] **MoE / Stacking Router:** Router basierend auf kontrafaktischen Universen trainieren.
 - [ ] **Dashboard Erweitern:** Tabs 2-5 (Causal & Stress-Test Reports) in das interaktive HTML SVG Dashboard integrieren.
