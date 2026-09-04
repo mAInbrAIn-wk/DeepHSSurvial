@@ -8,9 +8,14 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 - **Master Feature Grid Run (S01–S15):**
   - Alle 15 Simulationsszenarien × 15 Modelle = **225 Modelle** zu 100% fehlerfrei trainiert und geloggt (Laufzeit: 23,5 Stunden, Exit-Code 0).
   - Umfassende Metriken (PR-AUC, ROC-AUC, Brier Score, Counterfactual RRs) über alle 15 Welten archiviert in `output_v4_models/`.
-- **Heavy Deep Suite Refactoring:**
-  - `heavy_suite.py` gehärtet: Saubere Pfadauflösung, I/O-Trennung (`output_v4_heavy/`), DuckDB-Voraggregation und CLI-Parameter (`--scenarios`).
-  - Autoregressive Modelle (`autoregressive_gru`, `autoregressive_transformer`, `landmark_prediction`) an modulare Architektur angebunden.
+- **Heavy Deep Suite & Synopse (S01, S07, S08):**
+  - Autonome Ausführung auf Homeserver LXC-Cluster (Lenovo ThinkCentre M70q) für S01, S07, S08 abgeschlossen.
+  - Step 2 (`eval_autoregressive_fail.py`) und Step 4 (`landmark_prediction.py`) mit Bugfixes für `StandardScaler` und `HistGradientBoosting` re-evaluiert.
+  - Deep Transformer mit Sin/Cos Positional Encoding übertrifft GRU konsistent um $+0.08$ bis $+0.25$ $R^2$ auf Exam-Level.
+  - Landmark Representation Learning belegt, dass Transformer-Embeddings nach 2 Fachsemestern bereits $76.5\%$ der Varianz der finalen Abschlussnote erklären.
+  - Synoptische Gesamtdokumentation: `docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md`.
+- **Cross-Szenario-Synopsen (S01–S15):**
+  - Vollständige metrische Synopsen für Zeitkosten, RCT-Selektion, Overload-Penalty, Kombi-Szenario und die Master-Synopse über alle 225 Modelle fertiggestellt.
 - **Infrastruktur:**
   - `docs/06_misc/system_and_hardware_stack.md`: Vollständige Hard- und Software-Dokumentation für Workstation (HP EliteDesk) und Cluster-Node (Lenovo ThinkCentre M70q LXC Debian).
 
