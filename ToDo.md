@@ -2,7 +2,8 @@
 
 ## 🔄 Laufende & Nächste Schritte
 - [x] **Cluster Grid Run (V4.2 Master Sensitivity Grid):** Alle 15 Szenarien (S01–S15) × 15 Modelle = 225 DL-Modelle erfolgreich trainiert und evaluiert (N=50.000, Seed 99999).
-- [ ] **Cross-Szenario-Synthese (S01–S15):** Vollständige metrische Synopse über alle 15 Szenarien und 225 Modelle generieren (Erweiterung der Synopsen zu Overload, RCT und Kombi-Effekt).
+- [x] **Cross-Szenario-Synthese (S01–S15):** Vollständige metrische Synopse über alle 15 Szenarien und 225 Modelle generiert (`synopse_zeitkosten_s01_s09_s10.md`, `synopse_rct_selektion_s01_s11.md`, `synopse_overload_s01_s12_s13_s14.md`, `synopse_kombination_s01_s15.md`, `master_synopse_v4_gesamt.md`).
+- [x] **Heavy Deep Suite (S01, S07, S08):** Vollständige Ausführung (GRU, Deep Transformer, Fail PR-AUC, Landmark Representation Learning) und Synopse (`synopse_heavy_suite_s01_s07_s08.md`).
 - [ ] **DeepLearning README prüfen:** Review der neu hinzugefügten README im Submodul DeepLearning (Fehler, Leakage-Disclaimer).
 - [ ] **MoE / Stacking Router:** Router basierend auf kontrafaktischen Universen trainieren.
 - [ ] **Dashboard Erweitern:** Tabs 2-5 (Causal & Stress-Test Reports) in das interaktive HTML SVG Dashboard integrieren.

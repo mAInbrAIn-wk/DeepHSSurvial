@@ -8,6 +8,18 @@
   - Robuste Pfadauflösung (Repo-Root 3 Ebenen up), I/O-Trennung (`output_v4_heavy/`), automatische DuckDB-Voraggregation und CLI-Szenarienauswahl (`--scenarios`).
   - Einbindung der modularen Architekturen (`autoregressive_gru`, `autoregressive_transformer`, `landmark_prediction`).
   - Getestet, synchronisiert und auf GitHub gepusht.
+- [x] **Heavy Deep Suite & Synopse (S01, S07, S08):**
+  - Autonome Ausführung der rechenintensiven Exam-Level-Pipelines auf dem Homeserver LXC-Node (ThinkCentre M70q) und Re-Evaluation von Step 2 & 4 auf der Workstation.
+  - Next-Exam Dual-Head GRU vs. Deep Transformer mit Sin/Cos Positional Encoding evaluiert: Transformer übertrifft GRU konsistent um $+0.08$ bis $+0.25$ $R^2$ in der Notenvorhersage.
+  - Fail-Focus PR-AUC (Minderheitenklasse Nicht-Bestehen) und Landmark Representation Learning (Ende Sem 2: 79.5% 4-Klassen Status-Acc, $R^2 = 0.76$ auf die finale Abschlussnote) vollständig berechnet.
+  - Synoptischer Gesamtbericht erstellt: [`docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md).
+- [x] **Vollständige Cross-Szenario-Synopsen V4.2 (S01–S15):**
+  - Alle verbleibenden Dimensionen vollständig ausgewertet und dokumentiert:
+    - Zeitkosten (S01, S09, S10): [`synopse_zeitkosten_s01_s09_s10.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/03_evaluations_and_benchmarks/synopse_zeitkosten_s01_s09_s10.md)
+    - RCT-Selektionsparadoxon (S01, S11): [`synopse_rct_selektion_s01_s11.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/03_evaluations_and_benchmarks/synopse_rct_selektion_s01_s11.md)
+    - Overload-Penalty Kalibrierung (S01, S12, S13, S14): [`synopse_overload_s01_s12_s13_s14.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/03_evaluations_and_benchmarks/synopse_overload_s01_s12_s13_s14.md)
+    - Kombi-Effekt-Resilienz (S01, S15): [`synopse_kombination_s01_s15.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/03_evaluations_and_benchmarks/synopse_kombination_s01_s15.md)
+    - Master-Synopse über alle 225 Modelle: [`master_synopse_v4_gesamt.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md)
 - [x] **Infrastruktur-Dokumentation:**
   - `docs/06_misc/system_and_hardware_stack.md` erstellt (HP EliteDesk G5 Workstation vs. Lenovo ThinkCentre M70q LXC Debian).
   - Evaluator-Klassen-Refactoring als priorisierte Aufgabe in `ToDo.md` verlinkt.
