@@ -141,7 +141,42 @@ def plot_confusion_matrix(y_true, y_pred_binary, model_name: str, base_dir: Path
 # Alle bestehenden Hilfsfunktionen bleiben erhalten (Rückwärtskompatibilität).
 # =============================================================================
 
-class SurvivalEvaluator:
+class _BaseEvaluator:
+    """Basisklasse für alle Evaluatoren mit robuster, flexibler Parameterauflösung."""
+    def __init__(self, *args, **kwargs):
+        base_dir = kwargs.get('base_dir') or kwargs.get('output_dir')
+        model_name = kwargs.get('model_name')
+
+        if len(args) == 1:
+            arg = args[0]
+            if base_dir is None and (isinstance(arg, Path) or (isinstance(arg, str) and ('/' in arg or '\\' in arg))):
+                base_dir = arg
+            elif model_name is None:
+                model_name = str(arg)
+            elif base_dir is None:
+                base_dir = arg
+        elif len(args) >= 2:
+            arg0, arg1 = args[0], args[1]
+            if isinstance(arg0, Path) or (isinstance(arg0, str) and ('/' in str(arg0) or '\\' in str(arg0))):
+                base_dir = arg0
+                model_name = str(arg1)
+            else:
+                model_name = str(arg0)
+                base_dir = arg1
+
+        if base_dir is None:
+            base_dir = Path('src/output_dl')
+        if model_name is None:
+            model_name = 'model'
+
+        self.base_dir = Path(base_dir)
+        self.model_name = str(model_name)
+        self.temporal = kwargs.get('temporal') or kwargs.get('temporal_type') or 'flat'
+        self.mode = kwargs.get('mode', 'standard')
+        self.extra_init_kwargs = kwargs
+
+
+class SurvivalEvaluator(_BaseEvaluator):
     """
     Einheitlicher Evaluator für binäre Survival/Dropout-Modelle.
 
@@ -155,21 +190,22 @@ class SurvivalEvaluator:
     Plots: roc_curve, pr_curve (mit π₀-Baseline-Linie), learning_curve
     """
 
-    def __init__(self, base_dir: Path, model_name: str):
-        self.base_dir = Path(base_dir)
-        self.model_name = model_name
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def evaluate_and_log(
         self,
-        y_true: np.ndarray,
-        y_prob: np.ndarray,
+        y_true: np.ndarray = None,
+        y_prob: np.ndarray = None,
         t_stop: np.ndarray = None,
         history: dict = None,
         model=None,
-        mode: str = 'standard',
-        temporal_type: str = 'flat',
+        mode: str = None,
+        temporal_type: str = None,
         fit_time_s: float = None,
         extra_metrics: dict = None,
+        hr_estimates: dict = None,
+        **kwargs
     ) -> dict:
         """
         Parameters
@@ -183,6 +219,20 @@ class SurvivalEvaluator:
         temporal_type: Temporal-Modus ('prev', 'cum', 'flat')
         extra_metrics: Zusätzliche Metriken (z. B. student-level AUC)
         """
+        mode = mode or self.mode
+        temporal_type = temporal_type or self.temporal
+
+        if y_true is None and hr_estimates is not None:
+            causal_ev = CausalEvaluator(base_dir=self.base_dir, model_name=self.model_name, temporal=temporal_type, mode=mode)
+            return causal_ev.evaluate_and_log(
+                hr_estimates=hr_estimates,
+                hr_se=kwargs.get('hr_se'),
+                bootstrap_samples=kwargs.get('bootstrap_samples'),
+                mode=mode,
+                temporal_type=temporal_type,
+                extra_metrics=extra_metrics,
+                **kwargs
+            )
         from sklearn.metrics import (
             roc_auc_score, brier_score_loss, average_precision_score,
             f1_score, balanced_accuracy_score,
@@ -314,7 +364,7 @@ class SurvivalEvaluator:
 
 
 
-class RegressionEvaluator:
+class RegressionEvaluator(_BaseEvaluator):
     """
     Einheitlicher Evaluator für kontinuierliche Noten-/GPA-Regressoren.
 
@@ -322,9 +372,8 @@ class RegressionEvaluator:
     Plots: parity_plot, residuals_hist, learning_curve (optional)
     """
 
-    def __init__(self, base_dir: Path, model_name: str):
-        self.base_dir = Path(base_dir)
-        self.model_name = model_name
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def evaluate_and_log(
         self,
@@ -333,11 +382,14 @@ class RegressionEvaluator:
         n_features: int = None,
         history: dict = None,
         model=None,
-        mode: str = 'standard',
-        temporal_type: str = 'flat',
+        mode: str = None,
+        temporal_type: str = None,
         fit_time_s: float = None,
         extra_metrics: dict = None,
+        **kwargs
     ) -> dict:
+        mode = mode or self.mode
+        temporal_type = temporal_type or self.temporal
         from sklearn.metrics import (
             r2_score, mean_squared_error, mean_absolute_error,
             median_absolute_error, explained_variance_score, max_error,
@@ -438,7 +490,7 @@ class RegressionEvaluator:
         print(f"{'='*w}\n")
 
 
-class MulticlassEvaluator:
+class MulticlassEvaluator(_BaseEvaluator):
     """
     Einheitlicher Evaluator für Mehrklassen-Klassifikatoren.
     (z. B. 4-Klassen Landmark-Status-Prognose)
@@ -447,28 +499,43 @@ class MulticlassEvaluator:
     Plots: confusion_matrix (normalisiert, Zeilen-normalisiert)
     """
 
-    def __init__(self, base_dir: Path, model_name: str):
-        self.base_dir = Path(base_dir)
-        self.model_name = model_name
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def evaluate_and_log(
         self,
         y_true: np.ndarray,
-        y_pred_classes: np.ndarray,
+        y_pred_classes: np.ndarray = None,
         y_prob_matrix: np.ndarray = None,
         class_names: list = None,
         model=None,
-        mode: str = 'standard',
-        temporal_type: str = 'flat',
+        mode: str = None,
+        temporal_type: str = None,
         extra_metrics: dict = None,
+        **kwargs
     ) -> dict:
+        mode = mode or self.mode
+        temporal_type = temporal_type or self.temporal
         from sklearn.metrics import (
             f1_score, balanced_accuracy_score, classification_report,
             roc_auc_score, average_precision_score,
         )
 
+        if y_prob_matrix is None and 'y_prob' in kwargs:
+            y_prob_matrix = kwargs['y_prob']
+        if y_pred_classes is None and 'y_pred' in kwargs:
+            y_pred_classes = kwargs['y_pred']
+        if y_pred_classes is None and 'predictions' in kwargs:
+            y_pred_classes = kwargs['predictions']
+        if y_pred_classes is None and y_prob_matrix is not None:
+            y_prob_matrix_arr = np.asarray(y_prob_matrix)
+            if y_prob_matrix_arr.ndim > 1:
+                y_pred_classes = np.argmax(y_prob_matrix_arr, axis=1)
+            else:
+                y_pred_classes = (y_prob_matrix_arr >= 0.5).astype(int)
+
         y_true = np.asarray(y_true).flatten()
-        y_pred = np.asarray(y_pred_classes).flatten()
+        y_pred = np.asarray(y_pred_classes).flatten() if y_pred_classes is not None else np.zeros_like(y_true)
         unique_classes = sorted(np.unique(y_true))
         classes = class_names or [str(c) for c in unique_classes]
 
@@ -577,7 +644,7 @@ class MulticlassEvaluator:
         print(f"{'='*w}\n")
 
 
-class CausalEvaluator:
+class CausalEvaluator(_BaseEvaluator):
     """
     Evaluator für kausale Effektschätzer (HR, RR, DML, kontrafaktische Analysen).
 
@@ -587,18 +654,18 @@ class CausalEvaluator:
     Plot: Forest-Plot aller Treatment-Effekte mit CI-Fehlerbalken
     """
 
-    def __init__(self, base_dir: Path, model_name: str):
-        self.base_dir = Path(base_dir)
-        self.model_name = model_name
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def evaluate_and_log(
         self,
         hr_estimates: dict,
         hr_se: dict = None,
         bootstrap_samples: np.ndarray = None,
-        mode: str = 'standard',
-        temporal_type: str = 'flat',
+        mode: str = None,
+        temporal_type: str = None,
         extra_metrics: dict = None,
+        **kwargs
     ) -> dict:
         """
         Parameters
@@ -607,6 +674,8 @@ class CausalEvaluator:
         hr_se            : Standard-Fehler für asymptotische CIs (auf HR-Skala)
         bootstrap_samples: Array shape (n_bootstrap, n_treatments) für Bootstrap-CIs
         """
+        mode = mode or self.mode
+        temporal_type = temporal_type or self.temporal
         metrics_dict = {
             "model_name": self.model_name,
             "mode": mode,
@@ -647,6 +716,15 @@ class CausalEvaluator:
 
         self._save(metrics_dict, mode, temporal_type)
         self._plot_forest(hr_estimates, hr_se, bootstrap_samples)
+        
+        # Optionale Keras-Artefakte
+        k_model = kwargs.get('keras_model') or kwargs.get('model')
+        if k_model is not None:
+            save_keras_model(k_model, self.model_name, self.base_dir)
+        k_hist = kwargs.get('history')
+        if k_hist is not None:
+            plot_learning_curve(k_hist, self.model_name, self.base_dir)
+
         self._print_summary(metrics_dict, hr_estimates)
         return metrics_dict
 
@@ -722,7 +800,7 @@ class CausalEvaluator:
         print(f"{'='*w}\n")
 
 
-class DualHeadEvaluator:
+class DualHeadEvaluator(_BaseEvaluator):
     """
     Kombinierter Evaluator für Dual-Head Multi-Task Modelle
     (Autoregressive GRU/Transformer: Note + Bestehens-Wahrscheinlichkeit).
@@ -735,11 +813,10 @@ class DualHeadEvaluator:
     (Felder mit Präfix 'grade_' bzw. 'pass_').
     """
 
-    def __init__(self, base_dir: Path, model_name: str):
-        self.base_dir = Path(base_dir)
-        self.model_name = model_name
-        self._reg = RegressionEvaluator(base_dir, f"{model_name}_grade")
-        self._surv = SurvivalEvaluator(base_dir, f"{model_name}_pass")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._reg = RegressionEvaluator(self.base_dir, f"{self.model_name}_grade")
+        self._surv = SurvivalEvaluator(self.base_dir, f"{self.model_name}_pass")
 
     def evaluate_and_log(
         self,
@@ -750,9 +827,10 @@ class DualHeadEvaluator:
         n_features_grade: int = None,
         history: dict = None,
         model=None,
-        mode: str = 'standard',
-        temporal_type: str = 'flat',
+        mode: str = None,
+        temporal_type: str = None,
         extra_metrics: dict = None,
+        **kwargs
     ) -> dict:
         """
         Parameters

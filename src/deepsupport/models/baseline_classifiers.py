@@ -172,7 +172,7 @@ def run_baseline_training(data_dir: Path = Path('src/output_dl'),
     base_dir = data_dir
     model_name = f"mlp_baseline_{mode}" if mode != 'standard' else "mlp_baseline"
     
-    evaluator = SurvivalEvaluator(model_name, output_dir=base_dir)
+    evaluator = SurvivalEvaluator(base_dir=base_dir, model_name=model_name)
     evaluator.evaluate_and_log(
         y_true=y_test,
         y_prob=mlp_probs,
@@ -180,6 +180,7 @@ def run_baseline_training(data_dir: Path = Path('src/output_dl'),
         history=mlp_history,
         extra_metrics=results
     )
+    save_metrics(model_name, results, base_dir)
 
     print("\n" + "=" * 74)
     print(f"[OK] Baselines erfolgreich trainiert und unter {data_dir} geloggt.")

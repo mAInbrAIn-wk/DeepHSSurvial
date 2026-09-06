@@ -202,7 +202,7 @@ def train_extended_deep_survival(data_dir: Path = Path('src/output_dl'),
         "ROC-AUC_Panel": auc_deepsurv,
         "PR-AUC_Panel": pr_auc_ds
     }
-    evaluator_ds = SurvivalEvaluator(ds_name, output_dir=base_dir)
+    evaluator_ds = SurvivalEvaluator(base_dir=base_dir, model_name=ds_name)
     evaluator_ds.evaluate_and_log(
         y_true=test_panel[target_col].values,
         y_prob=test_risk,
@@ -226,7 +226,7 @@ def train_extended_deep_survival(data_dir: Path = Path('src/output_dl'),
         "PR-AUC_Panel": pr_auc_dtl,
         "Brier_Score": brier_dtl
     }
-    evaluator_lh = SurvivalEvaluator(lh_name, output_dir=base_dir)
+    evaluator_lh = SurvivalEvaluator(base_dir=base_dir, model_name=lh_name)
     evaluator_lh.evaluate_and_log(
         y_true=test_panel[target_col].values,
         y_prob=test_h_pred,

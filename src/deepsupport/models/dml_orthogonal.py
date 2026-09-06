@@ -192,15 +192,26 @@ def train_dml_orthogonal_survival(data_dir: Path = Path('src/output_dl'),
     base_dir = data_dir
     model_name = f"dml_orthogonal_survival_{temporal}_{mode}" if (temporal != 'prev' or mode != 'standard') else "dml_orthogonal_survival"
 
-    evaluator = CausalEvaluator(model_name=model_name, output_dir=base_dir,
-                                true_labels=y_test, predictions=test_h_factual,
+    metrics_dict = {
+        "model_type": model_name,
+        "temporal": temporal,
+        "mode": mode,
+        "ROC-AUC_Panel": auc_dml,
+        "PR-AUC_Panel": pr_auc_dml,
+        "Brier_Score": brier_dml,
+        **causal_results
+    }
+
+    evaluator = CausalEvaluator(base_dir=base_dir, model_name=model_name,
                                 temporal=temporal, mode=mode)
     hr_estimates = {
         "hr_fachlich": causal_results.get("fach", {}).get("partial", {}).get("mean_rr", 1.0),
         "hr_ueberfachlich": causal_results.get("uebf", {}).get("partial", {}).get("mean_rr", 1.0),
         "hr_psychosozial": causal_results.get("psych", {}).get("partial", {}).get("mean_rr", 1.0)
     }
-    evaluator.evaluate_and_log(hr_estimates=hr_estimates, keras_model=dml_model, history=history.history)
+    evaluator.evaluate_and_log(hr_estimates=hr_estimates, extra_metrics=metrics_dict, keras_model=dml_model, history=history.history, mode=mode, temporal_type=temporal)
+    save_metrics(model_name, metrics_dict, base_dir)
+    save_keras_model(dml_model, model_name, base_dir)
 
     print(f"[OK] DML-Modell und Kausal-Inferenz erfolgreich gespeichert unter {base_dir}.")
     return dml_model

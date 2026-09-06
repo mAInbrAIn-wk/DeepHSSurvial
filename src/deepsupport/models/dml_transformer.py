@@ -216,16 +216,27 @@ def train_transformer_dml(data_dir: Path = Path('src/output_dl'),
     base_dir = data_dir
     model_name = f"transformer_dml_{temporal}_{mode}" if (temporal != 'prev' or mode != 'standard') else "transformer_dml"
 
-    evaluator = CausalEvaluator(model_name=model_name, output_dir=base_dir,
-                                true_labels=y_test, predictions=test_h,
+    metrics_dict = {
+        "model_type": model_name,
+        "temporal": temporal,
+        "mode": mode,
+        "ROC-AUC_Panel": auc,
+        "PR-AUC_Panel": pr_auc,
+        "Brier_Score": brier,
+        **causal_results
+    }
+
+    evaluator = CausalEvaluator(base_dir=base_dir, model_name=model_name,
                                 temporal=temporal, mode=mode)
     hr_estimates = {
         "hr_fachlich": causal_results.get("fach", {}).get("partial", {}).get("mean_rr", 1.0),
         "hr_ueberfachlich": causal_results.get("uebf", {}).get("partial", {}).get("mean_rr", 1.0),
         "hr_psychosozial": causal_results.get("psych", {}).get("partial", {}).get("mean_rr", 1.0)
     }
-    evaluator.evaluate_and_log(hr_estimates=hr_estimates, keras_model=dml_net)
+    evaluator.evaluate_and_log(hr_estimates=hr_estimates, extra_metrics=metrics_dict, keras_model=dml_net, mode=mode, temporal_type=temporal)
+    save_metrics(model_name, metrics_dict, base_dir)
     save_keras_model(deep_transformer, f"{model_name}_encoder", base_dir)
+    save_keras_model(dml_net, f"{model_name}_hazard", base_dir)
 
     print(f"[OK] Deep Transformer-DML erfolgreich gespeichert unter {base_dir}.")
     return deep_transformer, dml_net
