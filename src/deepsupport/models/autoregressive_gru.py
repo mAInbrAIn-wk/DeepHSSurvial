@@ -165,13 +165,14 @@ def train_autoregressive_next_exam(data_dir: Path = Path('src/output_dl'),
     )
 
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=0.002),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
         loss={'out_grade': 'mse', 'out_pass': 'binary_crossentropy'},
         loss_weights={'out_grade': 1.0, 'out_pass': 0.8},
         metrics={'out_grade': ['mae'], 'out_pass': ['accuracy']}
     )
 
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=8, restore_best_weights=True)
+    lr_sched = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=2, min_lr=1e-5, verbose=0)
 
     print(f"\nTrainiere Dual-Head Next-Exam Modell ({epochs} Epochen)...")
     history = model.fit(
@@ -182,7 +183,7 @@ def train_autoregressive_next_exam(data_dir: Path = Path('src/output_dl'),
             {'out_grade': y_grade[va_idx], 'out_pass': y_pass[va_idx]}
         ),
         epochs=epochs, batch_size=batch_size,
-        callbacks=[es], verbose=0
+        callbacks=[es, lr_sched], verbose=0
     )
 
     # Evaluation

@@ -99,15 +99,16 @@ def train_recurrent_survival_model(data_dir: Path = Path('src/output_dl'),
         TimeDistributed(Dense(1, activation='sigmoid'))
     ])
 
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.003), loss=masked_binary_crossentropy)
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0015), loss=masked_binary_crossentropy)
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+    lr_sched = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, min_lr=1e-5, verbose=0)
 
     print(f"\nTrainiere GRU-Modell ({epochs} Epochen, Batch-Size {batch_size})...")
     history = model.fit(
         X_train, y_train,
         validation_data=(X_val, y_val),
         epochs=epochs, batch_size=batch_size,
-        callbacks=[es], verbose=0
+        callbacks=[es, lr_sched], verbose=0
     )
 
     # Evaluation

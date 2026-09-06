@@ -10,6 +10,11 @@ def ensure_dir(directory: Path):
         directory.mkdir(parents=True, exist_ok=True)
 
 def get_output_dirs(base_dir: Path):
+    if 'OUTPUT_DIR' in os.environ and os.environ['OUTPUT_DIR']:
+        env_out = Path(os.environ['OUTPUT_DIR'])
+        base_dir_str = str(base_dir).lower()
+        if 'data_' in base_dir_str or ('DATA_DIR' in os.environ and str(base_dir) == os.environ['DATA_DIR']):
+            base_dir = env_out
     metrics_dir = base_dir / 'metrics'
     plots_dir = base_dir / 'plots'
     models_dir = base_dir / 'models'
@@ -170,6 +175,11 @@ class _BaseEvaluator:
             model_name = 'model'
 
         self.base_dir = Path(base_dir)
+        if 'OUTPUT_DIR' in os.environ and os.environ['OUTPUT_DIR']:
+            env_out = Path(os.environ['OUTPUT_DIR'])
+            base_dir_str = str(self.base_dir).lower()
+            if 'data_' in base_dir_str or ('DATA_DIR' in os.environ and str(self.base_dir) == os.environ['DATA_DIR']):
+                self.base_dir = env_out
         self.model_name = str(model_name)
         self.temporal = kwargs.get('temporal') or kwargs.get('temporal_type') or 'flat'
         self.mode = kwargs.get('mode', 'standard')

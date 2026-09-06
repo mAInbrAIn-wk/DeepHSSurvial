@@ -145,13 +145,14 @@ def train_autoregressive_deep_transformer(data_dir=None, output_dir=None):
     )
     
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.0008),
         loss={'out_grade': 'mse', 'out_pass': 'binary_crossentropy'},
         loss_weights={'out_grade': 1.0, 'out_pass': 0.8},
         metrics={'out_grade': ['mae'], 'out_pass': ['accuracy']}
     )
     
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=6, restore_best_weights=True)
+    lr_sched = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=2, min_lr=1e-5, verbose=0)
     
     print("Starte Training (Max 12 Epochen, Batch-Size 512)...")
     history = model.fit(
@@ -161,7 +162,7 @@ def train_autoregressive_deep_transformer(data_dir=None, output_dir=None):
             {'exam_history': X_hist_scaled[va_idx], 'next_exam_context': X_ctx_scaled[va_idx]},
             {'out_grade': y_grade[va_idx], 'out_pass': y_pass[va_idx]}
         ),
-        epochs=12, batch_size=512, verbose=1, callbacks=[es]
+        epochs=12, batch_size=512, verbose=1, callbacks=[es, lr_sched]
     )
     
     print("\nEvaluiere auf Test-Set...")

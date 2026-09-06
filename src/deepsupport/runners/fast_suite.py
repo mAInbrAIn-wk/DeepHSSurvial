@@ -124,18 +124,18 @@ def run_fast_suite(data_dir: Path, output_dir: Optional[Path] = None, temporal: 
     if modes is None:
         modes = ['standard', 'gradeblind']
         
+    target_out = Path(output_dir) if output_dir else data_dir
+    target_out.mkdir(parents=True, exist_ok=True)
     os.environ['DATA_DIR'] = str(data_dir)
+    os.environ['OUTPUT_DIR'] = str(target_out)
     tracker = PipelineBenchmarkTracker()
     total_t0 = time.time()
 
     print("*" * 80)
     print("   FAST CORE SUITE RUNNER (V4.2 Modular)")
     print(f"   Start: {time.strftime('%Y-%m-%d %H:%M:%S')} | Temporal: {temporal} | Seed: {population_seed}")
-    print(f"   Data Dir: {data_dir.resolve()}")
-    if output_dir:
-        output_dir = Path(output_dir)
-        output_dir.mkdir(parents=True, exist_ok=True)
-        print(f"   Output Dir: {output_dir.resolve()}")
+    print(f"   Data Dir:   {data_dir.resolve()}")
+    print(f"   Output Dir: {target_out.resolve()}")
     print(f"   Aktive Modi: {modes}")
     print("*" * 80)
 
@@ -175,20 +175,7 @@ def run_fast_suite(data_dir: Path, output_dir: Optional[Path] = None, temporal: 
     tracker.run_step("Counterfactual Grade Transformer", lambda: analyze_counterfactual_grade_transformer(data_dir=data_dir))
     tracker.run_step("Counterfactual Oracle Logistic Hazard", lambda: analyze_counterfactual_oracle_logistic_hazard(data_dir=data_dir))
 
-    report_target = Path(output_dir) if output_dir else data_dir
-    tracker.export_report(report_target)
-
-    # Wenn ein separates output_dir angegeben ist, kopiere die erzeugten Metriken und Plots dorthin
-    if output_dir and Path(output_dir).resolve() != data_dir.resolve():
-        out_path = Path(output_dir)
-        for folder in ['metrics', 'plots', 'models']:
-            src_f = data_dir / folder
-            dst_f = out_path / folder
-            if src_f.exists():
-                dst_f.mkdir(parents=True, exist_ok=True)
-                for item in src_f.glob('*'):
-                    if item.is_file():
-                        shutil.copy2(item, dst_f / item.name)
+    tracker.export_report(target_out)
 
     total_elapsed = time.time() - total_t0
     print("\n" + "=" * 80)
