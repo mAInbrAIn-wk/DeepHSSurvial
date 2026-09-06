@@ -101,6 +101,18 @@ class PipelineBenchmarkTracker:
         print(f"\n[REPORT] Heavy Suite Benchmark gespeichert unter: {md_path}")
 
 
+
+def run_heavy_suite(data_dir: Path, output_dir: Optional[Path] = None, temporal: str = 'prev', modes: list = None, population_seed: int = 42, epochs_gru: int = 20, batch_size: int = 256):
+    """Kompatibilitäts-Funktion für master_suite.py."""
+    data_dir = Path(data_dir)
+    if output_dir is None:
+        scenario_name = data_dir.parent.name if data_dir.name == 'universe_A' else data_dir.name
+        output_dir = Path("output_v4_heavy") / scenario_name
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    return run_heavy_suite_for_scenario(data_dir, output_dir, epochs_gru=epochs_gru, batch_size=batch_size)
+
+
 def run_heavy_suite_for_scenario(uni_dir: Path, scenario_out: Path, epochs_gru: int = 20, batch_size: int = 256):
     """Führt die Heavy Suite für ein einzelnes Szenario (universe_A) aus."""
     tracker = PipelineBenchmarkTracker()

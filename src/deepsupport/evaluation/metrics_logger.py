@@ -168,6 +168,7 @@ class SurvivalEvaluator:
         model=None,
         mode: str = 'standard',
         temporal_type: str = 'flat',
+        fit_time_s: float = None,
         extra_metrics: dict = None,
     ) -> dict:
         """
@@ -239,6 +240,9 @@ class SurvivalEvaluator:
             "c_index": c_index,
         }
 
+        if fit_time_s is not None:
+            metrics_dict["training_time_s"] = _clean_numeric(fit_time_s)
+
         if extra_metrics:
             metrics_dict.update(extra_metrics)
 
@@ -304,6 +308,8 @@ class SurvivalEvaluator:
         print(f"  Balanced Accuracy      : {m['balanced_accuracy']:.4f}")
         if m['c_index'] is not None:
             print(f"  Harrell C-Index        : {m['c_index']:.4f}")
+        if m.get('training_time_s') is not None:
+            print(f"  Training Time          : {m['training_time_s']:.2f}s")
         print(f"{'='*w}\n")
 
 
@@ -329,6 +335,7 @@ class RegressionEvaluator:
         model=None,
         mode: str = 'standard',
         temporal_type: str = 'flat',
+        fit_time_s: float = None,
         extra_metrics: dict = None,
     ) -> dict:
         from sklearn.metrics import (
@@ -364,6 +371,9 @@ class RegressionEvaluator:
             "explained_variance": expl_var,
             "max_error": max_err,
         }
+
+        if fit_time_s is not None:
+            metrics_dict["training_time_s"] = _clean_numeric(fit_time_s)
 
         if extra_metrics:
             metrics_dict.update(extra_metrics)
@@ -416,13 +426,15 @@ class RegressionEvaluator:
     def _print_summary(self, m):
         w = 70
         print(f"\n{'='*w}")
-        print(f"  RegressionEvaluator — {m['model_name']} [{m['mode']}/{m['temporal_type']}]")
+        print(f"  RegressionEvaluator -- {m['model_name']} [{m['mode']}/{m['temporal_type']}]")
         print(f"{'='*w}")
-        adj = f"  (adj. R²={m['adj_r2']:.4f})" if m['adj_r2'] is not None else ""
-        print(f"  R²                     : {m['r2_score']:.4f}{adj}")
+        adj = f"  (adj. R2={m['adj_r2']:.4f})" if m['adj_r2'] is not None else ""
+        print(f"  R2                     : {m['r2_score']:.4f}{adj}")
         print(f"  RMSE                   : {m['rmse']:.4f}")
         print(f"  MAE                    : {m['mae']:.4f}  (MedianAE={m['median_ae']:.4f})")
         print(f"  Max Error              : {m['max_error']:.4f}")
+        if m.get('training_time_s') is not None:
+            print(f"  Training Time          : {m['training_time_s']:.2f}s")
         print(f"{'='*w}\n")
 
 
@@ -551,7 +563,7 @@ class MulticlassEvaluator:
     def _print_summary(self, m, pr_aucs):
         w = 70
         print(f"\n{'='*w}")
-        print(f"  MulticlassEvaluator — {m['model_name']} [{m['mode']}/{m['temporal_type']}]")
+        print(f"  MulticlassEvaluator -- {m['model_name']} [{m['mode']}/{m['temporal_type']}]")
         print(f"{'='*w}")
         if m['roc_auc_ovr_macro']:
             print(f"  ROC-AUC OvR Macro      : {m['roc_auc_ovr_macro']:.4f}")
@@ -560,6 +572,8 @@ class MulticlassEvaluator:
         print(f"  Balanced Accuracy      : {m['balanced_accuracy']:.4f}")
         for k, v in pr_aucs.items():
             print(f"  {k:<30}: {v:.4f}")
+        if m.get('training_time_s') is not None:
+            print(f"  Training Time          : {m['training_time_s']:.2f}s")
         print(f"{'='*w}\n")
 
 
@@ -686,7 +700,7 @@ class CausalEvaluator:
     def _print_summary(self, m, hr_estimates):
         w = 70
         print(f"\n{'='*w}")
-        print(f"  CausalEvaluator — {m['model_name']} [{m['mode']}/{m['temporal_type']}]")
+        print(f"  CausalEvaluator -- {m['model_name']} [{m['mode']}/{m['temporal_type']}]")
         print(f"{'='*w}")
         for k, v in hr_estimates.items():
             if v is None:
@@ -703,6 +717,8 @@ class CausalEvaluator:
                 ci_str = f"  Asym-95%-CI=[{lo_a:.3f}, {hi_a:.3f}]"
             rr_str = f"  (RR-Senkung: {rr:.1f}%)" if rr else ""
             print(f"  {k:<35}: HR={float(v):.4f}{rr_str}{ci_str}")
+        if m.get('training_time_s') is not None:
+            print(f"  Training Time                      : {m['training_time_s']:.2f}s")
         print(f"{'='*w}\n")
 
 

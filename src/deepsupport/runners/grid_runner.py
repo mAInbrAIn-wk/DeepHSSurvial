@@ -9,6 +9,7 @@ import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
+import time
 import numpy as np
 import tensorflow as tf
 from pathlib import Path
@@ -111,6 +112,7 @@ def run_grid_evaluation(architecture_name: str, build_model_fn, data_dir: Path, 
         
         es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
         
+        t0_fit = time.perf_counter()
         model.fit(
             X_train, y_train,
             validation_data=(X_val, y_val),
@@ -119,9 +121,12 @@ def run_grid_evaluation(architecture_name: str, build_model_fn, data_dir: Path, 
             callbacks=[es],
             verbose=0
         )
+        fit_duration_s = round(time.perf_counter() - t0_fit, 2)
         
         valid_mask_test = (X_test[:, :, 0] != PADDING_VALUE)
+        t0_pred = time.perf_counter()
         y_pred = model.predict(X_test, verbose=0)
+        pred_duration_ms = round((time.perf_counter() - t0_pred) * 1000, 1)
         
         y_true_flat = y_test[valid_mask_test]
         y_pred_flat = y_pred[valid_mask_test]
@@ -130,12 +135,14 @@ def run_grid_evaluation(architecture_name: str, build_model_fn, data_dir: Path, 
         prauc = average_precision_score(y_true_flat, y_pred_flat) if len(np.unique(y_true_flat)) > 1 else None
         brier = brier_score_loss(y_true_flat, y_pred_flat) if len(np.unique(y_true_flat)) > 1 else None
         
-        print(f"   --> PR-AUC: {prauc:.4f} | ROC-AUC: {auc:.4f} | Brier: {brier:.4f}")
+        print(f"   --> PR-AUC: {prauc:.4f} | ROC-AUC: {auc:.4f} | Brier: {brier:.4f} | Fit: {fit_duration_s:.1f}s | Infer: {pred_duration_ms:.1f}ms")
         
         cf_results = run_causal_evaluation(model, X_test, valid_mask_test, f_indices)
         
         results[mode] = {
             "n_features": F,
+            "training_time_s": fit_duration_s,
+            "inference_time_ms": pred_duration_ms,
             "roc_auc": auc,
             "pr_auc": prauc,
             "brier_score": brier,
