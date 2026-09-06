@@ -15,14 +15,13 @@ import time
 import json
 import argparse
 from pathlib import Path
+from typing import Optional, List
 import psutil
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-SRC_DIR = PROJECT_ROOT / "src"
+SRC_DIR = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
-
-os.chdir(SRC_DIR)
 
 class PipelineBenchmarkTracker:
     def __init__(self):
@@ -92,7 +91,7 @@ class PipelineBenchmarkTracker:
         print(f"\n[REPORT] Fast Suite Benchmark gespeichert unter: {md_path}")
 
 
-def run_fast_suite(data_dir: Path, temporal: str = 'prev', modes: list = None, population_seed: int = 42):
+def run_fast_suite(data_dir: Path, output_dir: Optional[Path] = None, temporal: str = 'prev', modes: list = None, population_seed: int = 42):
     if modes is None:
         modes = ['standard', 'gradeblind']
         
@@ -104,6 +103,8 @@ def run_fast_suite(data_dir: Path, temporal: str = 'prev', modes: list = None, p
     print("   FAST CORE SUITE RUNNER (V4.1)")
     print(f"   Start: {time.strftime('%Y-%m-%d %H:%M:%S')} | Temporal: {temporal} | Seed: {population_seed}")
     print(f"   Data Dir: {data_dir.resolve()}")
+    if output_dir:
+        print(f"   Output Dir: {Path(output_dir).resolve()}")
     print(f"   Aktive Modi: {modes}")
     print("*" * 80)
 
@@ -143,7 +144,8 @@ def run_fast_suite(data_dir: Path, temporal: str = 'prev', modes: list = None, p
     tracker.run_step("Counterfactual Grade Transformer", lambda: __import__('counterfactual_grade_transformer').main(data_dir=data_dir))
     tracker.run_step("Counterfactual Oracle Logistic Hazard", lambda: __import__('counterfactual_oracle_logistic_hazard').main(data_dir=data_dir))
 
-    tracker.export_report(data_dir)
+    report_target = Path(output_dir) if output_dir else data_dir
+    tracker.export_report(report_target)
     total_elapsed = time.time() - total_t0
     print("\n" + "=" * 80)
     print(f"   FAST CORE SUITE ERFOLGREICH BEENDET ({total_elapsed/60:.2f} Minuten)")
