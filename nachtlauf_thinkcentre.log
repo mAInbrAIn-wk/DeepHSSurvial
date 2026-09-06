@@ -1,0 +1,183 @@
+nohup: ignoring input
+Traceback (most recent call last):
+  File "/home/mluser/projects/DeepHSSurvial/src/deepsupport/runners/fast_suite.py", line 70, in run_step
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mluser/projects/DeepHSSurvial/src/deepsupport/runners/fast_suite.py", line 151, in <lambda>
+    tracker.run_step(f"Extended Cox [{mode}]", lambda m=mode: train_extended_cox_model(data_dir=data_dir, temporal=temporal, mode=m))
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mluser/projects/DeepHSSurvial/src/deepsupport/models/extended_cox.py", line 98, in train_extended_cox_model
+    return fit_extended_cox_model(panel_df, feature_cols, target_col, temporal=temporal, mode=mode, output_dir=data_dir)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mluser/projects/DeepHSSurvial/src/deepsupport/models/extended_cox.py", line 75, in fit_extended_cox_model
+    evaluator = SurvivalEvaluator(model_name=model_key, output_dir=output_dir, temporal=temporal, mode=mode)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: SurvivalEvaluator.__init__() got an unexpected keyword argument 'output_dir'
+/home/mluser/.pyenv/versions/3.12.3/lib/python3.12/site-packages/keras/src/layers/core/dense.py:107: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+Traceback (most recent call last):
+  File "/home/mluser/projects/DeepHSSurvial/src/deepsupport/runners/fast_suite.py", line 70, in run_step
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mluser/projects/DeepHSSurvial/src/deepsupport/runners/fast_suite.py", line 152, in <lambda>
+    tracker.run_step(f"Extended DeepSurv [{mode}]", lambda m=mode: train_extended_deep_survival(data_dir=data_dir, temporal=temporal, mode=m))
+                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mluser/projects/DeepHSSurvial/src/deepsupport/models/extended_deepsurv.py", line 205, in train_extended_deep_survival
+    evaluator_ds = SurvivalEvaluator(ds_name, output_dir=base_dir)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: SurvivalEvaluator.__init__() got an unexpected keyword argument 'output_dir'
+/home/mluser/.pyenv/versions/3.12.3/lib/python3.12/site-packages/keras/src/layers/core/masking.py:48: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(**kwargs)
+
+################################################################################
+   DEEPSUPPORT MASTER SUITE ORCHESTRATION
+   Suite:       ALL
+   Temporal:    prev
+   Modi:        ['standard', 'gradeblind']
+   Daten-Pfad:  /home/mluser/projects/DeepHSSurvial/data_v4_grid/S01_baseline/universe_A
+   Output-Pfad: /home/mluser/projects/DeepHSSurvial/output_thinkcentre
+################################################################################
+
+
+>>> STARTE FAST CORE SUITE ...
+********************************************************************************
+   FAST CORE SUITE RUNNER (V4.2 Modular)
+   Start: 2026-09-06 21:06:09 | Temporal: prev | Seed: 42
+   Data Dir: /home/mluser/projects/DeepHSSurvial/data_v4_grid/S01_baseline/universe_A
+   Output Dir: /home/mluser/projects/DeepHSSurvial/output_thinkcentre/fast
+   Aktive Modi: ['standard', 'gradeblind']
+********************************************************************************
+
+================================================================================
+   FAST SUITE -> MODUS: STANDARD
+================================================================================
+
+================================================================================
+   START: Extended Cox [standard]
+   Zeit: 2026-09-06 21:06:09
+================================================================================
+
+==========================================================================
+   EXTENDED COX PROPORTIONAL HAZARDS MODEL (PHREG, temporal=prev, mode=standard)
+==========================================================================
+Schätze Modell mit 345133 Person-Semester Zeilen und 16 Features...
+
+--- ESTIMATION RESULTS ---
+                               Results: PHReg
+============================================================================
+Model:                         PH Reg           Sample size:          345133
+Dependent variable:            t_stop           Num. events:          14394 
+Ties:                          Breslow                                      
+----------------------------------------------------------------------------
+                       log HR log HR SE   HR      t     P>|t|  [0.025 0.975]
+----------------------------------------------------------------------------
+hzb_note               1.0530    0.0236 2.8662  44.5423 0.0000 2.7364 3.0021
+hzb_typ_ord           -0.0916    0.0082 0.9124 -11.1357 0.0000 0.8978 0.9273
+stg_BWL                0.0785    0.0237 1.0817   3.3139 0.0009 1.0326 1.1331
+stg_Maschinenbau       0.0791    0.0257 1.0823   3.0799 0.0021 1.0292 1.1382
+stg_Psychologie       -0.0024    0.0271 0.9976  -0.0877 0.9301 0.9461 1.0520
+stg_Soziale_Arbeit    -0.0237    0.0304 0.9766  -0.7792 0.4358 0.9201 1.0365
+migrationshintergrund -0.0010    0.0200 0.9990  -0.0525 0.9581 0.9606 1.0388
+erstakademiker        -0.0478    0.0172 0.9534  -2.7750 0.0055 0.9218 0.9861
+erwerbstaetigkeit_std  0.0369    0.0011 1.0376  33.7129 0.0000 1.0354 1.0398
+fails_prev             0.0087    0.0108 1.0088   0.8082 0.4190 0.9876 1.0303
+delta_cp_prev         -0.0582    0.0017 0.9435 -33.9735 0.0000 0.9403 0.9467
+cp_rueckstand         -0.0109    0.0005 0.9891 -20.8215 0.0000 0.9881 0.9902
+gpa_prev               0.2787    0.0137 1.3214  20.2805 0.0000 1.2863 1.3575
+fach_supp_count        0.0861    0.0188 1.0899   4.5817 0.0000 1.0505 1.1308
+uebf_supp_count        0.0276    0.0075 1.0280   3.6788 0.0002 1.0130 1.0432
+psych_supp_count       0.0230    0.0112 1.0233   2.0604 0.0394 1.0011 1.0460
+============================================================================
+Confidence intervals are for the hazard ratios
+295133 observations have positive entry times
+
+Extrahierte Hazard Ratios:
+  • hzb_note                      : HR = 2.8662
+  • hzb_typ_ord                   : HR = 0.9124
+  • stg_BWL                       : HR = 1.0817
+  • stg_Maschinenbau              : HR = 1.0823
+  • stg_Psychologie               : HR = 0.9976
+  • stg_Soziale_Arbeit            : HR = 0.9766
+  • migrationshintergrund         : HR = 0.9990
+  • erstakademiker                : HR = 0.9534
+  • erwerbstaetigkeit_std         : HR = 1.0376
+  • fails_prev                    : HR = 1.0088
+  • delta_cp_prev                 : HR = 0.9435
+  • cp_rueckstand                 : HR = 0.9891
+  • gpa_prev                      : HR = 1.3214
+  • fach_supp_count               : HR = 1.0899
+  • uebf_supp_count               : HR = 1.0280
+  • psych_supp_count              : HR = 1.0233
+
+[FEHLER] Extended Cox [standard] FEHLGESCHLAGEN nach 19.1s: SurvivalEvaluator.__init__() got an unexpected keyword argument 'output_dir'
+
+================================================================================
+   START: Extended DeepSurv [standard]
+   Zeit: 2026-09-06 21:06:28
+================================================================================
+
+==========================================================================
+   EXTENDED NEURAL SURVIVAL MODELS (DeepSurv & Logistic Hazard | temporal=prev, mode=standard)
+==========================================================================
+Panel: 345133 Zeilen | Features: 16 (Num: 11, Cat: 2, Treat: 3)
+
+[1/2] Trainiere Extended DeepSurv ...
+[2/2] Trainiere Extended Logistic Hazard ...
+
+==========================================================================
+   ERGEBNISSE NEURONALE SURVIVAL-MODELLE (TEST-SET)
+==========================================================================
+Modell-Typ                          | ROC-AUC    | PR-AUC     | Brier Score 
+--------------------------------------------------------------------------
+Extended DeepSurv                   | 0.5548     | 0.0546     | N/A         
+Extended Logistic Hazard            | 0.8044     | 0.1948     | 0.0360      
+==========================================================================
+
+[FEHLER] Extended DeepSurv [standard] FEHLGESCHLAGEN nach 295.9s: SurvivalEvaluator.__init__() got an unexpected keyword argument 'output_dir'
+
+================================================================================
+   START: Recurrent Survival GRU [standard]
+   Zeit: 2026-09-06 21:11:24
+================================================================================
+
+==========================================================================
+   RECURRENT SEMESTER SURVIVAL GRU (temporal=prev, mode=standard)
+==========================================================================
+Tensor erstellt: Shape=(50000, 16, 18), Features (18): ['hzb_note', 'hzb_typ_ord', 'stg_Informatik', 'stg_BWL', 'stg_Maschinenbau', 'stg_Psychologie', 'stg_Soziale_Arbeit', 'migrationshintergrund', 'erstakademiker', 'erwerbstaetigkeit_std', 'fails_prev', 'delta_cp_prev', 'cp_rueckstand_vorher', 'sem_cp_attempted', 'gpa_prev', 'fach_supp_count', 'uebf_supp_count', 'psych_supp_count']
+
+Trainiere GRU-Modell (40 Epochen, Batch-Size 128)...
+
+==========================================================================
+   ERGEBNISSE RECURRENT SEMESTER SURVIVAL GRU (TEST-SET)
+==========================================================================
+  • Semester-Ebene ROC-AUC : 0.8141
+  • Semester-Ebene PR-AUC  : 0.2754
+  • Brier Score            : 0.0350
+  • Studierenden ROC-AUC   : 0.2916
+==========================================================================
+[INFO] Metriken gespeichert: data_v4_grid/S01_baseline/universe_A/metrics/recurrent_survival_gru_prev_standard_prev_metrics.json
+[INFO] Lernkurve für recurrent_survival_gru_prev in data_v4_grid/S01_baseline/universe_A/plots gespeichert.
+[INFO] Modell recurrent_survival_gru_prev unter data_v4_grid/S01_baseline/universe_A/models/recurrent_survival_gru_prev.keras gespeichert.
+
+======================================================================
+  SurvivalEvaluator -- recurrent_survival_gru_prev [standard/prev]
+======================================================================
+  ROC-AUC                : 0.8141
+  PR-AUC (Dropout  y=1)  : 0.2754  (Baseline pi0=0.042)
+  PR-AUC (Non-Drop y=0)  : 0.9887
+  Brier Score            : 0.0350  (BSS=0.125)
+  F1 Score (tau=0.5)     : 0.1187
+  Balanced Accuracy      : 0.5316
+Traceback (most recent call last):
+  File "/home/mluser/projects/DeepHSSurvial/src/deepsupport/runners/fast_suite.py", line 70, in run_step
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mluser/projects/DeepHSSurvial/src/deepsupport/runners/fast_suite.py", line 154, in <lambda>
+    tracker.run_step(f"Dynamic DeepHit Competing Risks [{mode}]", lambda m=mode: train_dynamic_deephit_model(data_dir=data_dir, max_semesters=16, temporal=temporal, mode=m))
+                                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mluser/projects/DeepHSSurvial/src/deepsupport/models/dynamic_deephit.py", line 176, in train_dynamic_deephit_model
+    evaluator = SurvivalEvaluator(model_name, output_dir=base_dir)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: SurvivalEvaluator.__init__() got an unexpected keyword argument 'output_dir'
+/home/mluser/.pyenv/versions/3.12.3/lib/python3.12/site-packages/keras/src/layers/core/masking.py:48: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(**kwargs)

@@ -1,0 +1,366 @@
+{
+  "timestamp": "2026-09-06 21:00:24",
+  "total_duration_s": 190.0,
+  "steps": [
+    {
+      "step_name": "Extended Cox [standard]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'extended_cox_survival'"
+    },
+    {
+      "step_name": "Extended DeepSurv [standard]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'extended_deep_survival'"
+    },
+    {
+      "step_name": "Recurrent Survival GRU [standard]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'recurrent_survival_model'"
+    },
+    {
+      "step_name": "Dynamic DeepHit Competing Risks [standard]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'dynamic_deephit_model'"
+    },
+    {
+      "step_name": "Transformer Survival [standard]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'transformer_survival_model'"
+    },
+    {
+      "step_name": "Recurrent Exam Survival GRU [standard]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'recurrent_exam_survival'"
+    },
+    {
+      "step_name": "Transformer Exam Survival [standard]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'transformer_exam_survival'"
+    },
+    {
+      "step_name": "Landmark Baseline Classifiers [standard]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'train_mlp_baseline'"
+    },
+    {
+      "step_name": "Landmark Regression [standard]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'train_mlp_regression'"
+    },
+    {
+      "step_name": "DML Orthogonal Survival [standard]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'dml_orthogonal_survival'"
+    },
+    {
+      "step_name": "Transformer DML [standard]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'train_transformer_dml'"
+    },
+    {
+      "step_name": "Timeseries Semester LSTM [standard]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'timeseries_semester'"
+    },
+    {
+      "step_name": "Timeseries Semester Transformer [standard]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'timeseries_semester_transformer'"
+    },
+    {
+      "step_name": "Timeseries Exam GRU [standard]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'timeseries_exam'"
+    },
+    {
+      "step_name": "Timeseries Exam Transformer [standard]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'timeseries_exam_transformer'"
+    },
+    {
+      "step_name": "Extended Cox [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'extended_cox_survival'"
+    },
+    {
+      "step_name": "Extended DeepSurv [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'extended_deep_survival'"
+    },
+    {
+      "step_name": "Recurrent Survival GRU [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'recurrent_survival_model'"
+    },
+    {
+      "step_name": "Dynamic DeepHit Competing Risks [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'dynamic_deephit_model'"
+    },
+    {
+      "step_name": "Transformer Survival [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'transformer_survival_model'"
+    },
+    {
+      "step_name": "Recurrent Exam Survival GRU [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'recurrent_exam_survival'"
+    },
+    {
+      "step_name": "Transformer Exam Survival [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'transformer_exam_survival'"
+    },
+    {
+      "step_name": "Landmark Baseline Classifiers [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'train_mlp_baseline'"
+    },
+    {
+      "step_name": "Landmark Regression [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'train_mlp_regression'"
+    },
+    {
+      "step_name": "DML Orthogonal Survival [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'dml_orthogonal_survival'"
+    },
+    {
+      "step_name": "Transformer DML [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'train_transformer_dml'"
+    },
+    {
+      "step_name": "Timeseries Semester LSTM [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'timeseries_semester'"
+    },
+    {
+      "step_name": "Timeseries Semester Transformer [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'timeseries_semester_transformer'"
+    },
+    {
+      "step_name": "Timeseries Exam GRU [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'timeseries_exam'"
+    },
+    {
+      "step_name": "Timeseries Exam Transformer [gradeblind]",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 616.0,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'timeseries_exam_transformer'"
+    },
+    {
+      "step_name": "Oracle Models (Lift Analysis)",
+      "status": "PASSED",
+      "duration_s": 97.18,
+      "ram_start_mb": 616.0,
+      "ram_end_mb": 1139.1,
+      "ram_delta_mb": 523.1,
+      "error": null
+    },
+    {
+      "step_name": "DSGVO Realistic Models",
+      "status": "PASSED",
+      "duration_s": 55.88,
+      "ram_start_mb": 1139.1,
+      "ram_end_mb": 1132.2,
+      "ram_delta_mb": -7.0,
+      "error": null
+    },
+    {
+      "step_name": "Strukturelle Mediationsanalyse",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 1132.2,
+      "ram_end_mb": 1132.2,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'structural_mediation_analysis'"
+    },
+    {
+      "step_name": "Deep Survival Landmark (LH & DS)",
+      "status": "FAILED",
+      "duration_s": 36.92,
+      "ram_start_mb": 1132.2,
+      "ram_end_mb": 1061.1,
+      "ram_delta_mb": -71.1,
+      "error": "SurvivalEvaluator.__init__() got an unexpected keyword argument 'output_dir'"
+    },
+    {
+      "step_name": "Plot Calibration Curves",
+      "status": "FAILED",
+      "duration_s": 0.02,
+      "ram_start_mb": 1061.1,
+      "ram_end_mb": 1061.2,
+      "ram_delta_mb": 0.1,
+      "error": "No module named 'feature_builder'"
+    },
+    {
+      "step_name": "Feature Grid Experiments (Cross-Mode)",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 1061.2,
+      "ram_end_mb": 1061.2,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'run_feature_grid_experiments'"
+    },
+    {
+      "step_name": "Counterfactual HR Analyzer (Extended Cox/Panel)",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 1061.2,
+      "ram_end_mb": 1061.2,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'counterfactual_hr_analyzer'"
+    },
+    {
+      "step_name": "Counterfactual DeepHit Competing Risks",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 1061.2,
+      "ram_end_mb": 1061.2,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'counterfactual_deephit_fixed'"
+    },
+    {
+      "step_name": "Counterfactual Grade Transformer",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 1061.2,
+      "ram_end_mb": 1061.2,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'counterfactual_grade_transformer'"
+    },
+    {
+      "step_name": "Counterfactual Oracle Logistic Hazard",
+      "status": "FAILED",
+      "duration_s": 0.0,
+      "ram_start_mb": 1061.2,
+      "ram_end_mb": 1061.2,
+      "ram_delta_mb": 0.0,
+      "error": "No module named 'counterfactual_oracle_logistic_hazard'"
+    }
+  ]
+}
