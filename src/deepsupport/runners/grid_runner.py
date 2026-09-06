@@ -6,13 +6,20 @@ Strikte Trennung von Input-Daten und Output-Modellen/Metriken.
 """
 
 import os
+import sys
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import time
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+SRC_DIR = PROJECT_ROOT / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
 import numpy as np
 import tensorflow as tf
-from pathlib import Path
 from typing import Dict, Any, Optional, Union
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
