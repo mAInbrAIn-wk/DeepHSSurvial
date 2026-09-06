@@ -76,6 +76,10 @@ def plot_pr_curve(y_true, y_score, model_name: str, base_dir: Path):
 
 def plot_learning_curve(history_dict, model_name: str, base_dir: Path, metric_name='loss'):
     """Plottet und speichert die Keras Lernkurve."""
+    if hasattr(history_dict, 'history'):
+        history_dict = history_dict.history
+    if not isinstance(history_dict, dict) or 'loss' not in history_dict or len(history_dict['loss']) == 0:
+        return
     _, plots_dir, _ = get_output_dirs(base_dir)
     epochs = range(1, len(history_dict['loss']) + 1)
     plt.figure(figsize=(12, 5))

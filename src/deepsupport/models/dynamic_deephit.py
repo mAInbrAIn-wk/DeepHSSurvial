@@ -178,7 +178,7 @@ def train_dynamic_deephit_model(data_dir: Path = Path('src/output_dl'),
         y_true=y_drop_flat,
         y_prob=pred_drop_flat,
         model=model,
-        history=history,
+        history=history.history if hasattr(history, 'history') else history,
         extra_metrics=metrics_dict
     )
     save_metrics(model_name, metrics_dict, base_dir)

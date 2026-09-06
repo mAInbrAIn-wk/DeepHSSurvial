@@ -177,7 +177,7 @@ def run_baseline_training(data_dir: Path = Path('src/output_dl'),
         y_true=y_test,
         y_prob=mlp_probs,
         model=mlp_model,
-        history=mlp_history,
+        history=mlp_history.history if hasattr(mlp_history, 'history') else mlp_history,
         extra_metrics=results
     )
     save_metrics(model_name, results, base_dir)

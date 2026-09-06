@@ -217,7 +217,7 @@ def train_deep_survival(data_dir: Path = Path('src/output_dl'),
         y_true=y_event[test_idx],
         y_prob=test_risk,
         model=deepsurv,
-        history=hist_ds,
+        history=hist_ds.history if hasattr(hist_ds, 'history') else hist_ds,
         extra_metrics=metrics_ds
     )
     save_metrics(model_name_ds, metrics_ds, base_dir)
@@ -234,7 +234,7 @@ def train_deep_survival(data_dir: Path = Path('src/output_dl'),
         y_true=y_event[test_idx],
         y_prob=test_p_lh,
         model=lh,
-        history=hist_lh,
+        history=hist_lh.history if hasattr(hist_lh, 'history') else hist_lh,
         extra_metrics=metrics_lh
     )
     save_metrics(model_name_lh, metrics_lh, base_dir)
