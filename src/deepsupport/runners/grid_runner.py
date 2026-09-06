@@ -154,7 +154,9 @@ def run_grid_evaluation(architecture_name: str, build_model_fn, data_dir: Path, 
         
     return results
 
-def main(data_root: Optional[Union[str, Path]] = None, output_root: Optional[Union[str, Path]] = None):
+def main(data_root: Optional[Union[str, Path]] = None,
+         output_root: Optional[Union[str, Path]] = None,
+         scenarios: Optional[List[str]] = None):
     data_root = Path(data_root) if data_root else Path('data_v4_grid')
     output_root = Path(output_root) if output_root else Path('output_v4_models')
     
@@ -166,12 +168,14 @@ def main(data_root: Optional[Union[str, Path]] = None, output_root: Optional[Uni
     print(f"Schreibe Modelle/Metriken nach: {output_root}")
     
     # 1. Finde alle Szenarien (S01_baseline, S02_supp_half, etc.)
-    scenarios = sorted([d for d in data_root.iterdir() if d.is_dir() and d.name.startswith('S')])
-    if not scenarios:
-        # Fallback: Wenn data_root direkt auf ein Szenario zeigt
-        scenarios = [data_root]
+    if scenarios:
+        scenario_dirs = [data_root / s if (data_root / s).exists() else Path(s) for s in scenarios]
+    else:
+        scenario_dirs = sorted([d for d in data_root.iterdir() if d.is_dir() and d.name.startswith('S')])
+        if not scenario_dirs:
+            scenario_dirs = [data_root]
         
-    for scenario_dir in scenarios:
+    for scenario_dir in scenario_dirs:
         scenario_name = scenario_dir.name
         print("\n" + "="*80)
         print(f"   SZENARIO: {scenario_name}")
@@ -181,7 +185,7 @@ def main(data_root: Optional[Union[str, Path]] = None, output_root: Optional[Uni
         scenario_out.mkdir(parents=True, exist_ok=True)
         
         # Grid Runner needs to run on universe_A (the factual universe) for standard training
-        uni_dir = scenario_dir / 'universe_A'
+        uni_dir = scenario_dir / 'universe_A' if (scenario_dir / 'universe_A').exists() else scenario_dir
         if not uni_dir.exists():
             continue
             
@@ -194,4 +198,12 @@ def main(data_root: Optional[Union[str, Path]] = None, output_root: Optional[Uni
         run_grid_evaluation('grid_exam_gru', build_gru_model, uni_dir, scenario_out, max_timesteps=40, level='exam')
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(description="Master Feature Grid Runner V4.2")
+    parser.add_argument('--data_root', type=str, default='data_v4_grid')
+    parser.add_argument('--output_root', type=str, default='output_v4_models')
+    parser.add_argument('--scenarios', type=str, default=None, help="Kommagetrennte Liste (z.B. S01_baseline)")
+    args = parser.parse_args()
+
+    sc_list = [s.strip() for s in args.scenarios.split(',')] if args.scenarios else None
+    main(data_root=args.data_root, output_root=args.output_root, scenarios=sc_list)
