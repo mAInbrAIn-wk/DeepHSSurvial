@@ -314,9 +314,6 @@ class SurvivalEvaluator(_BaseEvaluator):
         path = metrics_dir / f"{self.model_name}_{mode}_{temporal_type}_metrics.json"
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(clean, f, indent=4, ensure_ascii=False)
-        legacy_path = metrics_dir / f"{self.model_name}.json"
-        with open(legacy_path, 'w', encoding='utf-8') as f:
-            json.dump(clean, f, indent=4, ensure_ascii=False)
         print(f"[INFO] Metriken gespeichert: {path}")
 
     def _plot_roc(self, y_true, y_prob, roc_auc_val):
@@ -450,9 +447,6 @@ class RegressionEvaluator(_BaseEvaluator):
                  for k, v in metrics_dict.items()}
         path = metrics_dir / f"{self.model_name}_{mode}_{temporal_type}_metrics.json"
         with open(path, 'w', encoding='utf-8') as f:
-            json.dump(clean, f, indent=4, ensure_ascii=False)
-        legacy_path = metrics_dir / f"{self.model_name}.json"
-        with open(legacy_path, 'w', encoding='utf-8') as f:
             json.dump(clean, f, indent=4, ensure_ascii=False)
         print(f"[INFO] Metriken gespeichert: {path}")
 
@@ -616,9 +610,6 @@ class MulticlassEvaluator(_BaseEvaluator):
         path = metrics_dir / f"{self.model_name}_{mode}_{temporal_type}_metrics.json"
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(clean, f, indent=4, ensure_ascii=False)
-        legacy_path = metrics_dir / f"{self.model_name}.json"
-        with open(legacy_path, 'w', encoding='utf-8') as f:
-            json.dump(clean, f, indent=4, ensure_ascii=False)
         print(f"[INFO] Metriken gespeichert: {path}")
 
     def _plot_cm(self, y_true, y_pred, class_names):
@@ -743,9 +734,6 @@ class CausalEvaluator(_BaseEvaluator):
                  for k, v in metrics_dict.items()}
         path = metrics_dir / f"{self.model_name}_{mode}_{temporal_type}_metrics.json"
         with open(path, 'w', encoding='utf-8') as f:
-            json.dump(clean, f, indent=4, ensure_ascii=False)
-        legacy_path = metrics_dir / f"{self.model_name}.json"
-        with open(legacy_path, 'w', encoding='utf-8') as f:
             json.dump(clean, f, indent=4, ensure_ascii=False)
         print(f"[INFO] Metriken gespeichert: {path}")
 
@@ -886,9 +874,6 @@ class DualHeadEvaluator(_BaseEvaluator):
                  for k, v in combined.items()}
         path = metrics_dir / f"{self.model_name}_{mode}_{temporal_type}_metrics.json"
         with open(path, 'w', encoding='utf-8') as f:
-            json.dump(clean, f, indent=4, ensure_ascii=False)
-        legacy_path = metrics_dir / f"{self.model_name}.json"
-        with open(legacy_path, 'w', encoding='utf-8') as f:
             json.dump(clean, f, indent=4, ensure_ascii=False)
 
         if model is not None:
