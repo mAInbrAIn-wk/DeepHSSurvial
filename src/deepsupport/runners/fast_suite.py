@@ -155,8 +155,8 @@ def run_fast_suite(data_dir: Path, output_dir: Optional[Path] = None, temporal: 
         tracker.run_step(f"Transformer Survival [{mode}]", lambda m=mode: train_transformer_survival(data_dir=data_dir, max_semesters=16, temporal=temporal, mode=m))
         tracker.run_step(f"Recurrent Exam Survival GRU [{mode}]", lambda m=mode: train_recurrent_exam_survival_model(data_dir=data_dir, max_exams=40, temporal=temporal, mode=m))
         tracker.run_step(f"Transformer Exam Survival [{mode}]", lambda m=mode: train_transformer_exam_survival(data_dir=data_dir, max_exams=40, temporal=temporal, mode=m))
-        tracker.run_step(f"Landmark Baseline Classifiers [{mode}]", lambda m=mode: run_baseline_training(data_dir=data_dir, run_mlp=True, mode=m))
-        tracker.run_step(f"Landmark Regression [{mode}]", lambda m=mode: run_regression_training(data_dir=data_dir, run_mlp=True, mode=m))
+        tracker.run_step(f"Landmark Baseline Classifiers [{mode}]", lambda m=mode: run_baseline_training(data_dir=data_dir, mode=m))
+        tracker.run_step(f"Landmark Regression [{mode}]", lambda m=mode: run_regression_training(data_dir=data_dir, mode=m))
         tracker.run_step(f"DML Orthogonal Survival [{mode}]", lambda m=mode: train_dml_orthogonal_survival(data_dir=data_dir, temporal=temporal, mode=m))
         tracker.run_step(f"Transformer DML [{mode}]", lambda m=mode: train_transformer_dml(data_dir=data_dir, temporal=temporal, mode=m))
 

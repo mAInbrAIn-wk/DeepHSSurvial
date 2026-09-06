@@ -257,7 +257,6 @@ class SurvivalEvaluator(_BaseEvaluator):
 
         # --- Kernmetriken ---
         roc_auc = float(roc_auc_score(y_true, y_prob))
-        brier = float(brier_score_loss(y_true, y_prob))
 
         # PR-AUC für Dropout-Klasse (y=1, Minderheitsklasse)
         pr_auc_dropout = float(average_precision_score(y_true, y_prob, pos_label=1))
@@ -267,9 +266,17 @@ class SurvivalEvaluator(_BaseEvaluator):
         # Prävalenz π₀ als Baseline für PR-AUC
         pr_auc_baseline = float(np.mean(y_true))
 
-        # Brier Skill Score: BSS = 1 - B / B_ref, B_ref = π₀ * (1 - π₀)
-        brier_ref = pr_auc_baseline * (1.0 - pr_auc_baseline)
-        brier_skill = float(1.0 - brier / brier_ref) if brier_ref > 1e-9 else None
+        # Brier Score & Brier Skill Score (nur bei Wahrscheinlichkeiten in [0, 1]; DeepSurv liefert unbeschränkte Hazard-Raten)
+        brier = None
+        brier_skill = None
+        if np.all((y_prob >= 0.0) & (y_prob <= 1.0)):
+            try:
+                brier = float(brier_score_loss(y_true, y_prob))
+                brier_ref = pr_auc_baseline * (1.0 - pr_auc_baseline)
+                brier_skill = float(1.0 - brier / brier_ref) if brier_ref > 1e-9 else None
+            except Exception:
+                brier = None
+                brier_skill = None
 
         # F1, Balanced Accuracy bei τ=0.5
         y_pred_binary = (y_prob >= 0.5).astype(int)

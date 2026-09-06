@@ -68,7 +68,8 @@ def run_regression_training(data_dir: Path = Path('src/output_dl'),
                             graduates_only: bool = True,
                             mode: str = 'standard',
                             epochs: int = 80,
-                            batch_size: int = 64):
+                            batch_size: int = 64,
+                            **kwargs):
     print("\n" + "=" * 74)
     print(f"   LANDMARK ABSCHLUSSNOTEN-REGRESSION (graduates_only={graduates_only}, mode={mode})")
     print("=" * 74)

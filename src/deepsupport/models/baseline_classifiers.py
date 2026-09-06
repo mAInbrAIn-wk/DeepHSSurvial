@@ -76,7 +76,8 @@ def run_baseline_training(data_dir: Path = Path('src/output_dl'),
                           binary_target: bool = True,
                           mode: str = 'standard',
                           epochs: int = 80,
-                          batch_size: int = 64):
+                          batch_size: int = 64,
+                          **kwargs):
     print("\n" + "=" * 74)
     print(f"   LANDMARK CLASSIFICATION BASELINES (binary={binary_target}, mode={mode})")
     print("=" * 74)
