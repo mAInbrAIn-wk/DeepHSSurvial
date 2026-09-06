@@ -291,20 +291,21 @@ class SurvivalEvaluator:
     def _print_summary(self, m):
         w = 70
         print(f"\n{'='*w}")
-        print(f"  SurvivalEvaluator — {m['model_name']} [{m['mode']}/{m['temporal_type']}]")
+        print(f"  SurvivalEvaluator -- {m['model_name']} [{m['mode']}/{m['temporal_type']}]")
         print(f"{'='*w}")
         print(f"  ROC-AUC                : {m['roc_auc']:.4f}")
         print(f"  PR-AUC (Dropout  y=1)  : {m['pr_auc_dropout']:.4f}"
-              f"  (Baseline π₀={m['pr_auc_baseline_pi0']:.3f})")
+              f"  (Baseline pi0={m['pr_auc_baseline_pi0']:.3f})")
         print(f"  PR-AUC (Non-Drop y=0)  : {m['pr_auc_nondropout']:.4f}")
         bss = m['brier_skill_score']
         print(f"  Brier Score            : {m['brier_score']:.4f}"
               f"  (BSS={bss:.3f})" if bss is not None else f"  Brier Score: {m['brier_score']:.4f}")
-        print(f"  F1 Score (τ=0.5)       : {m['f1_score']:.4f}")
+        print(f"  F1 Score (tau=0.5)     : {m['f1_score']:.4f}")
         print(f"  Balanced Accuracy      : {m['balanced_accuracy']:.4f}")
         if m['c_index'] is not None:
             print(f"  Harrell C-Index        : {m['c_index']:.4f}")
         print(f"{'='*w}\n")
+
 
 
 class RegressionEvaluator:
@@ -784,5 +785,5 @@ class DualHeadEvaluator:
         if model is not None:
             save_keras_model(model, self.model_name, self.base_dir)
 
-        print(f"\n[OK] DualHeadEvaluator: Kombinierte Metriken gespeichert → {path}")
+        print(f"\n[OK] DualHeadEvaluator: Kombinierte Metriken gespeichert -> {path}")
         return combined
