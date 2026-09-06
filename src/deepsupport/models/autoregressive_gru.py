@@ -31,7 +31,7 @@ from tensorflow.keras.layers import Input, Dense, Dropout, Masking, GRU, LayerNo
 
 # Import metrics_logger and feature_builder
 sys.path.insert(0, str(Path(__file__).parent))
-from deepsupport.evaluation.metrics_logger import save_metrics, save_keras_model, plot_learning_curve, plot_parity_plot
+from deepsupport.evaluation.metrics_logger import save_metrics, save_keras_model, plot_learning_curve, plot_parity_plot, DualHeadEvaluator
 import deepsupport.data_engine.feature_builder as fb
 
 PADDING_VALUE = -99.0
@@ -230,10 +230,13 @@ def train_autoregressive_next_exam(data_dir: Path = Path('src/output_dl'),
         "Next_Exam_Pass_PR_AUC": pr_pass,
         "Next_Exam_Pass_Brier_Score": brier_pass
     }
-    save_metrics(model_name, metrics_dict, base_dir)
-    save_keras_model(model, model_name, base_dir)
-    plot_learning_curve(history.history, model_name, base_dir, metric_name='loss')
-    plot_parity_plot(y_te_grade, preds_grade, f"{model_name}_grade", base_dir)
+    
+    evaluator = DualHeadEvaluator(base_dir=base_dir, model_name=model_name)
+    evaluator.evaluate_and_log(
+        y_grade_true=y_te_grade, y_grade_pred=preds_grade,
+        y_pass_true=y_te_pass, y_pass_prob=preds_pass,
+        history=history.history, model=model
+    )
 
     print(f"[OK] Autoregressive Next-Exam Modell erfolgreich gespeichert.")
     return metrics_dict

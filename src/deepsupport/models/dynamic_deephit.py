@@ -30,7 +30,7 @@ from tensorflow.keras.layers import Input, Dense, Dropout, Masking, GRU, LayerNo
 # Import metrics_logger and feature_builder
 sys.path.insert(0, str(Path(__file__).parent))
 from deepsupport.models.semester_gru import masked_binary_crossentropy, PADDING_VALUE
-from deepsupport.evaluation.metrics_logger import save_metrics, save_keras_model, plot_learning_curve, plot_roc_curve, plot_pr_curve
+from deepsupport.evaluation.metrics_logger import save_metrics, save_keras_model, plot_learning_curve, plot_roc_curve, plot_pr_curve, SurvivalEvaluator
 import deepsupport.data_engine.feature_builder as fb
 
 
@@ -172,11 +172,15 @@ def train_dynamic_deephit_model(data_dir: Path = Path('src/output_dl'),
         "ROC-AUC_Graduation": auc_grad,
         "PR-AUC_Graduation": pr_auc_grad
     }
-    save_metrics(model_name, metrics_dict, base_dir)
-    save_keras_model(model, model_name, base_dir)
-    plot_learning_curve(history.history, model_name, base_dir, metric_name='loss')
-    plot_roc_curve(y_drop_flat, pred_drop_flat, f"{model_name}_dropout", base_dir)
-    plot_pr_curve(y_drop_flat, pred_drop_flat, f"{model_name}_dropout", base_dir)
+    
+    evaluator = SurvivalEvaluator(model_name, output_dir=base_dir)
+    evaluator.evaluate_and_log(
+        y_true=y_drop_flat,
+        y_prob=pred_drop_flat,
+        model=model,
+        history=history,
+        extra_metrics=metrics_dict
+    )
 
     if temporal == 'prev' and mode == 'standard':
         save_metrics("dynamic_deephit_delta", metrics_dict, base_dir)

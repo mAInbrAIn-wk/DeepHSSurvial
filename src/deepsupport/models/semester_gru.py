@@ -31,7 +31,7 @@ import tensorflow.keras.backend as K
 
 # Import metrics_logger and feature_builder
 sys.path.insert(0, str(Path(__file__).parent))
-from deepsupport.evaluation.metrics_logger import save_metrics, save_keras_model, plot_learning_curve, plot_roc_curve, plot_pr_curve
+from deepsupport.evaluation.metrics_logger import save_metrics, save_keras_model, plot_learning_curve, plot_roc_curve, plot_pr_curve, SurvivalEvaluator
 import deepsupport.data_engine.feature_builder as fb
 
 PADDING_VALUE = -99.0
@@ -156,11 +156,17 @@ def train_recurrent_survival_model(data_dir: Path = Path('src/output_dl'),
         "Brier_Score": brier,
         "ROC-AUC_Student": student_auc
     }
-    save_metrics(model_name, metrics_dict, base_dir)
-    save_keras_model(model, model_name, base_dir)
-    plot_learning_curve(history.history, model_name, base_dir, metric_name='loss')
-    plot_roc_curve(y_test_flat, preds_flat, model_name, base_dir)
-    plot_pr_curve(y_test_flat, preds_flat, model_name, base_dir)
+
+    evaluator = SurvivalEvaluator(base_dir=base_dir, model_name=model_name)
+    results = evaluator.evaluate_and_log(
+        y_true=y_test_flat,
+        y_prob=preds_flat,
+        history=history.history,
+        model=model,
+        mode=mode,
+        temporal_type=temporal,
+        extra_metrics={"roc_auc_student": student_auc}
+    )
 
     # Abwärtskompatible Dateinamen
     if temporal == 'prev' and mode == 'standard':

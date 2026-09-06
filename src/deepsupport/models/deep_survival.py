@@ -31,7 +31,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 
 # Import metrics_logger and feature_builder
 sys.path.insert(0, str(Path(__file__).parent))
-from deepsupport.evaluation.metrics_logger import save_metrics, plot_learning_curve, save_keras_model, plot_roc_curve, plot_pr_curve
+from deepsupport.evaluation.metrics_logger import save_metrics, plot_learning_curve, save_keras_model, plot_roc_curve, plot_pr_curve, SurvivalEvaluator
 import deepsupport.data_engine.feature_builder as fb
 
 
@@ -212,10 +212,14 @@ def train_deep_survival(data_dir: Path = Path('src/output_dl'),
         "C-Index": c_idx_ds,
         "ROC-AUC": auc_ds
     }
-    save_metrics(model_name_ds, metrics_ds, base_dir)
-    save_keras_model(deepsurv, model_name_ds, base_dir)
-    plot_learning_curve(hist_ds.history, model_name_ds, base_dir, metric_name='loss')
-    plot_roc_curve(y_event[test_idx], test_risk, model_name_ds, base_dir)
+    evaluator_ds = SurvivalEvaluator(model_name_ds, output_dir=base_dir)
+    evaluator_ds.evaluate_and_log(
+        y_true=y_event[test_idx],
+        y_prob=test_risk,
+        model=deepsurv,
+        history=hist_ds,
+        extra_metrics=metrics_ds
+    )
 
     metrics_lh = {
         "ROC-AUC": auc_lh,
@@ -223,11 +227,14 @@ def train_deep_survival(data_dir: Path = Path('src/output_dl'),
         "C-Index": c_idx_lh,
         "Brier_Score": brier_lh
     }
-    save_metrics(model_name_lh, metrics_lh, base_dir)
-    save_keras_model(lh, model_name_lh, base_dir)
-    plot_learning_curve(hist_lh.history, model_name_lh, base_dir, metric_name='AUC')
-    plot_roc_curve(y_event[test_idx], test_p_lh, model_name_lh, base_dir)
-    plot_pr_curve(y_event[test_idx], test_p_lh, model_name_lh, base_dir)
+    evaluator_lh = SurvivalEvaluator(model_name_lh, output_dir=base_dir)
+    evaluator_lh.evaluate_and_log(
+        y_true=y_event[test_idx],
+        y_prob=test_p_lh,
+        model=lh,
+        history=hist_lh,
+        extra_metrics=metrics_lh
+    )
 
     print(f"[OK] Landmark Survival Modelle gespeichert unter {base_dir}.")
     return deepsurv, lh

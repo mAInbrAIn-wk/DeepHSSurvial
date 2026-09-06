@@ -21,7 +21,7 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 
 # Import metrics_logger and feature_builder
 sys.path.insert(0, str(Path(__file__).parent))
-from deepsupport.evaluation.metrics_logger import save_metrics
+from deepsupport.evaluation.metrics_logger import save_metrics, SurvivalEvaluator
 import deepsupport.data_engine.feature_builder as fb
 
 
@@ -71,36 +71,19 @@ def fit_extended_cox_model(panel_df: pd.DataFrame,
         hr_u = float(hr.get('uebf_supp_count', hr.get('support_glz_ueberfachlich', 1.0)))
         hr_p = float(hr.get('psych_supp_count', hr.get('support_glz_psychosozial', 1.0)))
 
-        metrics_dict = {
-            "model_type": f"extended_cox_{temporal}_{mode}",
-            "temporal": temporal,
-            "mode": mode,
-            "Support_HR_Fach_count": hr_f,
-            "Support_HR_Uebf_count": hr_u,
-            "Support_HR_Psych_count": hr_p,
-            "fach_partial": {"mean_hr": hr_f, "median_hr": hr_f},
-            "fach_isolated": {"mean_hr": hr_f, "median_hr": hr_f},
-            "uebf_partial": {"mean_hr": hr_u, "median_hr": hr_u},
-            "uebf_isolated": {"mean_hr": hr_u, "median_hr": hr_u},
-            "psych_partial": {"mean_hr": hr_p, "median_hr": hr_p},
-            "psych_isolated": {"mean_hr": hr_p, "median_hr": hr_p},
-            "Support_HR_Fach_tv": hr_f,
-            "Support_HR_Uebf_tv": hr_u,
-            "Support_HR_Psych_tv": hr_p
-        }
-        if 'cum_fails' in hr:
-            metrics_dict['HR_cum_fails'] = float(hr['cum_fails'])
-        if 'cum_cp' in hr:
-            metrics_dict['HR_cum_cp'] = float(hr['cum_cp'])
-        if 'fails_prev' in hr:
-            metrics_dict['HR_fails_prev'] = float(hr['fails_prev'])
-        if 'delta_cp_prev' in hr:
-            metrics_dict['HR_delta_cp_prev'] = float(hr['delta_cp_prev'])
-
         model_key = "extended_cox_delta" if temporal == 'prev' else "extended_cox_panel"
-        save_metrics(model_key, metrics_dict, output_dir)
+        evaluator = SurvivalEvaluator(model_name=model_key, output_dir=output_dir, temporal=temporal, mode=mode)
+        hr_estimates = {
+            "hr_fachlich": hr_f,
+            "hr_ueberfachlich": hr_u,
+            "hr_psychosozial": hr_p
+        }
+        
+        evaluator.evaluate_and_log(hr_estimates=hr_estimates)
+        
         if temporal == 'prev':
-            save_metrics("extended_cox_panel", metrics_dict, output_dir)
+            evaluator_panel = SurvivalEvaluator(model_name="extended_cox_panel", output_dir=output_dir, temporal=temporal, mode=mode)
+            evaluator_panel.evaluate_and_log(hr_estimates=hr_estimates)
 
     print("=" * 74)
     return results

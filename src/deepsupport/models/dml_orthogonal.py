@@ -34,7 +34,7 @@ from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 
 # Import metrics_logger and feature_builder
 sys.path.insert(0, str(Path(__file__).parent))
-from deepsupport.evaluation.metrics_logger import save_metrics, save_keras_model, plot_learning_curve, plot_roc_curve, plot_pr_curve
+from deepsupport.evaluation.metrics_logger import save_metrics, save_keras_model, plot_learning_curve, plot_roc_curve, plot_pr_curve, CausalEvaluator
 import deepsupport.data_engine.feature_builder as fb
 
 
@@ -192,20 +192,15 @@ def train_dml_orthogonal_survival(data_dir: Path = Path('src/output_dl'),
     base_dir = data_dir
     model_name = f"dml_orthogonal_survival_{temporal}_{mode}" if (temporal != 'prev' or mode != 'standard') else "dml_orthogonal_survival"
 
-    metrics_dict = {
-        "model_type": model_name,
-        "temporal": temporal,
-        "mode": mode,
-        "ROC-AUC_Panel": auc_dml,
-        "PR-AUC_Panel": pr_auc_dml,
-        "Brier_Score": brier_dml,
-        **causal_results
+    evaluator = CausalEvaluator(model_name=model_name, output_dir=base_dir,
+                                true_labels=y_test, predictions=test_h_factual,
+                                temporal=temporal, mode=mode)
+    hr_estimates = {
+        "hr_fachlich": causal_results.get("fach", {}).get("partial", {}).get("mean_rr", 1.0),
+        "hr_ueberfachlich": causal_results.get("uebf", {}).get("partial", {}).get("mean_rr", 1.0),
+        "hr_psychosozial": causal_results.get("psych", {}).get("partial", {}).get("mean_rr", 1.0)
     }
-    save_metrics(model_name, metrics_dict, base_dir)
-    save_keras_model(dml_model, model_name, base_dir)
-    plot_learning_curve(history.history, model_name, base_dir, metric_name='AUC')
-    plot_roc_curve(y_test, test_h_factual, model_name, base_dir)
-    plot_pr_curve(y_test, test_h_factual, model_name, base_dir)
+    evaluator.evaluate_and_log(hr_estimates=hr_estimates, keras_model=dml_model, history=history.history)
 
     print(f"[OK] DML-Modell und Kausal-Inferenz erfolgreich gespeichert unter {base_dir}.")
     return dml_model

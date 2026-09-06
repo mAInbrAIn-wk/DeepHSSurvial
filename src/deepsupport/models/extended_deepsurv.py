@@ -31,7 +31,7 @@ from tensorflow.keras.layers import Dense, Dropout, BatchNormalization, LayerNor
 
 # Import metrics_logger and feature_builder
 sys.path.insert(0, str(Path(__file__).parent))
-from deepsupport.evaluation.metrics_logger import save_metrics, save_keras_model, plot_learning_curve, plot_roc_curve, plot_pr_curve
+from deepsupport.evaluation.metrics_logger import save_metrics, save_keras_model, plot_learning_curve, plot_roc_curve, plot_pr_curve, SurvivalEvaluator
 import deepsupport.data_engine.feature_builder as fb
 
 
@@ -202,11 +202,14 @@ def train_extended_deep_survival(data_dir: Path = Path('src/output_dl'),
         "ROC-AUC_Panel": auc_deepsurv,
         "PR-AUC_Panel": pr_auc_ds
     }
-    save_metrics(ds_name, metrics_ds, base_dir)
-    save_keras_model(deepsurv, ds_name, base_dir)
-    plot_learning_curve(history_ds.history, ds_name, base_dir, metric_name='loss')
-    plot_roc_curve(test_panel[target_col], test_risk, ds_name, base_dir)
-    plot_pr_curve(test_panel[target_col], test_risk, ds_name, base_dir)
+    evaluator_ds = SurvivalEvaluator(ds_name, output_dir=base_dir)
+    evaluator_ds.evaluate_and_log(
+        y_true=test_panel[target_col].values,
+        y_prob=test_risk,
+        model=deepsurv,
+        history=history_ds,
+        extra_metrics=metrics_ds
+    )
 
     # Abwärtskompatible Standard-Modellnamen
     save_metrics(f"extended_deepsurv_{temporal}", metrics_ds, base_dir)
@@ -223,11 +226,14 @@ def train_extended_deep_survival(data_dir: Path = Path('src/output_dl'),
         "PR-AUC_Panel": pr_auc_dtl,
         "Brier_Score": brier_dtl
     }
-    save_metrics(lh_name, metrics_dtl, base_dir)
-    save_keras_model(dtl_hazard, lh_name, base_dir)
-    plot_learning_curve(history_lh.history, lh_name, base_dir, metric_name='AUC')
-    plot_roc_curve(test_panel[target_col], test_h_pred, lh_name, base_dir)
-    plot_pr_curve(test_panel[target_col], test_h_pred, lh_name, base_dir)
+    evaluator_lh = SurvivalEvaluator(lh_name, output_dir=base_dir)
+    evaluator_lh.evaluate_and_log(
+        y_true=test_panel[target_col].values,
+        y_prob=test_h_pred,
+        model=dtl_hazard,
+        history=history_lh,
+        extra_metrics=metrics_dtl
+    )
 
     save_metrics(f"extended_logistic_hazard_{temporal}", metrics_dtl, base_dir)
     save_keras_model(dtl_hazard, f"extended_logistic_hazard_{temporal}", base_dir)

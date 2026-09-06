@@ -35,7 +35,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 
 # Import metrics_logger and feature_builder
 sys.path.insert(0, str(Path(__file__).parent))
-from deepsupport.evaluation.metrics_logger import save_metrics, plot_learning_curve, save_keras_model
+from deepsupport.evaluation.metrics_logger import save_metrics, plot_learning_curve, save_keras_model, RegressionEvaluator
 import deepsupport.data_engine.feature_builder as fb
 
 
@@ -130,9 +130,13 @@ def run_regression_training(data_dir: Path = Path('src/output_dl'),
     # Logging
     base_dir = data_dir
     model_name = f"mlp_regression_{mode}" if mode != 'standard' else "mlp_regression"
-    save_metrics(model_name, results, base_dir)
-    save_keras_model(mlp_model, model_name, base_dir)
-    plot_learning_curve(mlp_history.history, model_name, base_dir, metric_name='loss')
+    save_metrics(model_name, results, base_dir)  # KEEP for classical models results
+    
+    evaluator = RegressionEvaluator(base_dir=base_dir, model_name=model_name)
+    evaluator.evaluate_and_log(
+        y_true=y_test, y_pred=mlp_preds,
+        history=mlp_history.history, model=mlp_model, mode=mode
+    )
 
     print("\n" + "=" * 74)
     print(f"[OK] Regression erfolgreich trainiert und unter {data_dir} geloggt.")

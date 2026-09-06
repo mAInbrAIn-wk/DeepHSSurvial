@@ -16,6 +16,7 @@ from tensorflow.keras.models import Model
 # Import data preparation from the old script
 sys.path.insert(0, str(Path('src').absolute()))
 from deepsupport.models.autoregressive_gru import prepare_next_exam_dataset
+from deepsupport.evaluation.metrics_logger import DualHeadEvaluator
 
 PADDING_VALUE = -99.0
 
@@ -153,7 +154,7 @@ def train_autoregressive_deep_transformer(data_dir=None, output_dir=None):
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=6, restore_best_weights=True)
     
     print("Starte Training (Max 12 Epochen, Batch-Size 512)...")
-    model.fit(
+    history = model.fit(
         {'exam_history': X_hist_scaled[tr_idx], 'next_exam_context': X_ctx_scaled[tr_idx]},
         {'out_grade': y_grade[tr_idx], 'out_pass': y_pass[tr_idx]},
         validation_data=(
@@ -169,9 +170,7 @@ def train_autoregressive_deep_transformer(data_dir=None, output_dir=None):
     r2 = r2_score(y_grade[te_idx], preds[0].flatten())
     auc = roc_auc_score(y_pass[te_idx], preds[1].flatten())
     
-    (output_dir / 'models').mkdir(exist_ok=True, parents=True)
-    model.save(output_dir / 'models' / 'autoregressive_deep_transformer.keras')
-
+    # Backward compatibility block for metrics output
     metrics_out = {
         'Next_Exam_Grade_R2': float(r2),
         'Next_Exam_Pass_ROC_AUC': float(auc)
@@ -179,6 +178,13 @@ def train_autoregressive_deep_transformer(data_dir=None, output_dir=None):
     (output_dir / 'metrics').mkdir(exist_ok=True, parents=True)
     with open(output_dir / 'metrics' / 'autoregressive_deep_transformer_metrics.json', 'w', encoding='utf-8') as f:
         json.dump(metrics_out, f, indent=4)
+        
+    evaluator = DualHeadEvaluator(base_dir=output_dir, model_name='autoregressive_deep_transformer')
+    evaluator.evaluate_and_log(
+        y_grade_true=y_grade[te_idx], y_grade_pred=preds[0].flatten(),
+        y_pass_true=y_pass[te_idx], y_pass_prob=preds[1].flatten(),
+        history=history.history, model=model
+    )
         
     print(f"\nERGEBNISSE DEEP TRANSFORMER AUTOREGRESSOR (mit PE):")
     print(f" -> R2 Score (Note): {r2:.4f}")

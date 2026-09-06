@@ -40,7 +40,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 
 # Import metrics_logger and feature_builder
 sys.path.insert(0, str(Path(__file__).parent))
-from deepsupport.evaluation.metrics_logger import save_metrics, plot_roc_curve, plot_pr_curve, plot_learning_curve, save_keras_model, plot_confusion_matrix
+from deepsupport.evaluation.metrics_logger import save_metrics, plot_roc_curve, plot_pr_curve, plot_learning_curve, save_keras_model, plot_confusion_matrix, SurvivalEvaluator
 import deepsupport.data_engine.feature_builder as fb
 
 
@@ -171,13 +171,15 @@ def run_baseline_training(data_dir: Path = Path('src/output_dl'),
     # Metrics Logging
     base_dir = data_dir
     model_name = f"mlp_baseline_{mode}" if mode != 'standard' else "mlp_baseline"
-    save_metrics(model_name, results, base_dir)
-    save_keras_model(mlp_model, model_name, base_dir)
-    plot_learning_curve(mlp_history.history, model_name, base_dir, metric_name='accuracy')
-
-    if binary_target:
-        plot_roc_curve(y_test, mlp_probs, model_name, base_dir)
-        plot_pr_curve(y_test, mlp_probs, model_name, base_dir)
+    
+    evaluator = SurvivalEvaluator(model_name, output_dir=base_dir)
+    evaluator.evaluate_and_log(
+        y_true=y_test,
+        y_prob=mlp_probs,
+        model=mlp_model,
+        history=mlp_history,
+        extra_metrics=results
+    )
 
     print("\n" + "=" * 74)
     print(f"[OK] Baselines erfolgreich trainiert und unter {data_dir} geloggt.")
