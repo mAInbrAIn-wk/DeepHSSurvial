@@ -173,7 +173,7 @@ def train_dynamic_deephit_model(data_dir: Path = Path('src/output_dl'),
         "PR-AUC_Graduation": pr_auc_grad
     }
     
-    evaluator = SurvivalEvaluator(model_name, output_dir=base_dir)
+    evaluator = SurvivalEvaluator(base_dir=base_dir, model_name=model_name, temporal=temporal, mode=mode)
     evaluator.evaluate_and_log(
         y_true=y_drop_flat,
         y_prob=pred_drop_flat,
@@ -181,6 +181,7 @@ def train_dynamic_deephit_model(data_dir: Path = Path('src/output_dl'),
         history=history,
         extra_metrics=metrics_dict
     )
+    save_metrics(model_name, metrics_dict, base_dir)
 
     if temporal == 'prev' and mode == 'standard':
         save_metrics("dynamic_deephit_delta", metrics_dict, base_dir)

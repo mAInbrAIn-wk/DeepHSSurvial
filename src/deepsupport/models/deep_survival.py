@@ -212,7 +212,7 @@ def train_deep_survival(data_dir: Path = Path('src/output_dl'),
         "C-Index": c_idx_ds,
         "ROC-AUC": auc_ds
     }
-    evaluator_ds = SurvivalEvaluator(model_name_ds, output_dir=base_dir)
+    evaluator_ds = SurvivalEvaluator(base_dir=base_dir, model_name=model_name_ds, mode=mode)
     evaluator_ds.evaluate_and_log(
         y_true=y_event[test_idx],
         y_prob=test_risk,
@@ -220,6 +220,8 @@ def train_deep_survival(data_dir: Path = Path('src/output_dl'),
         history=hist_ds,
         extra_metrics=metrics_ds
     )
+    save_metrics(model_name_ds, metrics_ds, base_dir)
+    save_keras_model(deepsurv, model_name_ds, base_dir)
 
     metrics_lh = {
         "ROC-AUC": auc_lh,
@@ -227,7 +229,7 @@ def train_deep_survival(data_dir: Path = Path('src/output_dl'),
         "C-Index": c_idx_lh,
         "Brier_Score": brier_lh
     }
-    evaluator_lh = SurvivalEvaluator(model_name_lh, output_dir=base_dir)
+    evaluator_lh = SurvivalEvaluator(base_dir=base_dir, model_name=model_name_lh, mode=mode)
     evaluator_lh.evaluate_and_log(
         y_true=y_event[test_idx],
         y_prob=test_p_lh,
@@ -235,6 +237,8 @@ def train_deep_survival(data_dir: Path = Path('src/output_dl'),
         history=hist_lh,
         extra_metrics=metrics_lh
     )
+    save_metrics(model_name_lh, metrics_lh, base_dir)
+    save_keras_model(lh, model_name_lh, base_dir)
 
     print(f"[OK] Landmark Survival Modelle gespeichert unter {base_dir}.")
     return deepsurv, lh
