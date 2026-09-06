@@ -3,6 +3,36 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
+## [V4.2.2 OOP Evaluator Architecture & Knowledge Graph] - 2026-09-06
+### Added
+- **5 OOP Evaluator-Klassen (`src/deepsupport/evaluation/metrics_logger.py`):**
+  - `SurvivalEvaluator`: ROC-AUC, PR-AUC für alle Klassen (Dropout $y=1$ und Non-Dropout $y=0$) mit horizontaler Baseline $\pi_0$, Brier Skill Score ($BSS = 1 - B/B_{\text{ref}}$), Harrell's C-Index, Balanced Accuracy, F1.
+  - `RegressionEvaluator`: $R^2$, adj. $R^2$, RMSE, MAE, MedianAE, Explained Variance, Max Error, Parity Plot, Residuen-Histogramm.
+  - `MulticlassEvaluator`: Makro-/Weighted-F1, Balanced Accuracy, One-vs-Rest ROC-AUC, OvR PR-AUC je Einzelklasse, zeilennormalisierte Confusion Matrix.
+  - `CausalEvaluator`: Dual-CI-Berechnung (sowohl asymptotische Delta-Methode als auch Bootstrap Percentile CIs), Hazard Ratios, prozentuale Risikoreduktion, visualisierter Forest Plot.
+  - `DualHeadEvaluator`: Multi-Task Evaluator für autoregressive Architekturen (separater Noten- und Bestehens-Head mit gemeinsamer, prefix-separierter JSON).
+  - 100%ige Abwärtskompatibilität aller bestehenden Hilfsfunktionen (`save_metrics`, `plot_roc_curve` etc.).
+- **Projekt-Evolution & Kritische Gesamtevaluation (`docs/08_project_evolution/`):**
+  - `DeepSupport_Projektentwicklung.md`: Ausführliche Rekonstruktion aller 4 Projektphasen (DE → DA → DL → V4.2) und Identifikation offener Fäden.
+  - `DeepSupport_Kritische_Bewertung.md`: Unabhängiges Review mit 8-dimensionaler Bewertungsmatrix (Gesamtnote 8/10) und klaren wissenschaftlichen Empfehlungen.
+- **Agenten-Regelsystem (`AGENTS.md`, `GEMINI.md`, `.agent/rules/python_environment.md`):**
+  - Verbindliche Richtlinien für Coding-Agenten zur automatischen Nutzung des whitelisted venv `C:\GitHub_public\.venv`.
+
+### Changed
+- **Rollout auf alle 14 Modellskripte (`src/deepsupport/models/`):**
+  - Sämtliche Modellskripte (Semester GRU/Transformer, Exam GRU/Transformer, Dynamic DeepHit, Extended DeepSurv/Cox, Deep Survival, Baseline Classifiers/Regressors, Autoregressive Dual-Head, DML Orthogonal/Transformer) auf typisierte Evaluatoren umgestellt.
+- **Systematisches Markdown-Cross-Linking (59 Dateien, Tier 1–3):**
+  - Alle 10 Kern-Dokumente (Tier 1) mit relativen GitHub-Links und `## Verwandte Dokumente`-Tabellen ausgestattet.
+  - Alle 7 Sensitivitäts-Synopsen (Tier 2) wechselseitig mit der Master-Synopse und Nachbardimensionen verknüpft.
+  - Alle 34 Walkthroughs und 5 Conversation Logs (Tier 3) mit standardisiertem YAML-Frontmatter und Git-Zeitstempeln archiviert.
+
+### Fixed
+- **Windows Application Control Bypass:**
+  - Identifikation des Fehlers `ImportError: DLL load failed while importing _core` bei nativem SciPy-Aufruf über System-Python; vollständige Behebung durch Umstellung auf das whitelisted Virtual Environment `C:\GitHub_public\.venv`.
+- **Terminal Encoding CP1252:**
+  - Ersetzung von Sonderzeichen (`π₀`, `τ`, `→`) in den Summary-Printausgaben durch ASCII-Entsprechungen zur Vermeidung von `charmap`-Codec-Abbrüchen auf Windows-Konsolen.
+  - Smoke-Test-Suite für alle 5 Evaluatoren erfolgreich verifiziert (**5/5 Tests PASSED**).
+
 ## [V4.2.1 Full Grid Completion & Heavy Suite Härtung] - 2026-09-04
 ### Completed
 - **Master Feature Grid Run (S01–S15):**

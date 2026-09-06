@@ -1,6 +1,6 @@
 ---
 created: 2026-08-05
-last_updated: 2026-09-04
+last_updated: 2026-09-06
 status: abgeschlossen
 tags: [projekt, uebersicht, deep-learning, kausal]
 ---
@@ -179,4 +179,29 @@ Im September 2026 wurde das Deep-Learning-Framework durch zwei orthogonale Reche
 - **Deep Transformer schlägt GRU:** Bei der Next-Exam Notenvorhersage erreicht der Deep Transformer mit Sinusoidal Positional Encoding in S01 einen $R^2$ von **0,70** (vs. **0,57** beim GRU) und in S07 sogar **0,86** (vs. **0,61**).
 - **Landmark Prognosekraft:** Gefrorene Transformer-Embeddings nach nur 2 Semestern erklären **76,5% der Varianz der späteren finalen Studienabschlussnote** (S01; S07: **86,8%**) und erreichen **79,5% 4-Klassen Status-Genauigkeit**.
 - 📄 Ausführliche Gesamtauswertung: [`docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md`](docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md)
+
+---
+
+## 9. Evaluierungsarchitektur V4.2.2 & OOP Evaluator-Klassen
+
+Zur Überwindung manuellen Logging-Boilerplates und zur Gewährleistung strikter Konsistenz über alle Modelle wurde das Modul `deepsupport.evaluation.metrics_logger` auf ein objektorientiertes Klassendesign umgestellt:
+- **5 Typisierte Evaluatoren:**
+  - `SurvivalEvaluator`: Berechnet ROC-AUC, Brier Score, Brier Skill Score ($BSS = 1 - B/B_{\text{ref}}$), Harrell's C-Index, Balanced Accuracy und **PR-AUC für alle Klassen** (Dropout $y=1$ und Non-Dropout $y=0$) inklusive Baseline-Prävalenzlinie $\pi_0$.
+  - `RegressionEvaluator`: $R^2$, adjustiertes $R^2$, RMSE, MAE, MedianAE, Parity- und Residuen-Plots.
+  - `MulticlassEvaluator`: Makro-/Weighted-F1, Balanced Accuracy, One-vs-Rest ROC-AUC und PR-AUC je Einzelklasse (4-Klassen Landmark Status).
+  - `CausalEvaluator`: Dual-CI-Berechnung (asymptotische Delta-Methode auf $\ln(HR)$-Skala **und** empirische Bootstrap-Perzentil-CIs) für Hazard Ratios und Risikoreduktion, visualisiert via Forest Plot.
+  - `DualHeadEvaluator`: Kombiniert Noten- und Bestehens-Head in autoregressiven Multi-Task-Netzen in einer einheitlichen JSON.
+- **Rollout auf alle 14 Modelle:** 100% der Keras-, Cox-, Regressions- und DML-Skripte in `src/deepsupport/models/` nutzen diese Pipeline.
+- **Verifizierte Smoke-Test-Suite:** Erfolgreich ausgeführt unter `C:\GitHub_public\.venv` (**5/5 Tests PASSED**).
+
+---
+
+## 10. Dokumentations-Architektur & Projektentwicklung
+
+Das Projekt verfügt über ein lückenloses, querverlinktes Wissensnetz aus über 50 Markdown-Dokumenten:
+- 🧭 **Zentraler Index:** [`docs/README.md`](docs/README.md)
+- 📜 **Methodische Evolution:** [`docs/08_project_evolution/DeepSupport_Projektentwicklung.md`](docs/08_project_evolution/DeepSupport_Projektentwicklung.md) (DE → DA → DL → V4.2)
+- 🔍 **Kritische Gesamtevaluation:** [`docs/08_project_evolution/DeepSupport_Kritische_Bewertung.md`](docs/08_project_evolution/DeepSupport_Kritische_Bewertung.md) (Note 8/10, Stärken & Schwächen)
+- ⚙️ **Infrastruktur & Hardware-Stack:** [`docs/06_misc/system_and_hardware_stack.md`](docs/06_misc/system_and_hardware_stack.md)
+- 🤖 **Agenten-Regeln & Ausführungsumgebung:** [`AGENTS.md`](AGENTS.md)
 

@@ -1,4 +1,33 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-06
+status: abgeschlossen
+tags: [done, changelog, meilensteine]
+---
+
 # ✅ Abgeschlossene Aufgaben
+
+## 2026-09-06: Evaluierungsarchitektur V4.2.2, 14-Modell-Rollout & Wissensnetz
+- [x] **5 OOP Evaluator-Klassen (`metrics_logger.py`):**
+  - Vollständige Implementierung von `SurvivalEvaluator`, `RegressionEvaluator`, `MulticlassEvaluator`, `CausalEvaluator` und `DualHeadEvaluator`.
+  - PR-AUC für alle Klassen (Dropout $y=1$ und Non-Dropout $y=0$) inklusive Baseline-Prevalence $\pi_0$.
+  - Dual-CI-Berechnung im `CausalEvaluator`: Asymptotische Delta-Methode **und** empirisches Bootstrapping für direkten methodischen Vergleich.
+  - 100%ige Abwärtskompatibilität bestehender Logging-Funktionen gesichert.
+- [x] **Rollout auf alle 14 Modellskripte (`src/deepsupport/models/`):**
+  - Alle 14 Architekturen auf die typisierten Evaluatoren migriert (Commit `f299539`).
+- [x] **Smoke-Test-Suite & Terminal-Härtung:**
+  - `scratch/smoke_test_evaluators.py`: **5/5 Tests PASSED (Exit-Code 0)** für alle 5 Klassen.
+  - Unicode-Bereinigung in den Print-Zusammenfassungen für Windows PowerShell CP1252 Terminal-Kompatibilität (Commit `1d2bdd6`).
+- [x] **Windows Application Control Policy & Whitelisted Venv:**
+  - Fehlerursache nativer SciPy/C++-DLL-Blocks im System-Python analysiert; permanenter Wechsel auf das whitelisted `C:\GitHub_public\.venv`.
+  - Verbindliche Regeln in [`AGENTS.md`](AGENTS.md), [`GEMINI.md`](GEMINI.md) und [`.agent/rules/python_environment.md`](.agent/rules/python_environment.md) hinterlegt.
+  - Hardware- und Systemdokumentation aktualisiert: [`docs/06_misc/system_and_hardware_stack.md`](docs/06_misc/system_and_hardware_stack.md).
+- [x] **Vollständiges Dokumenten-Cross-Linking & Frontmatter (Tier 1–3):**
+  - 59 Markdown-Dokumente mit relativen GitHub-Links, Git-Zeitstempeln und `## Verwandte Dokumente`-Tabellen ausgestattet (Commit `6072107`).
+  - Master-Synopse mit vollständiger Navigationstabelle zu allen 8 Szenario-Synopsen versehen.
+- [x] **Projektentwicklung & Kritische Gesamtevaluation:**
+  - [`DeepSupport_Projektentwicklung.md`](docs/08_project_evolution/DeepSupport_Projektentwicklung.md): Rekonstruktion aller 4 Phasen (DE → DA → DL → V4.2).
+  - [`DeepSupport_Kritische_Bewertung.md`](docs/08_project_evolution/DeepSupport_Kritische_Bewertung.md): Externe wissenschaftliche Bewertung (Note 8/10).
 
 ## 2026-09-04: Master Grid Run Vollendung (225 Modelle) & Heavy Suite Härtung
 - [x] **Vollendung V4.2 Master Sensitivity Grid (S01–S15):**
@@ -12,17 +41,16 @@
   - Autonome Ausführung der rechenintensiven Exam-Level-Pipelines auf dem Homeserver LXC-Node (ThinkCentre M70q) und Re-Evaluation von Step 2 & 4 auf der Workstation.
   - Next-Exam Dual-Head GRU vs. Deep Transformer mit Sin/Cos Positional Encoding evaluiert: Transformer übertrifft GRU konsistent um $+0.08$ bis $+0.25$ $R^2$ in der Notenvorhersage.
   - Fail-Focus PR-AUC (Minderheitenklasse Nicht-Bestehen) und Landmark Representation Learning (Ende Sem 2: 79.5% 4-Klassen Status-Acc, $R^2 = 0.76$ auf die finale Abschlussnote) vollständig berechnet.
-  - Synoptischer Gesamtbericht erstellt: [`docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md).
+  - Synoptischer Gesamtbericht erstellt: [`docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md`](docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md).
 - [x] **Vollständige Cross-Szenario-Synopsen V4.2 (S01–S15):**
   - Alle verbleibenden Dimensionen vollständig ausgewertet und dokumentiert:
-    - Zeitkosten (S01, S09, S10): [`synopse_zeitkosten_s01_s09_s10.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/03_evaluations_and_benchmarks/synopse_zeitkosten_s01_s09_s10.md)
-    - RCT-Selektionsparadoxon (S01, S11): [`synopse_rct_selektion_s01_s11.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/03_evaluations_and_benchmarks/synopse_rct_selektion_s01_s11.md)
-    - Overload-Penalty Kalibrierung (S01, S12, S13, S14): [`synopse_overload_s01_s12_s13_s14.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/03_evaluations_and_benchmarks/synopse_overload_s01_s12_s13_s14.md)
-    - Kombi-Effekt-Resilienz (S01, S15): [`synopse_kombination_s01_s15.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/03_evaluations_and_benchmarks/synopse_kombination_s01_s15.md)
-    - Master-Synopse über alle 225 Modelle: [`master_synopse_v4_gesamt.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md)
+    - Zeitkosten (S01, S09, S10): [`synopse_zeitkosten_s01_s09_s10.md`](docs/03_evaluations_and_benchmarks/synopse_zeitkosten_s01_s09_s10.md)
+    - RCT-Selektionsparadoxon (S01, S11): [`synopse_rct_selektion_s01_s11.md`](docs/03_evaluations_and_benchmarks/synopse_rct_selektion_s01_s11.md)
+    - Overload-Penalty Kalibrierung (S01, S12, S13, S14): [`synopse_overload_s01_s12_s13_s14.md`](docs/03_evaluations_and_benchmarks/synopse_overload_s01_s12_s13_s14.md)
+    - Kombi-Effekt-Resilienz (S01, S15): [`synopse_kombination_s01_s15.md`](docs/03_evaluations_and_benchmarks/synopse_kombination_s01_s15.md)
+    - Master-Synopse über alle 225 Modelle: [`master_synopse_v4_gesamt.md`](docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md)
 - [x] **Infrastruktur-Dokumentation:**
   - `docs/06_misc/system_and_hardware_stack.md` erstellt (HP EliteDesk G5 Workstation vs. Lenovo ThinkCentre M70q LXC Debian).
-  - Evaluator-Klassen-Refactoring als priorisierte Aufgabe in `ToDo.md` verlinkt.
 
 ## 2026-09-03: Kausal-Synthese & V4 Grid Zwischenauswertungen
 - [x] **Kausale & Historische Dokumentation:**
@@ -38,9 +66,8 @@
 ## 2026-09-02: V4 Master Refactoring & Portfolio
 - [x] **Submodule Portfolio:** Archive, DataAnalysis, DataEngineering und DeepLearning als saubere Git-Submodule integriert.
 - [x] **Git LFS Architektur:** 25 GB Rohdaten komplett aus dem Code-Repo extrahiert und in LFS-gestütztes Archiv migriert.
-- [x] **Requirements Update:** 
-equirements.txt exakt an die Cluster-Umgebung (inkl. scikit-survival, DuckDB, Tensorflow 2.21) angepasst.
-- [x] **Orchestrierung:** grid_runner.py I/O-sicher gemacht (Trennung von data_root und output_root).
+- [x] **Requirements Update:** `requirements.txt` exakt an die Cluster-Umgebung (inkl. scikit-survival, DuckDB, Tensorflow 2.21) angepasst.
+- [x] **Orchestrierung:** `grid_runner.py` I/O-sicher gemacht (Trennung von data_root und output_root).
 - [x] **Doku-Struktur:** Markdown-Dateien systematisch in docs/ einsortiert und Historisches Protokoll (299 Iterationen) generiert.
 
 ## Frühere Meilensteine

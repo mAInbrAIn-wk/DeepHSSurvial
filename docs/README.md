@@ -1,6 +1,6 @@
 ---
 created: 2026-09-02
-last_updated: 2026-09-04
+last_updated: 2026-09-06
 status: abgeschlossen
 tags: [dokumentation, index, navigation]
 ---
@@ -56,11 +56,12 @@ Dieses Verzeichnis bündelt alle architektonischen Entscheidungen (ADRs), Kausal
 ---
 
 ### 6. [07_conversation_logs/](07_conversation_logs/) — Entwicklungs-Historie & User-Annotationen
-- [`00_Historisches_Gesamtprotokoll.md`](07_conversation_logs/00_Historisches_Gesamtprotokoll.md): Chronologisches Archiv der bisherigen 299 Iterationen.
+- [`00_Historisches_Gesamtprotokoll.md`](07_conversation_logs/00_Historisches_Gesamtprotokoll.md): Chronologisches Archiv der bisherigen 305 Iterationen.
 - [`01_History_Selection_Bias_and_Confounding.md`](07_conversation_logs/01_History_Selection_Bias_and_Confounding.md): Historischer Diskurs zur Genese der Parallelwelten und des Dropout-Paradoxons.
 - [`2026_09_02_Master_Refactoring.md`](07_conversation_logs/2026_09_02_Master_Refactoring.md): Protokoll des großen Code- und Archiv-Refactorings (V3.6 → V4).
 - [`2026_09_02_Submodules_and_Synthesis.md`](07_conversation_logs/2026_09_02_Submodules_and_Synthesis.md): Portfolio-Architektur via Git Submodules und LFS-Force-Push.
 - [`2026_09_04_Full_Grid_Run_and_Heavy_Suite.md`](07_conversation_logs/2026_09_04_Full_Grid_Run_and_Heavy_Suite.md): Vollendung des 225-Modelle-Grid-Runs, ThinkCentre Cluster Execution & Heavy Suite Synopse.
+- [`2026_09_06_Evaluation_Architecture_and_Doc_Linking.md`](07_conversation_logs/2026_09_06_Evaluation_Architecture_and_Doc_Linking.md): 5 OOP Evaluator-Klassen, Rollout auf alle 14 Modelle, Markdown-Cross-Linking (Tier 1–3) & Windows venv Härtung.
 
 ---
 

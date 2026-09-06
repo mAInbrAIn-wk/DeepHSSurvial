@@ -3539,9 +3539,36 @@ Dies dient als ultimativer Audit-Trail für die Evolution von DeepSupport.
 **Prompt #299** (20:32:43):
 > das klingt alles ganz fantastisch, ich wünsche, wir hören das gleich zu Beginn so gemacht! Dazu eine Rückfrage: Du kannst doch die Historie (die njson oder so) lesen, oder? kannst du mir rückwirkend ein Protokoll der bisherigen Gespräche und annotierten Dokumente erstellen? wäre das möglich, Oder eher nicht?
 
+
+## 📅 Tag: 2026-09-04
+
+**Prompt #300** (21:10:00):
+> Also ich habe gestern Nacht die heavy suite auf dem LXC gestartet. Leider habe ich inzwischen die Verbindung zum homeserver verloren, vermutlich, weil die Intel NIC ausgefallen ist...
+
+**Prompt #301** (21:48:12):
+> So, habe ich gemacht, ist das dauerhaft? Das sind die Ergebnisse des Laufs auf dem Heimservers. Ich werde sie gleich mal puschen.
+
+**Prompt #302** (22:15:40):
+> Mit der NIC hat alles geklappt, denke ich. Ich hoffe nur, dass es auch den Fehler behebt. Danke Dir für die Übersicht über die Werte des Laufs der Heavy Suite, man sieht, das Rauschen ist ein extrem starker Einflußfaktor. Nun muss ich mir später nur in Ruhe alle Ergebnisse ansehen, auch die der verbleibenden Läufe der schnellen Suite.
+
+
+## 📅 Tag: 2026-09-06
+
+**Prompt #303** (19:35:10):
+> Ich möchte, dass Du dieses Projekt einmal mit frischen Augen evaluierst, so wie es gerade steht. Du findest ausführliche Dokumentationen und Entstehungsprotokolle, Source Code, generierte Daten, Modelle und Metriken. Außerdem sind die Vorgänger dieses Projektes als legacy submodule enthalten, wodurch ein Überblick über die Entwicklung des Projektes möglich wird. Kannst Du mir erstens ein Dokument zur Entwicklung des Projektes erstellen, indem Du die verschiedenen Phasen des Projektes (DE, DA, DL und jetzt) jeweils einzeln beschreibst und charakterisierst, dann aber auch die Veränderungen und Übergänge beschreibst. Zuletzt Kannst Du vielleicht ein Kapitel erstellen, indem die noch laufenden größeren Fäden des Projektes beschreiben und analysiert werden, vielleicht sogar mit Ausblick über die ToDo etc. Kannst Du schließlich eine kritische Bewertung des Projektes abgeben, in einem separaten Dokument -- gewissermaßen Deine ehrliche Meinung. Das sind eine Menge aufwändiger Aufgaben, viel Erfolg.
+
+**Prompt #304** (20:12:35):
+> Also, ich würde gerne die Evaluierungsarchitektur endlich auf einen guten Stand bringen: Bisher haben wir Konzepte für eine systematische Erweiterung der metrics logger gemacht, aber kritisierst zu Recht, dass dies nicht konsequent umgesetzt worden ist. Kannst Du dazu nochmal in die Pläne schauen, oder in Deine Projektentwicklungszusammenfassung, die das ja netterweise gut verlinkt. Da fällt mir noch ein zweiter Arbeitspunkt wieder ein, den wir nur angedacht, aber nicht vollständig umgesetzt haben: Die Dokumente alle verlinken, und bei der Gelegenheit auch datieren? Wäre das möglich, in dem Sinne: Wenn in einem Dokument ein anderes relevant wird, könntest Du da einen link ergänzen? Im zentralen Dokument sind ja bereits links vorhanden, aber ich hätte langfristig gerne eine dynamischere Struktur, mit stärkerer Bezugnahme der einzelnen Überlegungen aufeinander, ohne irgendwas neu schreiben zu müssen.
+
+**Prompt #305** (22:18:28):
+> Also, lief der Test im venv? Das ist eigentlich ausgenommen... Und könnten wir das venv so dokumentieren (für Dich!), dass Du Skripte immer da laufen lässt?
+
+
 ## Verwandte Dokumente
 
 | Dokument | Bezug |
 |:---|:---|
 | [DeepSupport_Projektentwicklung.md](../08_project_evolution/DeepSupport_Projektentwicklung.md) | Strukturierte Aufarbeitung der gleichen Entwicklungsgeschichte |
 | [01_History_Selection_Bias_and_Confounding.md](01_History_Selection_Bias_and_Confounding.md) | Thematische Vertiefung: Selektion und Confounding |
+| [2026_09_06_Evaluation_Architecture_and_Doc_Linking.md](2026_09_06_Evaluation_Architecture_and_Doc_Linking.md) | Detailliertes Protokoll des V4.2 Refactorings und Dokumenten-Cross-Linkings |
+
