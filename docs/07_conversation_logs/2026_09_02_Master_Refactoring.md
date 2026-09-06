@@ -29,3 +29,10 @@ Ziel dieses Pair-Programming-Sprints war:
 
 ## 4. Status Quo
 Das Haupt-Repository ist zu 100 % bereit für einen Master-Push auf GitHub und den Start des Cross-Szenario Cluster-Runs (`grid_runner.py` auf S01-S15).
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [Evaluierungspipeline-Bericht V4.1](../03_evaluations_and_benchmarks/evaluation_pipeline_und_modularisierungsbericht_v41.md) | Ergebnis des hier protokollierten Refactorings |
+| [DeepSupport_Projektentwicklung.md](../08_project_evolution/DeepSupport_Projektentwicklung.md) | DL-Phase und V4-Entstehung |

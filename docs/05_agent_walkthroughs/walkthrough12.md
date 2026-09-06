@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Walkthrough: Hierarchische Cross-Szenario Evaluierung & Modell-Synopse V4.1
 
 Wir haben das **hierarchische, 4-stufige Evaluierungs-Framework** vollständig implementiert und alle 15 Simulations-Szenarien, 11 Modellklassen, 5 Feature-Modi und 2 Temporal-Varianten systematisch zusammengeführt.

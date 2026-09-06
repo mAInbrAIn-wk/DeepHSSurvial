@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Walkthrough: Letzter Dokumentations-Feinschliff & Kalibrierungs-Update
 
 In diesem Durchlauf haben wir die finalen kosmetischen und inhaltlichen Lücken in der Dokumentation geschlossen und die Modell-Kalibrierung erweitert.

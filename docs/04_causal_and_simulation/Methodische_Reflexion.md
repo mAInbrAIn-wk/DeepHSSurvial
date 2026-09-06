@@ -1,3 +1,10 @@
+---
+created: 2026-09-03
+last_updated: 2026-09-03
+status: abgeschlossen
+tags: [methodik, reflexion, legacy, real-world]
+---
+
 # Methodische Reflexionen & Real-World Kontext
 
 *Dieses Dokument bündelt die methodischen Überlegungen aus den früheren Projektphasen (DataEngineering und DataAnalysis), die als konzeptionelles Fundament für die kausale Modellierung in DeepHSSurvival dienen.*
@@ -37,3 +44,13 @@ Die Kernfrage lautet: Erhöht Support den Studienerfolg?
 | Abschlussnote bei Absolvent:innen | Studium | langfristige Leistungsqualität |
 
 **Kausalitäts-Disclaimer:** Diese Unterschiede sind zunächst deskriptiv und *nicht* kausal interpretierbar, da Supportnutzung selektiv erfolgen kann (Selektionsbias). Genau hier setzt die Survival-Analyse (V4) von DeepHSSurvival an.
+
+---
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [Kausale Vergleichsanalyse](04_Kausale_Vergleichsanalyse.md) | Empirische Ergebnisse, auf die sich die Reflexion bezieht |
+| [Selektionsbias-Analyse](selektionsbias_analyse.md) | Technische Analyse des Selektionsmechanismus |
+| [DeepSupport_Kritische_Bewertung.md](../08_project_evolution/DeepSupport_Kritische_Bewertung.md) | Externe Einschätzung der methodischen Grenzen |

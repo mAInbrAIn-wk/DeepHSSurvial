@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Walkthrough: Vollständige Kausalevaluation, Feature-Harmonisierung & Modell-Ergebnisse (V3.3)
 
 **Projekt:** DeepSupport – Wirksamkeitsanalyse von Hochschulsupport  

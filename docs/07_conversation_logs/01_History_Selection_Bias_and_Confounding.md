@@ -1,3 +1,10 @@
+---
+created: 2026-09-03
+last_updated: 2026-09-03
+status: abgeschlossen
+tags: [protokoll, kausal, selection-bias, confounding]
+---
+
 # Historie: Selektionsbias, Immortal-Time Bias & Kontrafaktische Sanity-Checks
 
 Dieses Dokument zeichnet die wohl wichtigste methodische Debatte des gesamten *DeepHSSurvival*-Projekts nach: Die schrittweise Auflösung des Dropout-Paradoxons und die Jagd nach dem wahren kausalen Effekt von Hochschulsupport. Es basiert auf dem historischen Gesprächsverlauf (vgl. `00_Historisches_Gesamtprotokoll.md`).
@@ -37,3 +44,11 @@ Zusätzlich zeigte sich, dass der Selektionsbias stark von der Support-Art abhä
 * **Psychosozialer Support:** Wird eher randomisiert getriggert und daher von den Modellen am leichtesten als echter Schutzfaktor erkannt.
 
 **Status:** Eine umfassende *quantitative* Analyse dieses Selektionsbias quer über alle Kausal-Ansätze (Universen vs. Pearl/Imai vs. Oracle) steht als finale ToDo noch aus.
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [Kausale Vergleichsanalyse](../04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md) | Empirische Ergebnisse des hier diskutierten Kausalproblems |
+| [Methodische Reflexion](../04_causal_and_simulation/Methodische_Reflexion.md) | Methodische Konsequenzen des Selection-Bias-Problems |
+| [Selektionsbias-Analyse](../04_causal_and_simulation/selektionsbias_analyse.md) | Technische Analyse |

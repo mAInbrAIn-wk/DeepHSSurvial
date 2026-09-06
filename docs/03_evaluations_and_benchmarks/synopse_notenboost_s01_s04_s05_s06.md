@@ -1,3 +1,10 @@
+---
+created: 2026-09-04
+last_updated: 2026-09-04
+status: abgeschlossen
+tags: [evaluation, notenboost, fachlicher-support, sensitivitaet]
+---
+
 # Synopse 2: Variation des Notenboosts (S04 vs. S01 vs. S05 vs. S06)
 
 > **Fokus:** Untersuchung der gezielten Variation des Notenboosts (`gewicht_support_boost`: 0.04 vs. 0.08 vs. 0.16 vs. 0.32).
@@ -61,3 +68,12 @@ Hier überprüfen wir Deine spezifische Hypothese: **Ändert sich bei Variation 
 1. **Selektive Wirkung auf den Fachsupport:** Die Daten bestätigen Deine Hypothese vollkommen: Die Notenboost-Parameter greifen im DGP ausschließlich in der Prüfungsbewertungsfunktion `simuliere_pruefung()`. Da nur fachlicher Support an konkrete Module gekoppelt ist, wirkt der Boost punktgenau hier.
 2. **Überfachlich & Psychosozial:** Zeigen über alle vier Szenarien hinweg eine nahezu invariante Schätzung, da ihr Wirkungsmechanismus über Workload-Puffer und Stressreduktion läuft und von Notenmultiplikatoren unbeeinflusst bleibt.
 3. **Modell-Verhalten bei `gradeblind`:** Im `gradeblind`-Modus bleibt die Diskrimination bemerkenswert stabil, was beweist, dass die Modelle nicht kollabieren, wenn ihnen die direkte Notenhistorie vorenthalten wird.
+---
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [Master-Synopse V4 Gesamt](master_synopse_v4_gesamt.md) | Alle 225 Modelle in der Gesamtübersicht |
+| [Supportwirkung-Synopse](synopse_supportwirkung_s01_s02_s03.md) | Gesamteffekt: Kanal-Zerlgung |
+| [Kombination-Synopse](synopse_kombination_s01_s15.md) | Extremszenario mit maximalem Notenboost |

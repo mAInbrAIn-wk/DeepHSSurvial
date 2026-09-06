@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Empirische Aufklärung: Mechanismus der 1.064 Opfer & Break-Even-Analyse
 
 **Stand:** 12. August 2026  

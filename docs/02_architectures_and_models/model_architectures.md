@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: abgeschlossen
+tags: [architektur, keras, survival, modelle]
+---
+
 # Modell-Architekturen im Überblick
 
 Hier sind die `model.summary()` Ausgaben der wichtigsten gespeicherten Modelle.
@@ -242,3 +249,13 @@ Model: "sequential"
  Non-trainable params: 0 (0.00 B)
 ```
 
+
+---
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [Master-Synopse V4 Gesamt](../03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md) | Benchmark-Ergebnisse aller Architekturen |
+| [model_factsheets.md](model_factsheets.md) | Detailbeschreibungen je Modell |
+| [Refactoring-Plan Evaluierungspipeline](../01_master_plans/refactoring_plan_evaluation_pipeline1.md) | OOP Evaluator-Klassen für alle Architekturen |

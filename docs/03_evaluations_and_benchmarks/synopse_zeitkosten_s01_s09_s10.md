@@ -1,3 +1,10 @@
+---
+created: 2026-09-04
+last_updated: 2026-09-04
+status: abgeschlossen
+tags: [evaluation, zeitkosten, modulabwurf, workload]
+---
+
 # Synopse: Zeitkosten & Modulabwurf-Dynamik (S09 vs. S01 vs. S10)
 
 **Parameter-Dimension:** `support_kosten_faktor` (0.0× = 0h vs. 1.0× = 30h vs. 2.0× = 60h Workload pro Maßnahme)  
@@ -75,3 +82,13 @@ Vergleich der diskriminativen Güte (ROC-AUC, PR-AUC, Brier-Score) in den reprä
 
 2. **Modulabwurf als Kompensation:** Studierende puffern erhöhte Zeitkosten durch gezieltes Strecken des Studiums (Abwurf von Modulen) ab, wodurch die Prüfungserfolgsquoten der angetretenen Klausuren stabil bleiben.
 
+
+---
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [Master-Synopse V4 Gesamt](master_synopse_v4_gesamt.md) | Alle 225 Modelle in der Gesamtübersicht |
+| [Overload-Synopse](synopse_overload_s01_s12_s13_s14.md) | Zeitkosten und Überlastung als verwandte Dimensionen |
+| [Kombination-Synopse](synopse_kombination_s01_s15.md) | Extremfall: doppelte Kosten + doppelter Effekt |

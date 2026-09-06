@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-04
+status: abgeschlossen
+tags: [dokumentation, index, navigation]
+---
+
 # DeepSupport: Dokumentations-Index & Wissensbasis
 
 Dieses Verzeichnis bündelt alle architektonischen Entscheidungen (ADRs), Kausalsynthesen, Evaluierungsberichte, Master-Pläne und Entwicklungs-Protokolle des DeepSupport-Projekts.
@@ -54,3 +61,9 @@ Dieses Verzeichnis bündelt alle architektonischen Entscheidungen (ADRs), Kausal
 - [`2026_09_02_Master_Refactoring.md`](07_conversation_logs/2026_09_02_Master_Refactoring.md): Protokoll des großen Code- und Archiv-Refactorings (V3.6 → V4).
 - [`2026_09_02_Submodules_and_Synthesis.md`](07_conversation_logs/2026_09_02_Submodules_and_Synthesis.md): Portfolio-Architektur via Git Submodules und LFS-Force-Push.
 - [`2026_09_04_Full_Grid_Run_and_Heavy_Suite.md`](07_conversation_logs/2026_09_04_Full_Grid_Run_and_Heavy_Suite.md): Vollendung des 225-Modelle-Grid-Runs, ThinkCentre Cluster Execution & Heavy Suite Synopse.
+
+---
+
+### 7. [08_project_evolution/](08_project_evolution/) — Projektentwicklung & Kritische Bewertung
+- [`DeepSupport_Projektentwicklung.md`](08_project_evolution/DeepSupport_Projektentwicklung.md): Chronologische Rekonstruktion der intellektuellen und technischen Reise — von Data Engineering über Data Analysis und Deep Learning bis zu V4.2. Inkl. Legacy-Submodule.
+- [`DeepSupport_Kritische_Bewertung.md`](08_project_evolution/DeepSupport_Kritische_Bewertung.md): Externe, unparteiische Bewertung von Stärken und Schwächen des Gesamtprojekts (synthetische Datenbasis, Bias-Kontrolle, Modell-Ensemble).

@@ -1,3 +1,10 @@
+---
+created: 2026-09-04
+last_updated: 2026-09-04
+status: abgeschlossen
+tags: [kausalanalyse, v3.6, hazard-ratio, schaetzer]
+---
+
 # Quantitative Kausalanalyse & Bias-Auswertung (V3.6 Baseline)
 
 > **Methodischer Kontext:** Dieses Dokument stellt empirische Belege aus den archivierten V3.6 Läufen bereit. Sämtliche Werte stammen aus verifizierten JSON-Metrikdateien und CSV-Beständen im Verzeichnis `archive/legacy_outputs/`.
@@ -53,3 +60,13 @@ Aus der Datei `src/output_dl_seed99999/metrics/oracle_mediation_analysis_metrics
 1. **Fachlicher Support:** Wirkt vor allem auf die Prüfungsebene (Notenboost von -0.09 GPA). Sequenzmodelle wie der Transformer DML (RR = 1.0172) tendieren zur Überdämpfung, weil sie die Notenverbesserung als Prädiktor aufsaugen und dem Support-Flag wenig Restvarianz belassen.
 2. **Überfachlicher Support:** Schafft im realistischen Beobachtungsraum ein massives Confounding (Total OR = 1.1247), da Studierende mit abstürzender Motivation den Support aufsuchen. Erst wenn die latente Variable `hidden_motivation` dem Modell beigegeben wird, lösen sich die Scheinkorrelationen auf (Oracle DeepSurv HR = 0.9897, Oracle Logistic Hazard RR = 0.9899).
 3. **Psychosozialer Support:** Ist der stabilste Schützer quer über alle Modelle (Ground Truth RR = 0.9448, Cox HR = 0.9005, Deep Transformer RR = 0.9569, Oracle Logistic Hazard RR = 0.9870), da Kriseninterventionen in der Datengenerierung exogener auftreten.
+---
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [Methodische Reflexion](Methodische_Reflexion.md) | Epistemologische Einschränkungen der Kausalanalyse |
+| [Selektionsbias-Analyse](selektionsbias_analyse.md) | Selektionsmechanismus und Confounding-Struktur |
+| [Master-Synopse V4 Gesamt](../03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md) | Modell-Benchmark-Kontext für die HR/RR-Schätzer |
+| [RCT vs. Selektion-Synopse](../03_evaluations_and_benchmarks/synopse_rct_selektion_s01_s11.md) | Kernbefund: Selbstselektion ≠ RCT |

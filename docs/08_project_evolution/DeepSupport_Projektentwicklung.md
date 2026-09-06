@@ -1,3 +1,10 @@
+---
+created: 2026-09-04
+last_updated: 2026-09-04
+status: abgeschlossen
+tags: [projektentwicklung, legacy, evolution, v4.2]
+---
+
 # DeepSupport: Projektentwicklung & Methodische Evolution
 
 **Erstellt:** September 2026 | **Basis:** Gesamtprojekt inkl. Legacy Submodule
@@ -191,7 +198,7 @@ V4:  4-Klassen Landmark-Prognose (Absolviert / Abbruch Freiwillig / Exma Zwang /
 ## Offene Fäden & Ausblick
 
 ### 1. Evaluierungs-Refactoring (Priorität: Hoch)
-Das Refactoring-Dokument [`refactoring_plan_evaluation_pipeline1.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/01_master_plans/refactoring_plan_evaluation_pipeline1.md) beschreibt die Ablösung manuellen Logging-Boilerplates durch **5 typisierte Evaluator-Klassen**:
+Das Refactoring-Dokument [`refactoring_plan_evaluation_pipeline1.md`](../01_master_plans/refactoring_plan_evaluation_pipeline1.md) beschreibt die Ablösung manuellen Logging-Boilerplates durch **5 typisierte Evaluator-Klassen**:
 - `SurvivalEvaluator`, `RegressionEvaluator`, `MulticlassEvaluator`, `CausalEvaluator`, `DualHeadEvaluator`
 - Automatische Baseline-Linie $\pi_0$ und Brier-Skill-Score
 
@@ -211,3 +218,18 @@ Der fundamentalste offene Faden ist die Validierung an echten Hochschuldaten. Da
 
 ### 6. ER-Diagramm & Strukturdokumentation aktualisieren (Priorität: Niedrig)
 Das ER-Diagramm aus der DE-Phase ist veraltet. Die aktuelle V4-Datenbankarchitektur (DuckDB-Backend, Parquet-Intermediate, Universum-Schema) verdient ein aktualisiertes Entity-Relationship-Diagram und Datenflussdokumentation.
+
+---
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [DeepSupport_Kritische_Bewertung.md](DeepSupport_Kritische_Bewertung.md) | Ehrliche externe Bewertung des Gesamtprojekts |
+| [Master-Synopse V4 Gesamt](../03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md) | Quantitative Ergebnisse aller 225 Modelle |
+| [Heavy Suite Synopse](../03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md) | Deep-Dive: Dual-Head GRU vs. Transformer, Rausch-Resilienz |
+| [Kausale Vergleichsanalyse](../04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md) | HR/RR-Schätzer über 8 Parallelwelten |
+| [Refactoring-Plan Evaluierungspipeline](../01_master_plans/refactoring_plan_evaluation_pipeline1.md) | 5 OOP Evaluator-Klassen (umgesetzt Sept. 2026) |
+| [Legacy: Data Engineering README](../../legacy_projects/DataEngineering/README.md) | Phase 1: 3NF-Schema, ETL, DuckDB |
+| [Legacy: Data Analysis README](../../legacy_projects/DataAnalysis/README.md) | Phase 2: Selbstkritische DA mit Time-Varying-Confounding-Problem |
+| [Legacy: Deep Learning README](../../legacy_projects/DeepLearning/README.md) | Phase 3: 4-stufige Modellhierarchie, Data-Leakage-Warnung |

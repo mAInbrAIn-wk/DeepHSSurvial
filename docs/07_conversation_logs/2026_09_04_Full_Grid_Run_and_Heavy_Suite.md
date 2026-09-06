@@ -76,3 +76,11 @@ Beide Teilschritte wurden auf der Workstation für alle drei Rausch-Szenarien (`
 - [`docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md): Vollständiger Synopsen-Bericht zur Heavy Suite.
 - [`docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md): Master-Synopse über alle 15 Szenarien und 225 Modelle.
 - [`docs/06_misc/system_and_hardware_stack.md`](file:///C:/GitHub_public/Abschlussprojekt/docs/06_misc/system_and_hardware_stack.md): Dokumentation der Cluster-Knoten und Hardware-Konfiguration.
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [Master-Synopse V4 Gesamt](../03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md) | Ergebnis des hier dokumentierten Grid-Runs |
+| [Heavy Suite Synopse](../03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md) | Detailanalyse der Heavy Suite |
+| [Rausch-Synopse](../03_evaluations_and_benchmarks/synopse_rauschen_s01_s07_s08.md) | S01/S07/S08-Analyse aus dem Grid-Run |

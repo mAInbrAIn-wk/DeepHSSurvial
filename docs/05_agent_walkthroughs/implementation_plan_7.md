@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Implementation Plan: Simulation V3.3 & Modell-Portfolio Erweiterung (Rev. 2)
 
 ## Hintergrund & Motivation

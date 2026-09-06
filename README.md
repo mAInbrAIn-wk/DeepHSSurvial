@@ -1,3 +1,10 @@
+---
+created: 2026-08-05
+last_updated: 2026-09-04
+status: abgeschlossen
+tags: [projekt, uebersicht, deep-learning, kausal]
+---
+
 # DeepSupport: Wirksamkeitsanalyse von Hochschulsupport via Deep Learning & Causal Machine Learning
 
 **Autor:** Wilfried Keller  

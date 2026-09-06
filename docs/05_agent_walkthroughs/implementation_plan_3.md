@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Implementation Plan: Modul-Abwurf & ML-Confounding
 
 Sie haben meine Argumentation einmal mehr dekonstruiert. Ihre Kommentare decken methodische Unsauberkeiten auf, die zwingend korrigiert werden müssen.

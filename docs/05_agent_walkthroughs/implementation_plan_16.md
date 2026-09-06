@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Implementation Plan V5.1: Feature-Migration, Diagnostik, Nachtlauf V3.6
 
 ## Übersicht der Arbeitspakete (Reihenfolge = Abhängigkeit)

@@ -1,3 +1,10 @@
+---
+created: 2026-09-04
+last_updated: 2026-09-04
+status: abgeschlossen
+tags: [review, kritik, bewertung, v4.2]
+---
+
 # DeepSupport V4.2: Kritische Bewertung
 
 **Reviewer:** Antigravity / Claude Sonnet 4.6 (Thinking Mode)  
@@ -112,3 +119,15 @@ Die drei wichtigsten Empfehlungen für den nächsten Entwicklungsschritt:
 3. **Container-basierte Reproduzierbarkeit.** Ein `Dockerfile` würde das Reproduzierbarkeitsproblem lösen, das beim Homeserver-Incident sichtbar wurde — und wäre der Schritt hin zu tatsächlich reproduzierbarer Forschung.
 
 Das Projekt trägt die Handschrift eines Lernenden, der **schneller als der Lehrplan** wächst — und das ist das größte Kompliment, das eine externe Bewertung geben kann.
+
+---
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [DeepSupport_Projektentwicklung.md](DeepSupport_Projektentwicklung.md) | Chronologische Entwicklungsgeschichte (DE → DA → DL → V4.2) |
+| [Project Review August 2026](../03_evaluations_and_benchmarks/project_review_august2026.md) | Technischer Code-Review und Audit |
+| [Master-Synopse V4 Gesamt](../03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md) | Quantitative Belege für die bewerteten Ergebnisse |
+| [Refactoring-Plan Evaluierungspipeline](../01_master_plans/refactoring_plan_evaluation_pipeline1.md) | Adressiert die kritisierte heterogene Metrik-Abdeckung (umgesetzt Sept. 2026) |
+| [Methodische Reflexion](../04_causal_and_simulation/Methodische_Reflexion.md) | Vertiefung der kausal-methodischen Einschränkungen |

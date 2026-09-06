@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Implementation Plan: Simulation V3.2 (Support-Boost Feintuning)
 
 ## Zielsetzung

@@ -1,3 +1,10 @@
+---
+created: 2026-09-04
+last_updated: 2026-09-04
+status: abgeschlossen
+tags: [evaluation, overload, penalty, kalibrierung]
+---
+
 # Synopse: Überlastungs-Dämpfung & Penalty-Kalibrierung (S12 vs. S01 vs. S13 vs. S14)
 
 **Parameter-Dimension:** `overload_penalty_factor` (0.05 vs 0.10 vs 0.20) und `overload_penalty_cap` (0.15 vs 0.30)  
@@ -68,3 +75,14 @@
 | `grid_exam_gru` | realistic | PR-AUC | 0.1880 | 0.2335 | +0.0455 |
 
 | `grid_exam_gru` | realistic | Brier-Score | 0.0152 | 0.0175 | +0.0023 |
+
+---
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [Master-Synopse V4 Gesamt](master_synopse_v4_gesamt.md) | Alle 225 Modelle in der Gesamtübersicht |
+| [Zeitkosten-Synopse](synopse_zeitkosten_s01_s09_s10.md) | Verwandte Belastungsdimension |
+| [Rausch-Synopse](synopse_rauschen_s01_s07_s08.md) | Robustheit-Benchmarks |
+| [Kombination-Synopse](synopse_kombination_s01_s15.md) | Überload und Effekt gleichzeitig maximiert |

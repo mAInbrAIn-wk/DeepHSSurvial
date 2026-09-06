@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Implementation Plan: Vollständige Counterfactual-Analyse & DeepHit Delta
 
 ## Bestandsaufnahme: Was existiert, was fehlt

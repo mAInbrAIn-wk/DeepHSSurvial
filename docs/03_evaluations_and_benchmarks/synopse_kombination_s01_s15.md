@@ -1,3 +1,10 @@
+---
+created: 2026-09-04
+last_updated: 2026-09-04
+status: abgeschlossen
+tags: [evaluation, kombination, extremszenario, superposition]
+---
+
 # Synopse: Kombinierte Nutzen- und Kostenverdopplung (S01 vs. S15)
 
 **Parameter-Dimension:** `support_effect_multiplier` = 10.0 (2×) **UND** `support_kosten_faktor` = 2.0 (2×)  
@@ -64,3 +71,14 @@
 | `grid_exam_gru` | realistic | PR-AUC | 0.1880 | 0.1550 | -0.0330 |
 
 | `grid_exam_gru` | realistic | Brier-Score | 0.0152 | 0.0139 | -0.0013 |
+
+---
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [Master-Synopse V4 Gesamt](master_synopse_v4_gesamt.md) | Alle 225 Modelle — S15 ist das Extremszenario |
+| [Supportwirkung-Synopse](synopse_supportwirkung_s01_s02_s03.md) | Effektgröße-Komponente des Kombinationsszenarios |
+| [Zeitkosten-Synopse](synopse_zeitkosten_s01_s09_s10.md) | Kosten-Komponente des Kombinationsszenarios |
+| [Notenboost-Synopse](synopse_notenboost_s01_s04_s05_s06.md) | Notenboost-Kanal im Extremfall |

@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Walkthrough: Master-Nachtlauf V3.3 – Ergebnisse & Realistische Evaluierung
 
 Der Master-Nachtlauf (Dauer: 2,8 Stunden) auf dem **Simulation V3.3 Datensatz** (mit **perfekter RNG-Synchronisation**, Carry-over ⅔ und verdoppeltem Support-Boost) wurde vollständig durchgeführt. Alle 21 Modellarchitekturen, Kausalschätzer, Oracle-Analysen und Zeitreihenmodelle wurden trainiert und ausgewertet.

@@ -1,3 +1,10 @@
+---
+created: 2026-09-04
+last_updated: 2026-09-04
+status: abgeschlossen
+tags: [evaluation, heavy-suite, gru, transformer]
+---
+
 # Heavy Deep Suite: Synoptische Auswertung (S01 vs. S07 vs. S08)
 
 > **Fokus:** Umfassende Analyse der sequentiellen Deep-Learning-Architekturen (**Autoregressives Dual-Head GRU**, **Deep Autoregressive Transformer mit Sinusoidal Positional Encoding**, **Fail PR-AUC** und **Landmark Representation Learning**) auf den V4-Szenarien unter variierendem aleatorischen Rauschen.
@@ -150,3 +157,13 @@ Die Heavy Deep Suite wurde autonom im Debian LXC-Container des Homeservers (Leno
 1. **Transformer-Dominanz:** Der Wechsel von rekurrenter Modellierung (GRU) zu Self-Attention (Transformer mit $\sin/\cos$ Positional Encoding) bringt einen enormen Qualitätsgewinn bei der kontinuierlichen Notenprädiktion ($+0.13$ bis $+0.25$ $R^2$).
 2. **Resilienz gegen Rauschen:** Während einfaches Rauschen Vorhersagen verwischt (Absinken des Noten-$R^2$ von 0.70 auf 0.38 bei doppeltem Rauschen), bleiben die Diskrimination des Bestehens (ROC-AUC > 0.83) und die Identifikation von Risiko-Studierenden (Fail PR-AUC 2.1× Lift) selbst unter extremem Rauschen intakt.
 3. **Frühzeitige Prognosekraft (Landmark Sem 2):** Die Repräsentationsanalyse beweist, dass ein Transformer-Encoder bereits nach 2 Semestern die zentralen Trajektorieninformationen verdichtet hat, um Abschlussstatus (79.5% Genauigkeit) und Abschlussnote ($R^2 = 0.76$) zielsicher zu prognostizieren.
+
+---
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [Master-Synopse V4 Gesamt](master_synopse_v4_gesamt.md) | Fast-Suite-Ergebnisse für S01/S07/S08 |
+| [Rausch-Synopse](synopse_rauschen_s01_s07_s08.md) | Fast-Suite-Analyse derselben Szenarien |
+| [Refactoring-Plan Evaluierungspipeline](../01_master_plans/refactoring_plan_evaluation_pipeline1.md) | OOP Evaluator-Klassen (umgesetzt Sept. 2026) |

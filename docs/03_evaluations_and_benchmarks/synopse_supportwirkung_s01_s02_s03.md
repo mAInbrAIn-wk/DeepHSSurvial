@@ -1,3 +1,10 @@
+---
+created: 2026-09-04
+last_updated: 2026-09-04
+status: abgeschlossen
+tags: [evaluation, supportwirkung, effektstaerke, sensitivitaet]
+---
+
 # Synopse 1: Variation der Supportwirkung (S02 vs. S01 vs. S03)
 
 > **Fokus:** Untersuchung des Einflusses der globalen Support-Effektstärke (`support_effect_multiplier`: 2.5× vs. 5.0× vs. 10.0×) auf die Ground Truth und die Vorhersage- bzw. Kausalmodelle.
@@ -60,3 +67,13 @@ Wie reagieren die Counterfactual-Inferenz-Schätzer des Semester-Transformers au
 1. **Prädiktive Stabilität:** Die ROC-AUC der Diskriminationsmodelle bleibt über alle Wirkungsstärken bemerkenswert stabil (Exam GRU: ~0.897, Semester GRU: ~0.818). Die Modelle 'verlieren' ihre Vorhersagekraft nicht, wenn Support drastisch wirkt.
 2. **PR-AUC Dynamik:** Bei doppelter Supportwirkung (S03) sinkt die Event-Prävalenz (Dropout) von 29.2% auf 25.3%. Dadurch verschiebt sich die Zufalls-Baseline für PR-AUC nach unten, was bei gleichen Diskriminationseigenschaften zu leicht geringeren PR-AUC Werten führt (typischer Prävalenz-Effekt).
 3. **Kausale Schätzung:** Der Semester-Transformer erkennt tendenziell die Richtung der Verstärkung, leidet aber weiterhin an der bekannten Überdämpfung im beobachteten Feature-Raum.
+---
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [Master-Synopse V4 Gesamt](master_synopse_v4_gesamt.md) | Alle 225 Modelle in der Gesamtübersicht |
+| [Notenboost-Synopse](synopse_notenboost_s01_s04_s05_s06.md) | Fachlicher Boost als Kanal der Supportwirkung |
+| [RCT vs. Selektion-Synopse](synopse_rct_selektion_s01_s11.md) | Mechanismus der Zuweisung beeinflusst ARR stark |
+| [Kausale Vergleichsanalyse](../04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md) | HR/RR-Grundlage für Effektschätzungen |

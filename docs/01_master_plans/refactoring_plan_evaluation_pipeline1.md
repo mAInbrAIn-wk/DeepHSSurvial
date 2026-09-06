@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: abgeschlossen
+tags: [refactoring, evaluierung, pipeline, evaluator]
+---
+
 # Audit & Refactoring-Plan: Einheitliche Evaluierungs- & Logging-Pipeline
 
 > [!IMPORTANT]
@@ -149,3 +156,20 @@ evaluator.evaluate_and_log(
 2. **Schritt 2:** Pilot-Umstellung von 2 Kernskripten (`recurrent_survival_model.py` und `timeseries_semester.py`).
 3. **Schritt 3:** Sukzessiver Rollout über alle Modellskripte (entfernt über 400 Zeilen redundanten Code).
 4. **Schritt 4:** Neues, sauberes Dashboard auf Basis der vereinheitlichten JSON-Struktur.
+
+---
+
+## Status (September 2026)
+
+> **Umgesetzt:** Die 5 OOP Evaluator-Klassen (`SurvivalEvaluator`, `RegressionEvaluator`,
+> `MulticlassEvaluator`, `CausalEvaluator`, `DualHeadEvaluator`) wurden im September 2026
+> in [`src/deepsupport/evaluation/metrics_logger.py`](../../src/deepsupport/evaluation/metrics_logger.py)
+> implementiert und auf alle 14 Modellskripte ausgerollt.
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [metrics_logger.py](../../src/deepsupport/evaluation/metrics_logger.py) | Implementierungsort der 5 Evaluator-Klassen |
+| [Evaluierungspipeline-Bericht V4.1](../03_evaluations_and_benchmarks/evaluation_pipeline_und_modularisierungsbericht_v41.md) | Ist-Zustand vor dem Refactoring |
+| [DeepSupport_Kritische_Bewertung.md](../08_project_evolution/DeepSupport_Kritische_Bewertung.md) | Dieser Plan adressiert die kritisierte Metrik-Inkonsistenz |

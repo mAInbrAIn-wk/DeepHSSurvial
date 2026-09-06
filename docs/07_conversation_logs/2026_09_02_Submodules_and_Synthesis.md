@@ -1,3 +1,10 @@
+---
+created: 2026-09-03
+last_updated: 2026-09-03
+status: abgeschlossen
+tags: [protokoll, git, submodules, lfs]
+---
+
 # Conversation Log & ADR: Submodules & Methodische Synthese
 **Datum:** 2026-09-02 (Abend-Session)
 
@@ -19,3 +26,10 @@ Nach dem grossen V4 Master-Refactoring stellte sich die architektonische Frage, 
 - archive wird per LFS-Force-Push auf GitHub transferiert.
 - legacy_projects/ (DataAnalysis, DataEngineering, DeepLearning) sind vollstaendig initialisiert und als Submodule eingebunden.
 - Der **Grid-Run (S02-S15)** wurde gestartet, um die Deep-Learning-Modelle auf Robustheit (Stress-Test gegen Pandemie/Noteninflation) zu evaluieren.
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [DeepSupport_Projektentwicklung.md](../08_project_evolution/DeepSupport_Projektentwicklung.md) | Gesamter Projektkontext |
+| [docs/README.md](../README.md) | Dokumentations-Index, der durch dieses Protokoll entstanden ist |

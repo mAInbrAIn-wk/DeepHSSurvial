@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Implementierungsplan: Hierarchisches Cross-Szenario Evaluierungs-Framework (S01–S15 × Alle Modelle)
 
 Dieses Dokument definiert das systematische, mehrstufige Auswerte- und Vergleichskonzept zur vollständigen Synthese aller 15 simulierten Datenwelten ($S01$–$S15$), aller 11 Modellklassen über alle 5 Feature-Modi (`standard`, `gradeblind`, `blind`, `oracle`, `realistic`) und 2 Temporal-Modi (`prev`, `cum`), ihrer Kausal- und Prognosemetriken sowie deren Abgleich mit der experimentellen Simulations-Ground-Truth.

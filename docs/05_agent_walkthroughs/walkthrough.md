@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Walkthrough: Vollständige Delta-Modellierung & Kausale Inferenz
 
 Wir haben den gesamten Implementierungsplan erfolgreich umgesetzt. Sämtliche Modelle, Sequenzarchitekturen und Kausalauswertungen wurden auf **semester-lokale Behandlungen** (`_active`) und **dynamische Leistungs-Deltas** (`fails_prev`, `delta_cp_prev`, `cp_rueckstand`) umgestellt.

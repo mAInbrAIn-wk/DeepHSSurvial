@@ -1,3 +1,10 @@
+---
+created: 2026-09-04
+last_updated: 2026-09-04
+status: abgeschlossen
+tags: [evaluation, rct, selektion, confounding]
+---
+
 # Synopse: Randomisierte Zuteilung vs. Beobachtete Selbstselektion (S01 vs. S11)
 
 **Parameter-Dimension:** `rct_support_uptake` (False = Beobachtungsdaten mit Confounding by Indication vs. True = Randomisierte RCT-Zuweisung)  
@@ -82,3 +89,14 @@
 | `grid_exam_gru` | blind | PR-AUC | 0.1742 | 0.2185 | +0.0443 |
 
 | `grid_exam_gru` | blind | Brier-Score | 0.0154 | 0.0167 | +0.0013 |
+
+---
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [Master-Synopse V4 Gesamt](master_synopse_v4_gesamt.md) | Alle 225 Modelle — NNT-Vergleich aller Szenarien |
+| [Heavy Suite Synopse](synopse_heavy_suite_s01_s07_s08.md) | S01-Baseline Vertiefung |
+| [Supportwirkung-Synopse](synopse_supportwirkung_s01_s02_s03.md) | Effektgröße-Kontext für den RCT-Vergleich |
+| [Kausale Vergleichsanalyse](../04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md) | Kausal-Schätzer liefern Begründung für NNT-Unterschied |

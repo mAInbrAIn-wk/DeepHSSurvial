@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: abgeschlossen
+tags: [review, august2026, v3, audit]
+---
+
 # Projekt-Review: Abschlussprojekt (Stand August 2026)
 
 **Reviewer:** Antigravity (Claude Opus 4.6, Thinking Mode)  
@@ -218,3 +225,13 @@ Diese Schwächen ehrlich zu dokumentieren würde das Projekt paradoxerweise **st
 7. **Kombiniertes kontrafaktisches RR berechnen**: Im DML-Modell *alle drei* Support-Typen gleichzeitig auf 0/1 setzen und einen kombinierten Populations-Effekt schätzen, der direkt mit dem Simulator-V2-Makro-Effekt vergleichbar wäre
 8. **Sensitivitätsanalyse**: `gewicht_support_boost` zwischen 0.02 und 0.08 variieren
 9. **Dashboard reparieren oder ehrlich als "nicht implementiert" markieren**
+
+---
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [Refactoring-Plan Evaluierungspipeline](../01_master_plans/refactoring_plan_evaluation_pipeline1.md) | Konsequenz aus diesem Review |
+| [Master-Synopse V4 Gesamt](master_synopse_v4_gesamt.md) | Quantitative Ergebnisse, auf die sich der Review bezieht |
+| [DeepSupport_Kritische_Bewertung.md](../08_project_evolution/DeepSupport_Kritische_Bewertung.md) | Externe Bewertung (September 2026) |

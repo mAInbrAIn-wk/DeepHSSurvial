@@ -1,3 +1,10 @@
+---
+created: 2026-09-04
+last_updated: 2026-09-04
+status: abgeschlossen
+tags: [evaluation, rauschen, brier-score, resilienz]
+---
+
 # Synopse 3: Variation des stochastischen Rauschens (S07 vs. S01 vs. S08)
 
 > **Fokus:** Untersuchung des Einflusses des aleatorischen Simulationsrauschens (`gewicht_rauschen`: 0.09 vs. 0.18 vs. 0.36) auf Modellgüte, Diskriminationsgrenzen und Schätzer-Resilienz.
@@ -66,3 +73,13 @@ Besonders aufschlussreich ist der Vergleich zwischen `standard` und `oracle` unt
 1. **Degradation der Diskrimination:** Der Übergang von halbiertem auf doppeltes Rauschen führt bei allen Modellklassen zu einem messbaren, aber beherrschbaren Rückgang der ROC-AUC (beim Exam GRU von ~0.902 auf ~0.893). Dies belegt die hohe architektonische Robustheit der recurrenten Netze.
 2. **Kalibrierungs-Verschlechterung (Brier Score):** Während ROC-AUC (Rangordnung) stabil bleibt, verschlechtert sich der Brier Score signifikant (von ~0.031 auf ~0.041 beim Semester GRU), da stochastisches Rauschen die Vorhersagewahrscheinlichkeiten unvermeidlich unsicherer macht.
 3. **Konstanz der Kausalität:** Bemerkenswert ist, dass die relative Schutzwirkung in der Ground Truth (RR = 0.808 vs. 0.810) völlig unbeeindruckt vom Rauschpegel bleibt. Das System filtert den kausalen Supporteffekt auch im stochastischen Sturm sauber heraus.
+---
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [Master-Synopse V4 Gesamt](master_synopse_v4_gesamt.md) | Alle 225 Modelle in der Gesamtübersicht |
+| [Heavy Suite Synopse](synopse_heavy_suite_s01_s07_s08.md) | Gleiche Szenarien S01/S07/S08 — tiefere Modellanalyse |
+| [Supportwirkung-Synopse](synopse_supportwirkung_s01_s02_s03.md) | Rauschen vs. Effektgröße: Gegenüberstellung |
+| [Notenboost-Synopse](synopse_notenboost_s01_s04_s05_s06.md) | Fachlicher Support als Rausch-Gegenpol |

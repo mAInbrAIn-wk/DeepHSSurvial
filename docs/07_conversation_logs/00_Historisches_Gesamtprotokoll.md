@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: abgeschlossen
+tags: [protokoll, historisch, archiv]
+---
+
 # 📖 Historisches Gesamtprotokoll (Retrospektive)
 
 Dieses Dokument wurde rückwirkend aus den internen System-Transkripten generiert.
@@ -1714,18 +1721,30 @@ Dies dient als ultimativer Audit-Trail für die Evolution von DeepSupport.
 > <truncated 986 bytes>
 >  bitte die bereits im letzten Implementation Plan versprochene Analyse der HR/RR für die durchgelaufenen Modelle bitte!"
 > 
-> In gewohnter Manier habe ich den Plan annotiert und bitte um Einbeziehung der Kommentare! Außerdem habe ich eine weitere Idee, zu der ich Dich gerne befragen würde, insbesondere auf Synergien beim gerade laufenden Refactor:  SQL Backend implementieren? Was lässt sich am besten wo umsetzen? DuckDB und Arrow könnten ja vielleicht sogar Performance bringen?
-> 
-> ## KI-Input
-> 
-> 2. Wie Data Warehousing / eine relationale DB DeepSupport massiv verbessert
-> Hier schließt sich der Kreis zu Deinem ersten Projekt (Projekt_DE): Aktuell speichert DeepSupport Millionen von Datenzeilen in vielen flachen CSV-Dateien (output_dl/) und fügt sie über langwierige Pandas-Merges zusammen.
-> 
-> Ein relationaler, eingebetteter DWH-Layer (z. B. mit DuckDB und Parquet) würde folgende Quantensprünge bringen:
-> 
-> Feature Store mit SQL Window Functions: Zeitvariable Merkmale (rollierende GPAs, kumulierte Fehlversuche, CP-Rückstände) lassen sich in SQL-Fensterfunktionen in Millisekunden berechnen – statt in minutenlangen Pandas-Schleifen.
-> Multi-Universen-Partitionierung: Alle 5 Universen liegen in einer einzigen, partitionierten DWH-Faktentabelle. Kontrafaktische Abfragen werden zu simplen, performanten SQL-Queries (WHERE UniverseID IN ('A', 'E')).
-> Zero-Copy Data Streaming für TensorFlow: DuckDB kann Abfrageergebnisse via Apache Arrow speichereffizient und ohne RAM-Duplikation direkt an tf.data.Dataset übergeben.
+> In gewohnter Manier habe ich den Plan annotiert und bitte um Einbeziehung der Kommentare! Außerdem habe ich eine weitere Idee, zu der ich Dich gerne befragen würde, insbesondere auf Synergien beim gerade laufenden Refactor:  SQL Backend implementieren? Was lässt sich am besten wo umsetzen? DuckDB und Arrow könnten ja vielleicht sogar Performance bringen?
+
+> 
+
+> ## KI-Input
+
+> 
+
+> 2. Wie Data Warehousing / eine relationale DB DeepSupport massiv verbessert
+
+> Hier schließt sich der Kreis zu Deinem ersten Projekt (Projekt_DE): Aktuell speichert DeepSupport Millionen von Datenzeilen in vielen flachen CSV-Dateien (output_dl/) und fügt sie über langwierige Pandas-Merges zusammen.
+
+> 
+
+> Ein relationaler, eingebetteter DWH-Layer (z. B. mit DuckDB und Parquet) würde folgende Quantensprünge bringen:
+
+> 
+
+> Feature Store mit SQL Window Functions: Zeitvariable Merkmale (rollierende GPAs, kumulierte Fehlversuche, CP-Rückstände) lassen sich in SQL-Fensterfunktionen in Millisekunden berechnen – statt in minutenlangen Pandas-Schleifen.
+
+> Multi-Universen-Partitionierung: Alle 5 Universen liegen in einer einzigen, partitionierten DWH-Faktentabelle. Kontrafaktische Abfragen werden zu simplen, performanten SQL-Queries (WHERE UniverseID IN ('A', 'E')).
+
+> Zero-Copy Data Streaming für TensorFlow: DuckDB kann Abfrageergebnisse via Apache Arrow speichereffizient und ohne RAM-Duplikation direkt an tf.data.Dataset übergeben.
+
 > Reproduzierbarkeit & ACID: Feste Typen, keine stillen NaN/float-Konvertierungsfallen. -- Bitte dazu eine Analyse und ggfs. weitere Punkte im Implementation Plan. [Ich denke, die Frage des BackEnds (T-(SQL, DuckDB etc.) betrifft den Simulator, bzw. die jetzige Datenaggregation mehr als die Feature Engine, aber ich lasse mich gerne überzeugen, dass hier noch Potential liegt.]
 
 **Prompt #96** (13:46:52):
@@ -2181,7 +2200,8 @@ Dies dient als ultimativer Audit-Trail für die Evolution von DeepSupport.
 > Comment: "Das ist ein wichtiger Punkt und sollte unsere Entscheweidung zum temporal flag beeinflussen: Wie wäre es mit _prev als (vielleicht sogar default) Version, und _cum für stattdessen kumulierte Vorwerte? Jeweils natürlich mit den aktuellen Verlaufsdaten, soweit kein leakage. (Ausnahme Supportteilnahmen)"
 > 
 > Selection:
-> >Systematische Leakage-Prüfung erforderlich!
+> >Systematische Leakage-Prüfung erforderlich!
+
 > Das Feature is_fail (binäres Ergebnis der aktuellen Prüfung) ist ein Target Leak, zumindest wenn es als Feature in einem Modell dient, das Prüfungserfolg vorhersagen soll. Es wurde in recurrent_exam_survival_delta.py verwendet, ist aber problematisch:
 > 
 > Comment: "Wichtiger Punkt!"
@@ -3518,3 +3538,10 @@ Dies dient als ultimativer Audit-Trail für die Evolution von DeepSupport.
 
 **Prompt #299** (20:32:43):
 > das klingt alles ganz fantastisch, ich wünsche, wir hören das gleich zu Beginn so gemacht! Dazu eine Rückfrage: Du kannst doch die Historie (die njson oder so) lesen, oder? kannst du mir rückwirkend ein Protokoll der bisherigen Gespräche und annotierten Dokumente erstellen? wäre das möglich, Oder eher nicht?
+
+## Verwandte Dokumente
+
+| Dokument | Bezug |
+|:---|:---|
+| [DeepSupport_Projektentwicklung.md](../08_project_evolution/DeepSupport_Projektentwicklung.md) | Strukturierte Aufarbeitung der gleichen Entwicklungsgeschichte |
+| [01_History_Selection_Bias_and_Confounding.md](01_History_Selection_Bias_and_Confounding.md) | Thematische Vertiefung: Selektion und Confounding |

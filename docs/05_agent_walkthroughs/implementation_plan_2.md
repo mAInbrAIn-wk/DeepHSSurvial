@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Implementation Plan: Trajektorien-Klon (Simulator v2) & Orakel-Modell
 
 Dieser Plan beschreibt die Umsetzung von Version B (Der Trajektorien-Klon) zur Ermittlung des wahren kausalen Makro-Effekts sowie den Bau eines "Orakel"-Modells (Version C), welches auf die versteckten inneren Zustände zugreift.

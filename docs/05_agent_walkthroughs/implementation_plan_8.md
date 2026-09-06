@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Vollständiges Modell-Inventar, Modellklassen & Implementierungsplan
 
 **Datum:** 20. August 2026 (erweitert: 21. August 2026)  

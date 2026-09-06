@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Refactoring der V4 Simulation Engine (Performance Optimierung)
 
 Dieses Dokument beschreibt den Plan zur signifikanten Beschleunigung der `simuliere_verlaeufe`-Funktion in `simulation_v4.py`, um den Code reif für künftige Grid-Searches zu machen, ohne die Kausalmechanik (DGP) anzutasten.

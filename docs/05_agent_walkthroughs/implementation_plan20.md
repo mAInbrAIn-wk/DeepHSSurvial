@@ -1,3 +1,10 @@
+---
+created: 2026-09-02
+last_updated: 2026-09-02
+status: archiv
+tags: [walkthrough, agent, implementation]
+---
+
 # Implementierungsplan: V4 Simulations-Gridsearch & Sensitivitätsanalyse
 
 Dieser Plan definiert den Versuchsaufbau für eine systematische Sensitivitätsanalyse der **V4-Simulations-Engine**. Ziel ist es, quantitativ zu messen, wie robust und sensitiv die Ground-Truth-Makroeffekte (Dropout-Raten, Relative Risiken der Universen A–H, First-Gen- und Migrations-Gaps sowie Superadditivitäts-Synergien) auf systematische Variationen der Simulationsparameter reagieren.
