@@ -23,8 +23,12 @@ from sklearn.metrics import brier_score_loss
 
 import tensorflow as tf
 
-import feature_builder as fb
-from metrics_logger import save_metrics
+try:
+    import deepsupport.data_engine.feature_builder as fb
+    from deepsupport.evaluation.metrics_logger import save_metrics
+except ImportError:
+    import feature_builder as fb
+    from metrics_logger import save_metrics
 import tensorflow.keras.backend as K
 
 PADDING_VALUE = -99.0
