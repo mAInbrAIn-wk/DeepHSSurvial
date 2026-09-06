@@ -67,9 +67,21 @@ def fit_extended_cox_model(panel_df: pd.DataFrame,
         print(f"  • {var_name:<30}: HR = {value:.4f}")
 
     if output_dir:
-        hr_f = float(hr.get('fach_supp_count', hr.get('support_glz_fachlich', 1.0)))
-        hr_u = float(hr.get('uebf_supp_count', hr.get('support_glz_ueberfachlich', 1.0)))
-        hr_p = float(hr.get('psych_supp_count', hr.get('support_glz_psychosozial', 1.0)))
+        def _get_val(s, *keys, default=1.0):
+            if hasattr(s, 'get'):
+                for k in keys:
+                    v = s.get(k)
+                    if v is not None and pd.notna(v):
+                        return float(v)
+            elif hasattr(s, '__getitem__'):
+                for k in keys:
+                    if k in s and pd.notna(s[k]):
+                        return float(s[k])
+            return default
+
+        hr_f = _get_val(hr, 'fach_supp_count', 'support_glz_fachlich', default=1.0)
+        hr_u = _get_val(hr, 'uebf_supp_count', 'support_glz_ueberfachlich', default=1.0)
+        hr_p = _get_val(hr, 'psych_supp_count', 'support_glz_psychosozial', default=1.0)
 
         metrics_dict = {
             "model_type": f"extended_cox_{temporal}_{mode}",
@@ -103,11 +115,11 @@ def fit_extended_cox_model(panel_df: pd.DataFrame,
             "hr_ueberfachlich": hr_u,
             "hr_psychosozial": hr_p
         }
-        bse = results.bse
+        bse_series = pd.Series(results.bse, index=results.model.exog_names) if hasattr(results, 'bse') and results.bse is not None else pd.Series(dtype=float)
         hr_se = {
-            "hr_fachlich": float(bse.get('fach_supp_count', bse.get('support_glz_fachlich', 0.05))),
-            "hr_ueberfachlich": float(bse.get('uebf_supp_count', bse.get('support_glz_ueberfachlich', 0.05))),
-            "hr_psychosozial": float(bse.get('psych_supp_count', bse.get('support_glz_psychosozial', 0.05)))
+            "hr_fachlich": _get_val(bse_series, 'fach_supp_count', 'support_glz_fachlich', default=0.05),
+            "hr_ueberfachlich": _get_val(bse_series, 'uebf_supp_count', 'support_glz_ueberfachlich', default=0.05),
+            "hr_psychosozial": _get_val(bse_series, 'psych_supp_count', 'support_glz_psychosozial', default=0.05)
         }
 
         evaluator = CausalEvaluator(base_dir=output_dir, model_name=model_key, temporal=temporal, mode=mode)
