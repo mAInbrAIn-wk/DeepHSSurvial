@@ -1,0 +1,7 @@
+{
+    "model_type": "extended_deepsurv_prev_gradeblind",
+    "temporal": "prev",
+    "mode": "gradeblind",
+    "ROC-AUC_Panel": 0.5562778449751764,
+    "PR-AUC_Panel": 0.05465050039952732
+}

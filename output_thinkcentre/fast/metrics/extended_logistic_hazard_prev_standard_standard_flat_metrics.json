@@ -1,0 +1,21 @@
+{
+    "model_name": "extended_logistic_hazard_prev_standard",
+    "mode": "standard",
+    "temporal_type": "flat",
+    "n_samples": 51921.0,
+    "dropout_prevalence_pi0": 0.04096608308776795,
+    "roc_auc": 0.8040268595848559,
+    "pr_auc_dropout": 0.19897710569313137,
+    "pr_auc_nondropout": 0.98843998702367,
+    "pr_auc_baseline_pi0": 0.04096608308776795,
+    "brier_score": 0.035975463688373566,
+    "brier_skill_score": 0.08431101038424693,
+    "f1_score": 0.040927694406548434,
+    "balanced_accuracy": 0.5103071622645242,
+    "c_index": null,
+    "model_type": "extended_logistic_hazard_prev_standard",
+    "temporal": "prev",
+    "ROC-AUC_Panel": 0.8040268595848559,
+    "PR-AUC_Panel": 0.19897710569313137,
+    "Brier_Score": 0.035975463688373566
+}

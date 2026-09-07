@@ -1,0 +1,20 @@
+{
+    "model_name": "extended_deepsurv_prev_standard",
+    "mode": "standard",
+    "temporal_type": "flat",
+    "n_samples": 51921.0,
+    "dropout_prevalence_pi0": 0.04096608308776795,
+    "roc_auc": 0.5564754291205861,
+    "pr_auc_dropout": 0.054736478011310194,
+    "pr_auc_nondropout": 0.9683749647649706,
+    "pr_auc_baseline_pi0": 0.04096608308776795,
+    "brier_score": null,
+    "brier_skill_score": null,
+    "f1_score": 0.08523704784511858,
+    "balanced_accuracy": 0.5399568790412267,
+    "c_index": null,
+    "model_type": "extended_deepsurv_prev_standard",
+    "temporal": "prev",
+    "ROC-AUC_Panel": 0.5564754291205861,
+    "PR-AUC_Panel": 0.054736478011310194
+}
