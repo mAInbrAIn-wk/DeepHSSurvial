@@ -137,11 +137,15 @@ def fit_extended_cox_model(panel_df: pd.DataFrame,
 
 def train_extended_cox_model(data_dir: Path = Path('src/output_dl'),
                              temporal: str = 'prev',
-                             mode: str = 'standard'):
+                             mode: str = 'standard',
+                             output_dir: Path = None):
+    if output_dir is None:
+        out_env = os.environ.get("OUTPUT_DIR")
+        output_dir = Path(out_env) if out_env else Path(data_dir)
     panel_df, feature_cols, target_col, _ = fb.build_semester_panel_df(
         data_dir, mode=mode, temporal=temporal
     )
-    return fit_extended_cox_model(panel_df, feature_cols, target_col, temporal=temporal, mode=mode, output_dir=data_dir)
+    return fit_extended_cox_model(panel_df, feature_cols, target_col, temporal=temporal, mode=mode, output_dir=output_dir)
 
 
 if __name__ == '__main__':
