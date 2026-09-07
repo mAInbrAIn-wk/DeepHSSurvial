@@ -1,0 +1,17 @@
+{
+    "model_name": "transformer_survival_prev_gradeblind",
+    "mode": "gradeblind",
+    "temporal_type": "prev",
+    "n_samples": 51668.0,
+    "dropout_prevalence_pi0": 0.041747309267520905,
+    "roc_auc": 0.8159869167186657,
+    "pr_auc_dropout": 0.2754578394645731,
+    "pr_auc_nondropout": 0.9889703393223531,
+    "pr_auc_baseline_pi0": 0.041747309267520905,
+    "brier_score": 0.034717924892902374,
+    "brier_skill_score": 0.13214889120431195,
+    "f1_score": 0.1762295081967213,
+    "balanced_accuracy": 0.5491510215152219,
+    "c_index": null,
+    "roc_auc_student": 0.29424345956820463
+}

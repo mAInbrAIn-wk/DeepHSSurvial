@@ -1,0 +1,16 @@
+{
+    "model_name": "autoregressive_deep_transformer_pass",
+    "mode": "standard",
+    "temporal_type": "flat",
+    "n_samples": 120655.0,
+    "dropout_prevalence_pi0": 0.8361940979957581,
+    "roc_auc": 0.940966606088627,
+    "pr_auc_dropout": 0.9876977376221123,
+    "pr_auc_nondropout": 0.7776336610791093,
+    "pr_auc_baseline_pi0": 0.8361940979957581,
+    "brier_score": 0.06813111156225204,
+    "brier_skill_score": 0.5025965066252043,
+    "f1_score": 0.9439511273410807,
+    "balanced_accuracy": 0.8013247203703205,
+    "c_index": null
+}

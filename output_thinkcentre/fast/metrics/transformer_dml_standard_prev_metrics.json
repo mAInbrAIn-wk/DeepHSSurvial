@@ -1,0 +1,19 @@
+{
+    "model_name": "transformer_dml",
+    "mode": "standard",
+    "temporal_type": "prev",
+    "hr_fachlich": 0.9566599726676941,
+    "hr_ueberfachlich": 0.8360825777053833,
+    "hr_psychosozial": 0.9253754019737244,
+    "risk_reduction_pct_hr_fachlich": 4.334002733230591,
+    "risk_reduction_pct_hr_ueberfachlich": 16.39174222946167,
+    "risk_reduction_pct_hr_psychosozial": 7.4624598026275635,
+    "model_type": "transformer_dml",
+    "temporal": "prev",
+    "ROC-AUC_Panel": 0.8027563406084974,
+    "PR-AUC_Panel": 0.1894334064184175,
+    "Brier_Score": 0.036149486899375916,
+    "fach": "{'partial': {'mean_rr': 0.9566599726676941, 'median_rr': 0.9566599726676941, 'ate': -0.0019043181091547012}}",
+    "uebf": "{'partial': {'mean_rr': 0.8360825777053833, 'median_rr': 0.8360825777053833, 'ate': -0.007260974962264299}}",
+    "psych": "{'partial': {'mean_rr': 0.9253754019737244, 'median_rr': 0.9253754019737244, 'ate': -0.0032698053400963545}}"
+}

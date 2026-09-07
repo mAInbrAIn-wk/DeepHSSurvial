@@ -1,0 +1,11 @@
+{
+    "model_type": "transformer_dml_prev_gradeblind",
+    "temporal": "prev",
+    "mode": "gradeblind",
+    "ROC-AUC_Panel": 0.8014200452266724,
+    "PR-AUC_Panel": 0.18967518139785342,
+    "Brier_Score": 0.03612403944134712,
+    "fach": "{'partial': {'mean_rr': 0.9881613254547119, 'median_rr': 0.9881613254547119, 'ate': -0.0004972739843651652}}",
+    "uebf": "{'partial': {'mean_rr': 0.8579848408699036, 'median_rr': 0.8579848408699036, 'ate': -0.006048962473869324}}",
+    "psych": "{'partial': {'mean_rr': 0.8820532560348511, 'median_rr': 0.8820532560348511, 'ate': -0.004978385753929615}}"
+}

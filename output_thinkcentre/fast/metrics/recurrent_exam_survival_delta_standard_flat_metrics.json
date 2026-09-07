@@ -1,0 +1,9 @@
+{
+    "model_type": "recurrent_exam_survival_prev",
+    "temporal": "prev",
+    "mode": "standard",
+    "ROC-AUC_Exam": 0.9011862511813666,
+    "PR-AUC_Exam": 0.21547801083247003,
+    "Brier_Score": 0.014909046702086926,
+    "ROC-AUC_Student": 0.7047328071578778
+}

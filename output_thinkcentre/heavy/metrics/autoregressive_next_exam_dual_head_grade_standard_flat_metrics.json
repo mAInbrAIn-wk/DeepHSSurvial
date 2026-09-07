@@ -1,0 +1,13 @@
+{
+    "model_name": "autoregressive_next_exam_dual_head_grade",
+    "mode": "standard",
+    "temporal_type": "flat",
+    "n_samples": 120655.0,
+    "r2_score": 0.5128128528594971,
+    "adj_r2": null,
+    "rmse": 0.9531974139611897,
+    "mae": 0.7115297913551331,
+    "median_ae": 0.5205819606781006,
+    "explained_variance": 0.6386898756027222,
+    "max_error": 3.8659093379974365
+}

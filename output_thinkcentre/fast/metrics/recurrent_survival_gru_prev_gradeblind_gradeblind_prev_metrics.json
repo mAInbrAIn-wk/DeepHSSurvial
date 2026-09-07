@@ -1,0 +1,17 @@
+{
+    "model_name": "recurrent_survival_gru_prev_gradeblind",
+    "mode": "gradeblind",
+    "temporal_type": "prev",
+    "n_samples": 51668.0,
+    "dropout_prevalence_pi0": 0.041747309267520905,
+    "roc_auc": 0.8185316371863698,
+    "pr_auc_dropout": 0.28050260052472475,
+    "pr_auc_nondropout": 0.9893082008603531,
+    "pr_auc_baseline_pi0": 0.041747309267520905,
+    "brier_score": 0.034773554652929306,
+    "brier_skill_score": 0.13075830265184696,
+    "f1_score": 0.13624678663239073,
+    "balanced_accuracy": 0.5366749676930787,
+    "c_index": null,
+    "roc_auc_student": 0.2869699732286957
+}

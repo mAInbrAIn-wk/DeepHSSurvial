@@ -1,0 +1,17 @@
+{
+    "model_name": "recurrent_exam_survival_prev",
+    "mode": "standard",
+    "temporal_type": "prev",
+    "n_samples": 127582.0,
+    "dropout_prevalence_pi0": 0.01711840182542801,
+    "roc_auc": 0.9011862511813666,
+    "pr_auc_dropout": 0.21547801083247003,
+    "pr_auc_nondropout": 0.9980242759516711,
+    "pr_auc_baseline_pi0": 0.01711840182542801,
+    "brier_score": 0.014909046702086926,
+    "brier_skill_score": 0.11389445444568669,
+    "f1_score": 0.14116687066503467,
+    "balanced_accuracy": 0.5392314204904916,
+    "c_index": null,
+    "roc_auc_student": 0.7047328071578778
+}

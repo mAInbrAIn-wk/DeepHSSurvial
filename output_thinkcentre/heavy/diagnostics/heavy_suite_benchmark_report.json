@@ -1,0 +1,42 @@
+{
+  "timestamp": "2026-09-07 01:05:08",
+  "total_duration_s": 6186.2699999999995,
+  "steps": [
+    {
+      "step_name": "1. Autoregressive Next-Exam Prediction (Dual-Head GRU)",
+      "status": "PASSED",
+      "duration_s": 1446.72,
+      "ram_start_mb": 2739.4,
+      "ram_end_mb": 3103.8,
+      "ram_delta_mb": 364.4,
+      "error": null
+    },
+    {
+      "step_name": "2. Evaluation Autoregressive Next-Exam Fail PR-AUC",
+      "status": "PASSED",
+      "duration_s": 81.37,
+      "ram_start_mb": 3103.8,
+      "ram_end_mb": 2824.0,
+      "ram_delta_mb": -279.8,
+      "error": null
+    },
+    {
+      "step_name": "3. Autoregressive Deep Transformer (Sin/Cos PosEnc)",
+      "status": "PASSED",
+      "duration_s": 4542.98,
+      "ram_start_mb": 2824.0,
+      "ram_end_mb": 3326.4,
+      "ram_delta_mb": 502.4,
+      "error": null
+    },
+    {
+      "step_name": "4. Landmark Representation Learning (Ende Sem 2)",
+      "status": "PASSED",
+      "duration_s": 115.2,
+      "ram_start_mb": 3326.4,
+      "ram_end_mb": 3269.5,
+      "ram_delta_mb": -56.9,
+      "error": null
+    }
+  ]
+}

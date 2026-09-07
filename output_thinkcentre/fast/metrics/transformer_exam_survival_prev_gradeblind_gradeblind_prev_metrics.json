@@ -1,0 +1,17 @@
+{
+    "model_name": "transformer_exam_survival_prev_gradeblind",
+    "mode": "gradeblind",
+    "temporal_type": "prev",
+    "n_samples": 127582.0,
+    "dropout_prevalence_pi0": 0.01711840182542801,
+    "roc_auc": 0.8867740900518537,
+    "pr_auc_dropout": 0.16588821197429912,
+    "pr_auc_nondropout": 0.9976798087235232,
+    "pr_auc_baseline_pi0": 0.01711840182542801,
+    "brier_score": 0.015415533445775509,
+    "brier_skill_score": 0.08379187838565072,
+    "f1_score": 0.05010989010989011,
+    "balanced_accuracy": 0.5129138821990781,
+    "c_index": null,
+    "roc_auc_student": 0.7162502698769775
+}

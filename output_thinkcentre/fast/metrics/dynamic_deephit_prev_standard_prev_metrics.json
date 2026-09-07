@@ -1,0 +1,23 @@
+{
+    "model_name": "dynamic_deephit_prev",
+    "mode": "standard",
+    "temporal_type": "prev",
+    "n_samples": 51660.0,
+    "dropout_prevalence_pi0": 0.041560202836990356,
+    "roc_auc": 0.8147546201069681,
+    "pr_auc_dropout": 0.26006820283075166,
+    "pr_auc_nondropout": 0.9891618866061831,
+    "pr_auc_baseline_pi0": 0.041560202836990356,
+    "brier_score": 0.03504970669746399,
+    "brier_skill_score": 0.12008262993882035,
+    "f1_score": 0.13951509995746492,
+    "balanced_accuracy": 0.5377888928804657,
+    "c_index": null,
+    "model_type": "dynamic_deephit_prev",
+    "temporal": "prev",
+    "ROC-AUC_Dropout": 0.8147546201069681,
+    "PR-AUC_Dropout": 0.26006820283075166,
+    "Brier_Score_Dropout": 0.03504970669746399,
+    "ROC-AUC_Graduation": 0.9993479280659339,
+    "PR-AUC_Graduation": 0.9939871733164996
+}
