@@ -31,13 +31,26 @@ def analyze_counterfactual_grade_transformer(data_dir: Path):
     if not data_dir.exists() and (Path('src') / data_dir).exists():
         data_dir = Path('src') / data_dir
         
-    possible_models = [
+    possible_models = []
+    output_dir = os.environ.get("OUTPUT_DIR")
+    if output_dir:
+        out_p = Path(output_dir)
+        possible_models.extend([
+            out_p / "models" / "transformer_exam_survival.keras",
+            out_p / "models" / "transformer_exam_survival_prev.keras",
+            out_p / "models" / "exam_transformer.keras",
+            out_p / "models" / "exam_transformer_prev_gradeblind.keras",
+            out_p / "models" / "deep_exam_transformer_regressor.keras",
+        ])
+    possible_models.extend([
+        data_dir / "models" / "transformer_exam_survival.keras",
+        data_dir / "models" / "transformer_exam_survival_prev.keras",
         data_dir / "models" / "exam_transformer.keras",
         data_dir / "models" / "exam_transformer_prev_gradeblind.keras",
         data_dir / "models" / "exam_transformer_cum_standard.keras",
         data_dir / "models" / "exam_transformer_cum_gradeblind.keras",
         data_dir / "models" / "deep_exam_transformer_regressor.keras"
-    ]
+    ])
     model_path = None
     for mp in possible_models:
         if mp.exists():
@@ -45,7 +58,7 @@ def analyze_counterfactual_grade_transformer(data_dir: Path):
             break
             
     if model_path is None:
-        print(f"Kein passendes Exam-Transformer-Modell in {data_dir}/models gefunden!")
+        print(f"Kein passendes Exam-Transformer-Modell in {data_dir}/models oder {output_dir}/models gefunden!")
         return
         
     # Load model first to detect expected feature dimension

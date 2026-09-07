@@ -368,16 +368,27 @@ class SurvivalEvaluator(_BaseEvaluator):
         print(f"\n{'='*w}")
         print(f"  SurvivalEvaluator -- {m['model_name']} [{m['mode']}/{m['temporal_type']}]")
         print(f"{'='*w}")
-        print(f"  ROC-AUC                : {m['roc_auc']:.4f}")
-        print(f"  PR-AUC (Dropout  y=1)  : {m['pr_auc_dropout']:.4f}"
-              f"  (Baseline pi0={m['pr_auc_baseline_pi0']:.3f})")
-        print(f"  PR-AUC (Non-Drop y=0)  : {m['pr_auc_nondropout']:.4f}")
-        bss = m['brier_skill_score']
-        print(f"  Brier Score            : {m['brier_score']:.4f}"
-              f"  (BSS={bss:.3f})" if bss is not None else f"  Brier Score: {m['brier_score']:.4f}")
-        print(f"  F1 Score (tau=0.5)     : {m['f1_score']:.4f}")
-        print(f"  Balanced Accuracy      : {m['balanced_accuracy']:.4f}")
-        if m['c_index'] is not None:
+        roc = m.get('roc_auc')
+        print(f"  ROC-AUC                : {roc:.4f}" if roc is not None else "  ROC-AUC                : N/A")
+        pr_d = m.get('pr_auc_dropout')
+        pi0 = m.get('pr_auc_baseline_pi0')
+        if pr_d is not None:
+            pi0_str = f"  (Baseline pi0={pi0:.3f})" if pi0 is not None else ""
+            print(f"  PR-AUC (Dropout  y=1)  : {pr_d:.4f}{pi0_str}")
+        else:
+            print("  PR-AUC (Dropout  y=1)  : N/A")
+        pr_nd = m.get('pr_auc_nondropout')
+        print(f"  PR-AUC (Non-Drop y=0)  : {pr_nd:.4f}" if pr_nd is not None else "  PR-AUC (Non-Drop y=0)  : N/A")
+        bss = m.get('brier_skill_score')
+        brier = m.get('brier_score')
+        brier_str = f"{brier:.4f}" if brier is not None else "N/A"
+        bss_str = f"  (BSS={bss:.3f})" if bss is not None else ""
+        print(f"  Brier Score            : {brier_str}{bss_str}")
+        f1 = m.get('f1_score')
+        print(f"  F1 Score (tau=0.5)     : {f1:.4f}" if f1 is not None else "  F1 Score (tau=0.5)     : N/A")
+        ba = m.get('balanced_accuracy')
+        print(f"  Balanced Accuracy      : {ba:.4f}" if ba is not None else "  Balanced Accuracy      : N/A")
+        if m.get('c_index') is not None:
             print(f"  Harrell C-Index        : {m['c_index']:.4f}")
         if m.get('training_time_s') is not None:
             print(f"  Training Time          : {m['training_time_s']:.2f}s")
