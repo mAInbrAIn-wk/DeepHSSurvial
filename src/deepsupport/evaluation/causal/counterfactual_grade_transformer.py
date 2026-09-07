@@ -62,13 +62,14 @@ def analyze_counterfactual_grade_transformer(data_dir: Path):
         return
         
     # Load model first to detect expected feature dimension
-    custom_objects = {'PositionalEncoding': PositionalEncoding}
+    from deepsupport.models.semester_gru import masked_binary_crossentropy
+    custom_objects = {'PositionalEncoding': PositionalEncoding, 'masked_binary_crossentropy': masked_binary_crossentropy}
     try:
         from deep_transformer_regression import AttentionPooling
         custom_objects['AttentionPooling'] = AttentionPooling
     except Exception:
         pass
-    model = tf.keras.models.load_model(model_path, custom_objects=custom_objects)
+    model = tf.keras.models.load_model(model_path, custom_objects=custom_objects, compile=False)
     print(f"Modell geladen: {model_path.name} | Input Shape: {model.input_shape}")
     expected_dim = model.input_shape[-1]
     eval_mode = 'standard' if expected_dim == 24 else 'gradeblind'
