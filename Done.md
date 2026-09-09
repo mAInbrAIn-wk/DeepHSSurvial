@@ -1,11 +1,33 @@
 ---
 created: 2026-09-02
-last_updated: 2026-09-06
+last_updated: 2026-09-09
 status: abgeschlossen
 tags: [done, changelog, meilensteine]
 ---
 
 # ✅ Abgeschlossene Aufgaben
+
+## 2026-09-09: DGP-Audit, 11-Tabellen ERD, Survival-Grundlagen & Backlog-Neustrukturierung
+- [x] **Relationales 11-Tabellen Mermaid ERD (`datenarchitektur_und_eda_v4.md`):**
+  - Vollständiges, formal ACID-getreues Entity-Relationship-Diagramm der V4-Architektur inklusive Primär- und Fremdschlüsseln, Typisierung und Kardinalitäten.
+  - Mathematische DGP-Dekonstruktion des Overload-Zeitmangels und der Zwangsexmatrikulations-Phasenverschiebung.
+- [x] **Interaktive EDA & Sunburst I & II Re-Run (`visuelle_datenexploration_v4.md`):**
+  - Wiederherstellung der Original-Plots (`legacy_projects/DataAnalysis/EDA.ipynb`) auf V4-Daten: Sunburst I (Curriculares Notengefüge aller 89 Module, Farbverlauf `RdYlGn_r`), Sunburst II (Dreischalige Support-Allokation).
+  - 6 publikationsfähige Visualisierungen generiert (KDE-Verteilungen, Kausaler Forest Plot, Kaplan-Meier Dynamik).
+- [x] **Methodische Grundlagen der Survival-Analyse (`grundlagen_survival_analyse_und_zensierung.md`):**
+  - Formale mathematische Fundierung von Ereigniszeiten, Hazard-Raten und Zensierungsmechanismen.
+  - Greenwood-Varianzherleitung und vollständige Auflösung des Verweildauer-Missverständnisses (warum KM im zensierungsfreien Grenzfall zur Gegen-ECDF wird und die Greenwood-Formel zur Binomial-Varianz kollabiert).
+  - Analyse des Software-Absturzes von `statsmodels.duration.survfunc.SurvfuncRight` bei $n_K = d_K$ (Division durch Null).
+  - Biostatistischer Beweis, warum Absolventen im Competing-Risks-Fall niemals naiv rechtszensiert werden dürfen, sowie Abgrenzung von Cause-Specific Cox vs. Fine-Gray / Dynamic DeepHit.
+- [x] **Config-Audit & V5-Roadmap (`config_audit_und_v5_roadmap.md`):**
+  - Vollständiger Codeabgleich aller 32 `CONFIG`-Einträge gegen `engine.py`.
+  - Aufdeckung von 3 Zombie-Parametern, 5 heimlichen Defaults und 25+ Magic Numbers.
+  - Empirischer 4-Phasen-Kalibrierungsplan nach DZHW und 22. DSW-Sozialerhebung.
+- [x] **Systematische Verteilungsanalyse & S16 (`systematische_verteilungsanalyse_v36_vs_v41.md`):**
+  - Falsifikation der Apathie-Hypothese auf $N=20.000$ (identischer Seed).
+  - Aufdeckung des selektiven Motivations-Varianzkollapses ($\kappa=20{,}0$, $\sigma=0{,}12$ statt $0{,}24$).
+- [x] **Backlog-Neustrukturierung (`docs/01_master_plans/backlog.md`):**
+  - Stand 23.08. -> 09.09.2026 gehoben; Priorisierung von Deep Transformer Modernisierung, PyTorch Fork und V5-DGP.
 
 ## 2026-09-06: Evaluierungsarchitektur V4.2.2, 14-Modell-Rollout & Wissensnetz
 - [x] **5 OOP Evaluator-Klassen (`metrics_logger.py`):**

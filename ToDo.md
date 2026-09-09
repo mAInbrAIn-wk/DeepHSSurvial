@@ -2,21 +2,34 @@
 created: 2026-09-02
 last_updated: 2026-09-09
 status: aktiv
-tags: [todo, roadmap, tasks, v5-roadmap]
+tags: [todo, roadmap, tasks, v5-roadmap, deep-transformer, pytorch]
 ---
 
 # Aktuelle Baustellen (DeepSupport)
 
-## 🔄 Laufende & Nächste Schritte
+## 🔄 Laufende & Nächste Schritte (Akut)
 - [x] **Cluster Grid Run (V4.2 Master Sensitivity Grid):** Alle 15 Szenarien (S01–S15) × 15 Modelle = 225 DL-Modelle erfolgreich trainiert und evaluiert (N=50.000, Seed 99999).
 - [x] **Cross-Szenario-Synthese (S01–S15):** Vollständige metrische Synopse über alle 15 Szenarien und 225 Modelle generiert ([`master_synopse_v4_gesamt.md`](docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md)).
 - [x] **Heavy Deep Suite (S01, S07, S08):** Vollständige Ausführung (GRU, Deep Transformer, Fail PR-AUC, Landmark Representation Learning) und Synopse ([`synopse_heavy_suite_s01_s07_s08.md`](docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md)).
 - [x] **Klassenspezifische Evaluatoren implementieren (V4.2.2):** Vollständige Ablösung des manuellen Logging-Boilerplates durch 5 modulare OOP-Evaluator-Klassen (`SurvivalEvaluator`, `RegressionEvaluator`, `MulticlassEvaluator`, `CausalEvaluator`, `DualHeadEvaluator`), PR-AUC für alle Klassen, Dual-CIs, Rollout auf alle 14 Modellskripte und verifizierte Smoke-Test-Suite.
 - [x] **Systematischer Config-Audit & V5-Roadmap:** Vollständiger Codeabgleich (`CONFIG` vs. `engine.py`), Identifikation aller Zombies und Magic Numbers sowie empirischer Kalibrierungsplan ([`config_audit_und_v5_roadmap.md`](docs/04_causal_and_simulation/config_audit_und_v5_roadmap.md)).
-- [ ] **Nachtlauf S01 Baseline (Fast + Heavy Suite):** Voller Integrationstest der neuen Evaluator-Pipeline auf der Baseline-Welt.
-- [ ] **DeepLearning README prüfen:** Review der neu hinzugefügten README im Submodul DeepLearning (Fehler, Leakage-Disclaimer).
-- [ ] **MoE / Stacking Router:** Router basierend auf kontrafaktischen Universen trainieren.
-- [ ] **Dashboard Erweitern:** Tabs 2-5 (Causal & Stress-Test Reports) in das interaktive HTML SVG Dashboard integrieren.
+- [x] **Neues ERD (Entity Relationship Diagram):** Vollständiges 11-Tabellen Mermaid-ERD in [`datenarchitektur_und_eda_v4.md`](docs/04_causal_and_simulation/datenarchitektur_und_eda_v4.md).
+- [x] **Interaktive EDA & Visualisierungen:** Sunburst I & II Re-Run auf V4-Daten, 6 Publikationsgrafiken in [`visuelle_datenexploration_v4.md`](docs/04_causal_and_simulation/visuelle_datenexploration_v4.md).
+- [x] **Methodische Grundlagen Survival-Analyse:** Zensierungsmathematik, Greenwood-Herleitung und Competing Risks in [`grundlagen_survival_analyse_und_zensierung.md`](docs/04_causal_and_simulation/grundlagen_survival_analyse_und_zensierung.md).
+- [ ] **Deep Transformer Modernisierung:** Überarbeitung von `src/deep_transformer_regression.py` ($d=64$, 4 Heads, `SinCosPositionalEncoding`, L2-Regularisierung, Anbindung an OOP-Evaluatoren).
+- [ ] **Sideproject A (Regularisierungs-Benchmark):** Systematischer Vergleich L2 vs. Dropout vs. ElasticNet.
+- [ ] **Sideproject B (Focal Loss Grid):** Asymmetrischer Loss zur Optimierung der seltenen Dropout-Events.
+- [ ] **Nachtlauf S01 Baseline (Fast + Heavy Suite):** Integrationstest aller modernisierten Modelle auf Universum A.
+
+---
+
+## 🔬 Kausalinferenz & Nächste Iteration (Morgen)
+- [ ] **PyTorch / PyCox Fork:** Aufbau eines eigenständigen parallelen PyTorch-Stacks (`LogisticHazard`, `DeepHit`, PyTorch Sequence Transformer mit Treatment-Effekt-Köpfen; [`pytorch_pycox_port_plan.md`](docs/01_master_plans/pytorch_pycox_port_plan.md)).
+- [ ] **Re-Run Kausale Mediation auf V4-Daten:** Aktualisierung der Imai/Pearl-Mediationsanalyse (ACME/ADE für alle 3 Supportarten) auf Basis der finalen V4-Daten (`04_Kausale_Vergleichsanalyse.md`).
+- [ ] **Submodul DeepLearning README prüfen:** Review und Bereinigung historischer Pfad- und Leakage-Hinweise.
+- [ ] **MoE / Stacking Router:** Optionales Ensembling kontrafaktischer Universen.
+
+---
 
 ## 🚀 Version 5 Roadmap & DGP-Refactoring
 - [x] **Audit & Spezifikation:** Dokumentation aller Leerstellen, Zombies und empirischen Kalibrierungsziele erstellt ([`config_audit_und_v5_roadmap.md`](docs/04_causal_and_simulation/config_audit_und_v5_roadmap.md)).
@@ -31,11 +44,3 @@ tags: [todo, roadmap, tasks, v5-roadmap]
 - [ ] **Phase 4 (V5-Validierungslauf):** Head-to-Head-Simulationslauf $N=50.000$ und Re-Benchmarking der Kausal- und Survivalmodelle.
 - [ ] **Nice-to-Have / Backlog (Dynamische Trajektorien):** Modellierung des Studienverlaufs als Desillusions- und Entfremdungsprozess (Eccles & Wigfield; Heublein et al. 2017/2022).
 - [ ] **Nice-to-Have / Backlog (Realism-Mode):** Stochastischer Peer-Graph pro Kohorte zur Abbildung von Lerngruppen-Synergien und Isolationsrisiken (Tinto-Netzwerkmodell).
-
-## 📊 Daten & Visualisierung
-- [ ] **Neues ERD (Entity Relationship Diagram):** Ein aktuelles ERD für die finale V4 Datenarchitektur erstellen (das alte aus Projekt_DE ist veraltet).
-- [ ] **Interaktive EDA / Dashboards:** EDA auf Basis der neuen, finalen Daten re-runnen und interaktiv (Dashboards) für die finale Präsentation aufbereiten.
-
-## 🧠 Modellierung, Evaluierung & Tuning
-- [ ] **PyTorch / PyCox Portierung:** Modelle auf PyTorch umstellen ([`pytorch_pycox_port_plan.md`](docs/01_master_plans/pytorch_pycox_port_plan.md)).
-- [ ] **Regularisierung:** Dropout-Regularisierung überprüfen, evtl. L2-Regulierung testen. Lernkurven analysieren (Finetuning-Potential).

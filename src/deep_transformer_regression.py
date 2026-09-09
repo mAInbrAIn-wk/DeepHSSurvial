@@ -1,42 +1,96 @@
 """
-Deep Transformer Regression & Survival Models (Enlarged Capacity + Dual Causal/Masked Architectures)
-=======================================================================================================
-Implementiert 4 hochentwickelte Transformer-Modelle auf Basis von `feature_builder.py`:
-1. Deep Semester-Transformer Regressor (d_model=128, 8 Heads, 3 Blöcke, Attention Pooling)
-2. Deep Exam-Transformer Regressor (d_model=128, 8 Heads, 3 Blöcke, Attention Pooling)
-3. Deep Exam-Transformer Causal Survival (use_causal_mask=True, TimeDistributed hazard)
-4. Deep Exam-Transformer Masked Survival (Attention Pooling, Static Event)
+Deep Transformer Regression & Survival Models (V4.2 Modernized Architecture)
+=============================================================================
+Modernisierte Transformer-Suite zur Beseitigung von Overfitting und Rechenzeitflaschenhaelsen:
+1. Deep Semester-Transformer Regressor (d_model=64, 4 Heads, 2 Bloecke, Sin/Cos Encoding, L2-Reg)
+2. Deep Exam-Transformer Regressor (d_model=64, 4 Heads, 2 Bloecke, Sin/Cos Encoding, L2-Reg)
+3. Deep Exam-Transformer Causal Survival (Kausales Masking, TimeDistributed Hazard, optional Focal Loss)
+
+Features & Sideprojects:
+- Beseitigung des historischen Overfittings (Reduktion d_model 128 -> 64, 8 -> 4 Heads)
+- Sin/Cos Positional Encoding auf allen Sequenzpfaden
+- Sideproject A (Regularisierungs-Benchmark): --reg_type in ['hybrid', 'l2', 'dropout', 'elasticnet', 'none']
+- Sideproject B (Asymmetrischer Loss): --loss_type in ['bce', 'focal'] mit --gamma und --alpha
+- Standardisierte OOP-Evaluatoren: RegressionEvaluator & SurvivalEvaluator
 """
 
 import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
 import sys
+import time
 import json
 import argparse
 from pathlib import Path
+from typing import Tuple, Dict, Any, Optional
+
 import pandas as pd
 import numpy as np
 
 import tensorflow as tf
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense, Dropout, LayerNormalization, MultiHeadAttention, Add, Masking, Layer, TimeDistributed
+from tensorflow.keras.layers import (
+    Input, Dense, Dropout, LayerNormalization, MultiHeadAttention, 
+    Add, Masking, Layer, TimeDistributed
+)
+from tensorflow.keras.regularizers import l2, l1_l2
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, roc_auc_score, average_precision_score, brier_score_loss
+from sklearn.metrics import (
+    mean_squared_error, mean_absolute_error, r2_score, 
+    roc_auc_score, average_precision_score, brier_score_loss
+)
 
-# Import metrics_logger and feature_builder
-sys.path.insert(0, str(Path(__file__).parent))
-from metrics_logger import save_metrics, save_keras_model, plot_learning_curve
-import feature_builder as fb
+# Pfadaufloesung fuer deepsupport Package
+ROOT_DIR = Path(__file__).resolve().parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+SRC_DIR = ROOT_DIR if ROOT_DIR.name == 'src' else ROOT_DIR / 'src'
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+from deepsupport.evaluation.metrics_logger import (
+    RegressionEvaluator, SurvivalEvaluator, save_keras_model, get_output_dirs
+)
+import deepsupport.data_engine.feature_builder as fb
 
 PADDING_VALUE = -99.0
 
 
+@tf.keras.utils.register_keras_serializable()
+class SinCosPositionalEncoding(Layer):
+    """Sinusoidales Positional Encoding gemaess Vaswani et al."""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.supports_masking = True
+
+    def compute_mask(self, inputs, mask=None):
+        return mask
+
+    def call(self, inputs):
+        seq_len = tf.shape(inputs)[1]
+        d_model = tf.shape(inputs)[2]
+        
+        positions = tf.range(seq_len, dtype=tf.float32)[:, tf.newaxis]
+        i = tf.range(d_model, dtype=tf.float32)[tf.newaxis, :]
+        
+        angle_rates = 1.0 / tf.pow(10000.0, (2.0 * (i // 2.0)) / tf.cast(d_model, tf.float32))
+        angle_rads = positions * angle_rates
+        
+        sines = tf.math.sin(angle_rads[:, 0::2])
+        cosines = tf.math.cos(angle_rads[:, 1::2])
+        
+        pos_encoding = tf.reshape(tf.stack([sines, cosines], axis=-1), [seq_len, d_model])
+        pos_encoding = pos_encoding[tf.newaxis, ...]
+        
+        return inputs + tf.cast(pos_encoding, inputs.dtype)
+
+
+@tf.keras.utils.register_keras_serializable()
 class AttentionPooling(Layer):
-    """Gelerntes Attention-Weighted Pooling über die Zeitschritte T."""
-    def __init__(self, d_model=128, **kwargs):
-        super(AttentionPooling, self).__init__(**kwargs)
+    """Gelerntes Attention-Weighted Pooling ueber die Zeitschritte T."""
+    def __init__(self, d_model: int = 64, **kwargs):
+        super().__init__(**kwargs)
         self.d_model = d_model
         self.score_dense = Dense(1, activation='tanh')
 
@@ -51,7 +105,7 @@ class AttentionPooling(Layer):
 
 
 def masked_binary_crossentropy(y_true, y_pred):
-    """Masked Binary Crossentropy für sequenzielle Hazard-Vorhersagen."""
+    """Masked Binary Crossentropy fuer sequenzielle Hazard-Vorhersagen."""
     mask = tf.not_equal(y_true, PADDING_VALUE)
     mask = tf.cast(mask, tf.float32)
     y_true_safe = tf.where(tf.equal(y_true, PADDING_VALUE), tf.zeros_like(y_true), y_true)
@@ -61,72 +115,180 @@ def masked_binary_crossentropy(y_true, y_pred):
     return tf.reduce_sum(masked_loss) / (tf.reduce_sum(mask) + 1e-7)
 
 
-def build_deep_transformer_backbone(input_shape, d_model=128, num_heads=8, num_blocks=3, dropout_rate=0.2):
+def masked_focal_loss(gamma: float = 2.0, alpha: float = 0.25):
+    """
+    Masked Focal Loss (Lin et al., 2017) fuer unausgeglichene Dropout-Zeitserien.
+    Fokussiert den Gradienten auf die harte Minderheitenklasse (Dropouts).
+    """
+    def loss(y_true, y_pred):
+        mask = tf.not_equal(y_true, PADDING_VALUE)
+        mask = tf.cast(mask, tf.float32)
+        y_true_safe = tf.where(tf.equal(y_true, PADDING_VALUE), tf.zeros_like(y_true), y_true)
+        
+        eps = tf.keras.backend.epsilon()
+        p = tf.clip_by_value(y_pred, eps, 1.0 - eps)
+        
+        p_t = tf.where(tf.equal(y_true_safe, 1.0), p, 1.0 - p)
+        alpha_t = tf.where(tf.equal(y_true_safe, 1.0), alpha, 1.0 - alpha)
+        
+        focal_weight = alpha_t * tf.pow(1.0 - p_t, gamma)
+        bce = -tf.math.log(p_t)
+        loss_val = focal_weight * bce
+        
+        loss_val = tf.expand_dims(loss_val, axis=-1) if len(loss_val.shape) < len(mask.shape) else loss_val
+        masked_loss = loss_val * mask
+        return tf.reduce_sum(masked_loss) / (tf.reduce_sum(mask) + 1e-7)
+    return loss
+
+
+def _get_regularizer(reg_type: str, l2_val: float = 1e-4):
+    """Sideproject A: Flexible Regularisierungs-Strategie."""
+    if reg_type == 'l2':
+        return l2(l2_val), 0.0
+    elif reg_type == 'dropout':
+        return None, 0.20
+    elif reg_type == 'elasticnet':
+        return l1_l2(l1=1e-5, l2=l2_val), 0.0
+    elif reg_type == 'hybrid':
+        return l2(l2_val), 0.15
+    elif reg_type == 'none':
+        return None, 0.0
+    else:
+        return l2(l2_val), 0.15
+
+
+def build_modern_transformer_backbone(
+    input_shape: Tuple[int, int],
+    d_model: int = 64,
+    num_heads: int = 4,
+    num_blocks: int = 2,
+    reg_type: str = 'hybrid',
+    l2_val: float = 1e-4
+) -> Tuple[tf.Tensor, tf.Tensor]:
+    """
+    Kompakter, regularisierter Transformer-Encoder fuer Tabellensequenzen.
+    """
+    kernel_reg, dropout_rate = _get_regularizer(reg_type, l2_val)
+
     inputs = Input(shape=input_shape)
-    x = Dense(d_model, activation='relu')(inputs)
+    x = Dense(d_model, activation='relu', kernel_regularizer=kernel_reg)(inputs)
+    x = SinCosPositionalEncoding()(x)
     x = LayerNormalization()(x)
-    x = Dropout(dropout_rate)(x)
+    if dropout_rate > 0:
+        x = Dropout(dropout_rate)(x)
 
     for _ in range(num_blocks):
-        attn_out = MultiHeadAttention(num_heads=num_heads, key_dim=d_model // num_heads, dropout=dropout_rate)(x, x)
+        attn_out = MultiHeadAttention(
+            num_heads=num_heads,
+            key_dim=d_model // num_heads,
+            dropout=dropout_rate
+        )(x, x)
         x = Add()([x, attn_out])
         x = LayerNormalization()(x)
 
-        ffn = Dense(d_model * 2, activation='relu')(x)
-        ffn = Dropout(dropout_rate)(ffn)
-        ffn = Dense(d_model)(ffn)
+        ffn = Dense(d_model * 2, activation='relu', kernel_regularizer=kernel_reg)(x)
+        if dropout_rate > 0:
+            ffn = Dropout(dropout_rate)(ffn)
+        ffn = Dense(d_model, kernel_regularizer=kernel_reg)(ffn)
         x = Add()([x, ffn])
         x = LayerNormalization()(x)
 
     pooled = AttentionPooling(d_model=d_model)(x)
-    head = Dense(64, activation='relu')(pooled)
+    head = Dense(32, activation='relu', kernel_regularizer=kernel_reg)(pooled)
     head = LayerNormalization()(head)
-    head = Dropout(dropout_rate)(head)
+    if dropout_rate > 0:
+        head = Dropout(dropout_rate)(head)
 
     return inputs, head
 
 
-def build_causal_transformer_survival_model(input_shape, d_model=128, num_heads=8, num_blocks=3, dropout_rate=0.2):
+def build_modern_causal_transformer_survival(
+    input_shape: Tuple[int, int],
+    d_model: int = 64,
+    num_heads: int = 4,
+    num_blocks: int = 2,
+    reg_type: str = 'hybrid',
+    l2_val: float = 1e-4,
+    loss_type: str = 'bce',
+    gamma: float = 2.0,
+    alpha: float = 0.25,
+    lr: float = 0.002
+) -> Model:
+    """
+    Kausales Sequenzmodell fuer Exam-Hazard mit optionalem Focal Loss.
+    """
+    kernel_reg, dropout_rate = _get_regularizer(reg_type, l2_val)
+
     inputs = Input(shape=input_shape)
     x = Masking(mask_value=PADDING_VALUE)(inputs)
-    x = Dense(d_model, activation='relu')(x)
+    x = Dense(d_model, activation='relu', kernel_regularizer=kernel_reg)(x)
+    x = SinCosPositionalEncoding()(x)
     x = LayerNormalization()(x)
-    x = Dropout(dropout_rate)(x)
+    if dropout_rate > 0:
+        x = Dropout(dropout_rate)(x)
 
     for _ in range(num_blocks):
         attn_out = MultiHeadAttention(
-            num_heads=num_heads, key_dim=d_model // num_heads, dropout=dropout_rate
+            num_heads=num_heads,
+            key_dim=d_model // num_heads,
+            dropout=dropout_rate
         )(x, x, use_causal_mask=True)
         x = Add()([x, attn_out])
         x = LayerNormalization()(x)
 
-        ffn = Dense(d_model * 2, activation='relu')(x)
-        ffn = Dropout(dropout_rate)(ffn)
-        ffn = Dense(d_model)(ffn)
+        ffn = Dense(d_model * 2, activation='relu', kernel_regularizer=kernel_reg)(x)
+        if dropout_rate > 0:
+            ffn = Dropout(dropout_rate)(ffn)
+        ffn = Dense(d_model, kernel_regularizer=kernel_reg)(ffn)
         x = Add()([x, ffn])
         x = LayerNormalization()(x)
 
-    time_dense = TimeDistributed(Dense(32, activation='relu'))(x)
+    time_dense = TimeDistributed(Dense(32, activation='relu', kernel_regularizer=kernel_reg))(x)
     time_dense = TimeDistributed(LayerNormalization())(time_dense)
     outputs = TimeDistributed(Dense(1, activation='sigmoid'))(time_dense)
 
-    model = Model(inputs=inputs, outputs=outputs, name="Causal_Exam_Transformer_Survival")
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss=masked_binary_crossentropy)
+    loss_fn = masked_focal_loss(gamma=gamma, alpha=alpha) if loss_type == 'focal' else masked_binary_crossentropy
+    model = Model(inputs=inputs, outputs=outputs, name=f"Causal_Exam_Transformer_{loss_type}")
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), loss=loss_fn)
     return model
 
 
-def train_deep_transformer_models(data_dir: Path = Path('src/output_dl'),
-                                  temporal: str = 'prev',
-                                  mode: str = 'standard',
-                                  epochs: int = 30,
-                                  batch_size: int = 128):
-    print("\n" + "=" * 74)
-    print(f"   DEEP TRANSFORMER SUITE (REGRESSION & SURVIVAL | temporal={temporal}, mode={mode})")
-    print("=" * 74)
+def train_deep_transformer_models(
+    data_dir: Path = Path('src/output_dl'),
+    output_dir: Optional[Path] = None,
+    temporal: str = 'prev',
+    mode: str = 'standard',
+    d_model: int = 64,
+    num_heads: int = 4,
+    num_blocks: int = 2,
+    reg_type: str = 'hybrid',
+    l2_val: float = 1e-4,
+    loss_type: str = 'bce',
+    gamma: float = 2.0,
+    alpha: float = 0.25,
+    epochs: int = 25,
+    batch_size: int = 128
+) -> Dict[str, Any]:
+    """
+    Orchestrierung der 3 modernisierten Deep Transformer Architekturen.
+    """
+    data_dir = Path(data_dir)
+    target_out = Path(output_dir) if output_dir else data_dir
+    metrics_dir, plots_dir, models_dir = get_output_dirs(target_out)
 
-    # 1. Deep Semester Transformer Regressor
-    print("\n[1/3] Deep Semester-Transformer Regressor...")
-    studis_s, X_sem, _, _, _, _ = fb.build_semester_sequence_tensor(data_dir, max_semesters=16, mode=mode, temporal=temporal, target_type='gpa')
+    print("\n" + "=" * 78)
+    print(f"   MODERN DEEP TRANSFORMER SUITE (d={d_model}, h={num_heads}, b={num_blocks})")
+    print(f"   Reg-Type: {reg_type} (L2={l2_val}) | Loss-Type: {loss_type} | Mode: {mode} | Temporal: {temporal}")
+    print("=" * 78)
+
+    # -------------------------------------------------------------
+    # 1. Deep Semester-Transformer Regressor (GPA / Abschlussnote)
+    # -------------------------------------------------------------
+    print("\n[1/3] Deep Semester-Transformer Regressor (GPA)...")
+    t0_sem = time.time()
+    studis_s, X_sem, _, _, _, _ = fb.build_semester_sequence_tensor(
+        data_dir, max_semesters=16, mode=mode, temporal=temporal, target_type='gpa'
+    )
     df_abschluesse, _ = fb._load_raw_data(data_dir)
     note_dict = df_abschluesse.set_index('studierenden_id')['abschlussnote'].to_dict()
 
@@ -147,21 +309,37 @@ def train_deep_transformer_models(data_dir: Path = Path('src/output_dl'),
         vm = X_sem_clean[subset, :, 0] != PADDING_VALUE
         X_sem_clean[subset][vm] = scaler_s.transform(X_sem_clean[subset][vm])
 
-    inp_s, head_s = build_deep_transformer_backbone(X_sem_clean.shape[1:])
-    out_s = Dense(1, activation='linear')(head_s)
-    m_sem_reg = Model(inputs=inp_s, outputs=out_s)
+    inp_s, head_s = build_modern_transformer_backbone(
+        X_sem_clean.shape[1:], d_model=d_model, num_heads=num_heads,
+        num_blocks=num_blocks, reg_type=reg_type, l2_val=l2_val
+    )
+    out_s = Dense(1, activation='linear', kernel_regularizer=_get_regularizer(reg_type, l2_val)[0])(head_s)
+    m_sem_reg = Model(inputs=inp_s, outputs=out_s, name="Deep_Semester_Transformer_Regressor")
     m_sem_reg.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss='mse', metrics=['mae'])
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 
-    m_sem_reg.fit(X_sem_clean[tr_s], y_sem_clean[tr_s], validation_data=(X_sem_clean[va_s], y_sem_clean[va_s]), epochs=epochs, batch_size=batch_size, callbacks=[es], verbose=0)
+    hist_s = m_sem_reg.fit(
+        X_sem_clean[tr_s], y_sem_clean[tr_s],
+        validation_data=(X_sem_clean[va_s], y_sem_clean[va_s]),
+        epochs=epochs, batch_size=batch_size, callbacks=[es], verbose=0
+    )
     preds_s = m_sem_reg.predict(X_sem_clean[te_s], verbose=0).flatten()
-    r2_s = float(r2_score(y_sem_clean[te_s], preds_s))
-    rmse_s = float(np.sqrt(mean_squared_error(y_sem_clean[te_s], preds_s)))
-    print(f"  -> Deep Semester-Transformer Regressor: R2={r2_s:.4f}, RMSE={rmse_s:.4f}")
+    fit_time_sem = time.time() - t0_sem
 
-    # 2. Deep Exam Transformer Regressor
-    print("\n[2/3] Deep Exam-Transformer Regressor...")
-    studis_e, X_ex, _, _, _, _ = fb.build_exam_sequence_tensor(data_dir, max_exams=40, mode=mode, temporal=temporal, target_type='grade')
+    ev_sem = RegressionEvaluator(base_dir=target_out, model_name='deep_semester_transformer_regressor', mode=mode, temporal=temporal)
+    metrics_sem = ev_sem.evaluate_and_log(
+        y_true=y_sem_clean[te_s], y_pred=preds_s, history=hist_s.history,
+        model=m_sem_reg, fit_time_s=fit_time_sem
+    )
+
+    # -------------------------------------------------------------
+    # 2. Deep Exam-Transformer Regressor (Pruefungsebene)
+    # -------------------------------------------------------------
+    print("\n[2/3] Deep Exam-Transformer Regressor (Exam History)...")
+    t0_ex = time.time()
+    studis_e, X_ex, _, _, _, _ = fb.build_exam_sequence_tensor(
+        data_dir, max_exams=40, mode=mode, temporal=temporal, target_type='grade'
+    )
     y_e = np.array([note_dict.get(s, np.nan) for s in studis_e])
     valid_mask_e = ~np.isnan(y_e)
     X_ex_clean = X_ex[valid_mask_e]
@@ -179,20 +357,36 @@ def train_deep_transformer_models(data_dir: Path = Path('src/output_dl'),
         vm = X_ex_clean[subset, :, 0] != PADDING_VALUE
         X_ex_clean[subset][vm] = scaler_e.transform(X_ex_clean[subset][vm])
 
-    inp_e, head_e = build_deep_transformer_backbone(X_ex_clean.shape[1:])
-    out_e = Dense(1, activation='linear')(head_e)
-    m_ex_reg = Model(inputs=inp_e, outputs=out_e)
+    inp_e, head_e = build_modern_transformer_backbone(
+        X_ex_clean.shape[1:], d_model=d_model, num_heads=num_heads,
+        num_blocks=num_blocks, reg_type=reg_type, l2_val=l2_val
+    )
+    out_e = Dense(1, activation='linear', kernel_regularizer=_get_regularizer(reg_type, l2_val)[0])(head_e)
+    m_ex_reg = Model(inputs=inp_e, outputs=out_e, name="Deep_Exam_Transformer_Regressor")
     m_ex_reg.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss='mse', metrics=['mae'])
 
-    m_ex_reg.fit(X_ex_clean[tr_e], y_ex_clean[tr_e], validation_data=(X_ex_clean[va_e], y_ex_clean[va_e]), epochs=epochs, batch_size=batch_size, callbacks=[es], verbose=0)
+    hist_e = m_ex_reg.fit(
+        X_ex_clean[tr_e], y_ex_clean[tr_e],
+        validation_data=(X_ex_clean[va_e], y_ex_clean[va_e]),
+        epochs=epochs, batch_size=batch_size, callbacks=[es], verbose=0
+    )
     preds_e = m_ex_reg.predict(X_ex_clean[te_e], verbose=0).flatten()
-    r2_e = float(r2_score(y_ex_clean[te_e], preds_e))
-    rmse_e = float(np.sqrt(mean_squared_error(y_ex_clean[te_e], preds_e)))
-    print(f"  -> Deep Exam-Transformer Regressor: R2={r2_e:.4f}, RMSE={rmse_e:.4f}")
+    fit_time_ex = time.time() - t0_ex
 
-    # 3. Deep Exam Causal Transformer Survival
-    print("\n[3/3] Deep Exam-Transformer Causal Survival...")
-    studis_sv, X_sv, y_sv, st_events, _, _ = fb.build_exam_sequence_tensor(data_dir, max_exams=40, mode=mode, temporal=temporal)
+    ev_ex = RegressionEvaluator(base_dir=target_out, model_name='deep_exam_transformer_regressor', mode=mode, temporal=temporal)
+    metrics_ex = ev_ex.evaluate_and_log(
+        y_true=y_ex_clean[te_e], y_pred=preds_e, history=hist_e.history,
+        model=m_ex_reg, fit_time_s=fit_time_ex
+    )
+
+    # -------------------------------------------------------------
+    # 3. Deep Exam Causal Transformer Survival (Hazard & Dropout)
+    # -------------------------------------------------------------
+    print(f"\n[3/3] Deep Exam Causal Transformer Survival (Loss={loss_type})...")
+    t0_sv = time.time()
+    studis_sv, X_sv, y_sv, st_events, _, _ = fb.build_exam_sequence_tensor(
+        data_dir, max_exams=40, mode=mode, temporal=temporal
+    )
     idx_sv = np.arange(len(X_sv))
     tr_sv, te_sv = train_test_split(idx_sv, test_size=0.20, random_state=42, stratify=st_events)
     tr_sv, va_sv = train_test_split(tr_sv, test_size=0.20, random_state=42, stratify=st_events[tr_sv])
@@ -205,45 +399,92 @@ def train_deep_transformer_models(data_dir: Path = Path('src/output_dl'),
         vm = X_sv[subset, :, 0] != PADDING_VALUE
         X_sv[subset][vm] = scaler_sv.transform(X_sv[subset][vm])
 
-    m_sv = build_causal_transformer_survival_model(X_sv.shape[1:])
-    m_sv.fit(X_sv[tr_sv], y_sv[tr_sv], validation_data=(X_sv[va_sv], y_sv[va_sv]), epochs=epochs, batch_size=batch_size, callbacks=[es], verbose=0)
+    m_sv = build_modern_causal_transformer_survival(
+        X_sv.shape[1:], d_model=d_model, num_heads=num_heads,
+        num_blocks=num_blocks, reg_type=reg_type, l2_val=l2_val,
+        loss_type=loss_type, gamma=gamma, alpha=alpha
+    )
+    hist_sv = m_sv.fit(
+        X_sv[tr_sv], y_sv[tr_sv],
+        validation_data=(X_sv[va_sv], y_sv[va_sv]),
+        epochs=epochs, batch_size=batch_size, callbacks=[es], verbose=0
+    )
+    fit_time_sv = time.time() - t0_sv
 
     test_preds_sv = m_sv.predict(X_sv[te_sv], verbose=0)
     te_mask_sv = X_sv[te_sv, :, 0] != PADDING_VALUE
     y_test_flat = y_sv[te_sv][te_mask_sv].flatten()
     preds_flat = test_preds_sv[te_mask_sv].flatten()
 
-    auc_sv = float(roc_auc_score(y_test_flat, preds_flat))
-    pr_auc_sv = float(average_precision_score(y_test_flat, preds_flat))
-    print(f"  -> Deep Exam Causal Transformer Survival: ROC-AUC={auc_sv:.4f}, PR-AUC={pr_auc_sv:.4f}")
+    ev_sv = SurvivalEvaluator(base_dir=target_out, model_name=f"deep_exam_transformer_survival_{loss_type}", mode=mode, temporal=temporal)
+    metrics_sv = ev_sv.evaluate_and_log(
+        y_true=y_test_flat, y_prob=preds_flat, history=hist_sv.history,
+        model=m_sv, fit_time_s=fit_time_sv
+    )
 
-    # Logging
-    base_dir = data_dir
-    metrics_dict = {
-        "Deep_Semester_Transformer_R2": r2_s,
-        "Deep_Semester_Transformer_RMSE": rmse_s,
-        "Deep_Exam_Transformer_R2": r2_e,
-        "Deep_Exam_Transformer_RMSE": rmse_e,
-        "Deep_Exam_Survival_ROC_AUC": auc_sv,
-        "Deep_Exam_Survival_PR_AUC": pr_auc_sv
+    # Zusammenfassung
+    overall_metrics = {
+        "deep_semester_regressor": metrics_sem,
+        "deep_exam_regressor": metrics_ex,
+        "deep_exam_survival": metrics_sv,
+        "config": {
+            "d_model": d_model,
+            "num_heads": num_heads,
+            "num_blocks": num_blocks,
+            "reg_type": reg_type,
+            "l2_val": l2_val,
+            "loss_type": loss_type,
+            "gamma": gamma,
+            "alpha": alpha,
+            "mode": mode,
+            "temporal": temporal
+        }
     }
-    bench_name = f"deep_transformer_benchmark_{temporal}_{mode}" if (temporal != 'prev' or mode != 'standard') else "deep_transformer_benchmark"
-    save_metrics(bench_name, metrics_dict, base_dir)
-    save_keras_model(m_sem_reg, f"deep_semester_transformer_regressor_{mode}" if mode != 'standard' else "deep_semester_transformer_regressor", base_dir)
-    save_keras_model(m_ex_reg, f"deep_exam_transformer_regressor_{mode}" if mode != 'standard' else "deep_exam_transformer_regressor", base_dir)
-    save_keras_model(m_sv, f"deep_exam_transformer_survival_{mode}" if mode != 'standard' else "deep_exam_transformer_survival", base_dir)
+    summary_path = metrics_dir / f"deep_transformer_suite_summary_{mode}_{temporal}_{loss_type}_{reg_type}.json"
+    with open(summary_path, 'w', encoding='utf-8') as f:
+        json.dump(overall_metrics, f, indent=4, ensure_ascii=False)
 
-    print(f"\n[OK] Deep Transformer Suite erfolgreich abgeschlossen.")
-    return metrics_dict
+    print("\n" + "=" * 78)
+    print(f"   [OK] DEEP TRANSFORMER SUITE ERFOLGREICH BEENDET")
+    print(f"   Semester R2 : {metrics_sem.get('r2', 0.0):.4f} (RMSE: {metrics_sem.get('rmse', 0.0):.4f})")
+    print(f"   Exam R2     : {metrics_ex.get('r2', 0.0):.4f} (RMSE: {metrics_ex.get('rmse', 0.0):.4f})")
+    print(f"   Survival AUC: {metrics_sv.get('roc_auc', 0.0):.4f} (PR-AUC: {metrics_sv.get('pr_auc_dropout', 0.0):.4f})")
+    print("=" * 78)
+
+    return overall_metrics
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Deep Transformer Suite")
-    parser.add_argument('--data_dir', type=str, default='src/output_dl')
+    parser = argparse.ArgumentParser(description="Modern Deep Transformer Suite (V4.2)")
+    parser.add_argument('--data_dir', type=str, default='src/output_v4_grid/S01_baseline/universe_A')
+    parser.add_argument('--output_dir', type=str, default=None)
     parser.add_argument('--temporal', type=str, default='prev', choices=['prev', 'cum'])
     parser.add_argument('--mode', type=str, default='standard')
+    parser.add_argument('--d_model', type=int, default=64)
+    parser.add_argument('--num_heads', type=int, default=4)
+    parser.add_argument('--num_blocks', type=int, default=2)
+    parser.add_argument('--reg_type', type=str, default='hybrid', choices=['hybrid', 'l2', 'dropout', 'elasticnet', 'none'])
+    parser.add_argument('--l2_val', type=float, default=1e-4)
+    parser.add_argument('--loss_type', type=str, default='bce', choices=['bce', 'focal'])
+    parser.add_argument('--gamma', type=float, default=2.0)
+    parser.add_argument('--alpha', type=float, default=0.25)
     parser.add_argument('--epochs', type=int, default=25)
     parser.add_argument('--batch_size', type=int, default=128)
     args = parser.parse_args()
 
-    train_deep_transformer_models(Path(args.data_dir), temporal=args.temporal, mode=args.mode, epochs=args.epochs, batch_size=args.batch_size)
+    train_deep_transformer_models(
+        data_dir=Path(args.data_dir),
+        output_dir=Path(args.output_dir) if args.output_dir else None,
+        temporal=args.temporal,
+        mode=args.mode,
+        d_model=args.d_model,
+        num_heads=args.num_heads,
+        num_blocks=args.num_blocks,
+        reg_type=args.reg_type,
+        l2_val=args.l2_val,
+        loss_type=args.loss_type,
+        gamma=args.gamma,
+        alpha=args.alpha,
+        epochs=args.epochs,
+        batch_size=args.batch_size
+    )
