@@ -3,6 +3,17 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
+## [V4.2.4 Systematische Verteilungsanalyse & Falsifikation der Apathie-Hypothese] - 2026-09-09
+### Added
+- **Systematische Verteilungs- & Clipping-Analyse (`docs/04_causal_and_simulation/systematische_verteilungsanalyse_v36_vs_v41.md`):**
+  - Empirischer $N=50.000$-Vergleich aller Merkmale zwischen V3.6 und V4.1 (Wasserstein-Distanzen, 2-Sample Kolmogorov-Smirnov-Tests, Momente, Quantile, Randaufstauung).
+  - Aufdeckung des selektiven Varianz-Kollapses: Während `hzb_note` (Std-Ratio $99{,}98\,\%$) und `alter` ($101{,}82\,\%$) exakt kalibriert wurden, halbierte sich die Standardabweichung von `motivation` ($0{,}2389 \to 0{,}1216$, Ratio $50{,}89\,\%$) und `soziale_integration` ($0{,}2381 \to 0{,}1155$, Ratio $48{,}53\,\%$) durch eine fehlerhafte Rauschannahme ($\sigma=0{,}10$ statt $0{,}25$) in der historischen `calc_kappa.py`.
+- **Szenario S16 (`S16_no_apathy_dampening`) & Falsifikation der Apathie-Hypothese:**
+  - Implementierung von `disable_apathy_dampening: bool` in `engine.py`, `simulation_v4.py`, `sensitivity_grid.py` und `run_v4_simulation_grid.py`.
+  - Empirischer Nachweis auf $N=20.000$ (identischer Seed): Die Apathie-Dämpfung ändert den Selektionsgap in Semester 1 um exakt $0{,}0000$ und im Gesamtverlauf um nur $-0{,}0062$. Die Hypothese, sie sei Hauptursache der V3.6/V4.1-Entzerrung, ist damit eindeutig falsifiziert.
+- **Integration des ThinkCentre LXC Full Runs ($N=50.000$, 40 Epochen DML):**
+  - Übernahme der LXC-Ergebnisse via Git: H3 (nicht-lineare Cox-Dynamik) hochsignifikant bestätigt ($p < 10^{-15}$, Schutz in vulnerabler Gruppe $HR = 0{,}9927$ vs. Overall $HR = 1{,}0601$).
+
 ## [V4.2.3 Hypothesen-Falsifikation & Datenprovenienz-Engine] - 2026-09-08
 ### Added
 - **Projekt-Skill `hypothesis-falsifier` (`.agent/skills/hypothesis-falsifier/SKILL.md`):**
