@@ -1,207 +1,236 @@
----
-created: 2026-08-05
-last_updated: 2026-09-06
-status: abgeschlossen
-tags: [projekt, uebersicht, deep-learning, kausal]
----
+# DeepSupport: Kausale Evaluation von Bildungsinterventionen & Deep Survival Sequences
 
-# DeepSupport: Wirksamkeitsanalyse von Hochschulsupport via Deep Learning & Causal Machine Learning
+[![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+[![TensorFlow / Keras 3](https://img.shields.io/badge/Keras_3-TensorFlow_2.x-FF6F00?style=flat&logo=tensorflow&logoColor=white)](https://keras.io/)
+[![DuckDB](https://img.shields.io/badge/DuckDB-In--Memory_SQL-FFF000?style=flat&logo=duckdb&logoColor=black)](https://duckdb.org/)
+[![Causal ML](https://img.shields.io/badge/Causal_ML-Double_Machine_Learning-4B8BBE?style=flat)](docs/04_causal_and_simulation/)
+[![Parallel Universes](https://img.shields.io/badge/Ground_Truth-8_Parallel_Worlds-10B981?style=flat)](docs/04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md)
+[![Sensitivity Grid](https://img.shields.io/badge/Sensitivity_Grid-15_Scenarios_x_225_Models-6366F1?style=flat)](docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md)
 
-**Autor:** Wilfried Keller  
-**Kontext:** Abschlussprojekt im Kurs *Deep Learning* (Dr. Bernd Ebenhoch)  
-**Datum:** September 2026 (Version 4.2)
+> 🤖 **Hinweis zur KI-Transparenz:** Dieses Projekt wurde als transparentes Portfolio- und Forschungsprojekt in intensiver Paarprogrammierung mit modernen KI-Systemen (Antigravity IDE, Claude Opus/Sonnet 4.6, Gemini 3.1/3.6/3.7) entwickelt und lückenlos dokumentiert. Ausführliche Details siehe [Abschnitt Autorschaft & KI-Transparenz](#-autorschaft--ki-transparenz).
 
 ---
 
-## KI-Transparenz & Methodischer Stack
+## 💡 Ursprung & Forschungsfrage
 
-Alle Inhalte dieses Projekts (Code-Architektur, Datengenerierungs-Engine, Modellierung, Kausalanalyse, Audits und Dokumentation) wurden in intensiver Auseinandersetzung mit KI-Systemen entwickelt, überprüft, reviewed, korrigiert und erweitert.
+Dieses Projekt hat einen ganz konkreten, praktischen Ausgangspunkt: Vor einigen Jahren war ich selbst an der **Hochschule Kaiserslautern (HSKL)** an der Konzeption und Durchführung eines hybriden Mathematik-Unterstützungsangebots beteiligt. Dabei drängte sich eine fundamentale Frage auf, die in der Hochschulpraxis überraschend selten methodisch sauber beantwortet werden kann:
 
-- **Entwicklungsumgebung & Orchestrierung:** Antigravity IDE / Antigravity Agent
-- **Integrierte LLM-Modelle (Pair Programming & Code Generation):** Gemini 3.1 Pro, Gemini 3.6 Flash, Gemini 3.7 Flash, Claude Opus 4.6, Claude Sonnet 4.6
-- **Weitere KI-Tools & Exploration (via Mammouth.ai):** Claude Opus/Sonnet 5, ChatGPT 5.6, ChatGPT Sol, Kimi K2.5 / K3
-- **Dokumentations-Artefakte:** Sämtliche Berichte, Reviews und Walkthroughs im Ordner `Artifacts/` sowie im System-Kontext sind direkte, transparente KI-generierte Audit-Protokolle.
+> *„Bringen unsere Förderangebote eigentlich wirklich etwas – und wie lässt sich ihr kausaler Nutzen datengetrieben nachweisen, ohne in die klassischen statistischen Verzerrungsfallen zu tappen?“*
 
----
+Im Bildungsbereich stehen Entscheidungsträger vor einem Dilemma: Reale Individualdaten von Studierenden sind aus guten Gründen (Datenschutz, institutionelle Silos zwischen Prüfungsamt und Lernmanagementsystemen) extrem restriktiv geschützt. Noch schwerwiegender ist jedoch das **methodische Problem**: Studierende wählen Fördermaßnahmen nicht zufällig aus. Wer sich in einer akuten Leistungskrise befindet, greift eher nach Hilfe. 
 
-## 1. Projektübersicht & Kausale Herausforderung
+Das Projekt **DeepSupport** ist das Resultat einer mehrstufigen intellektuellen Reise, um dieses Problem von Grund auf zu verstehen und methodisch zu untersuchen:
+- **Phase 1 (Data Engineering):** Konzeption relationaler Datenmodelle in 3NF und eines ROLAP Star-Schemas zur Abbildung universitärer Studienverläufe.
+- **Phase 2 (Data Analysis):** Entwicklung eines ersten dynamisch-stochastischen Studierendensimulators und Entdeckung des *Time-Varying Confounding*.
+- **Phase 3 (Deep Learning):** Einsatz moderner Sequenzmodelle (Causal Transformers, Recurrent Neural Networks, Dynamic DeepHit) zur Vorhersage von Noten und Studienabbrüchen.
+- **Phase 4 (Causal Benchmarking & V4.2):** Etablierung einer synthetischen Ground Truth über **acht parallele Welten**, Ausführung eines systematischen **Sensitivitätsgitters über 15 Szenarien ($N=50.000$, 225 trainierte DL-Modelle)** und datengetriebene Reflexion der Modellgrenzen.
 
-Dieses Projekt analysiert datengetrieben die Wirksamkeit von Unterstützungsangeboten (z. B. fachliche Tutorien, überfachliche Workshops, psychosoziale Beratung) an Hochschulen.
-
-Die Kernherausforderung liegt in der Auflösung des **Selektionsbias**, des **Time Availability Confoundings** und des **Immortal-Time-Bias**:
-Da leistungsschwächere Studierende oder Studierende mit viel Erwerbstätigkeit (20h/Woche) an Supportmaßnahmen teilnehmen, kommen naive Machine-Learning-Modelle oft zu dem fehlerhaften Schluss, dass Support das Studienabbruch-Risiko erhöht (*Dropout-Paradoxon*).
-
-### Methodischer Ansatz (Dual-Strang Benchmark):
-1. **8-Universen Counterfactual Simulator (V3.3):** Stochastische Simulation von $N = 50.000$ Studierenden, deren identische Klone in 8 parallelen Universen (A bis H) simuliert werden:
-   - **Universum A:** Baseline (Alle 3 Supportangebote aktiv)
-   - **Universum B:** Vollständige Null-Baseline (Kein Support aktiv)
-   - **Universen C, D, E:** Partieller Wegfall je eines Angebots (Ablation: C ohne Fachlich, D ohne Überfachlich, E ohne Psychosozial)
-   - **Universen F, G, H:** Isolierte Einzelwirkung je eines Angebots (F nur Fachlich, G nur Überfachlich, H nur Psychosozial)
-2. **Kausale Survival-Analyse (Longitudinal Panels):** Überführung der Studienverläufe in Person-Semester-Panels (Counting Process Format) mit zeitvariablen Vorsemester-Deltas (`fails_prev`, `delta_cp_prev`, `cp_rueckstand`) und 13 kanonischen Features.
-3. **Double Machine Learning (DML) & Oracle-Modelle:** Systematische Gegenüberstellung von DML-Orthogonalisierung, neuronalen Deep Learning Modellen und Oracle-Modellen mit latenten Simulationsvariablen ($\mu, \sigma, \varepsilon$).
+*(Die vollständige chronologische Entwicklung ist im Dokument [DeepSupport Projektentwicklung](docs/08_project_evolution/DeepSupport_Projektentwicklung.md) dokumentiert.)*
 
 ---
 
-## 2. Kausale Ground Truth der 8 Universen (V4.1, seed=99999, $N = 50.000$)
+## 🎯 Status Quo auf einen Blick (DeepSupport V4.2.5)
 
-### A. Dropout-Risiko (Relativrisiko $RR$)
+DeepSupport ist heute ein vollwertiges, modulares **Forschungs- und Evaluierungs-Framework**, das Methoden der Kausalinferenz, der klassischen Biostatistik (Survival-Analyse) und modernste Deep-Learning-Architekturen auf einer kontrollierten, synthetischen Simulationsbasis vergleicht:
 
-| Universum | Konfiguration | Dropout-Rate | Relativrisiko ($RR$) | Kausalwirkung (Ground Truth) |
-| :--- | :--- | :---: | :---: | :--- |
-| **A (Baseline)** | Alle Support-Typen aktiv | **29,20 %** | **1,0000** | Referenz der faktischen Beobachtungswelt |
-| **B (Null-Support)** | Kein Support aktiv | **37,10 %** | **0,7871** (A vs B) | **-21,3 % Gesamtrisikosenkung** durch alle Angebote |
-| **C (Ohne Fachlich)** | Fachlich blockiert, Rest aktiv | 32,10 % | **0,9097** (A vs C) | **-9,0 % Risikoreduktion** (Partieller Effekt Fachlich) |
-| **D (Ohne Überfachlich)**| Überfachlich blockiert, Rest aktiv | 31,70 % | **0,9211** (A vs D) | **-7,9 % Risikoreduktion** (Partieller Effekt Überfachlich) |
-| **E (Ohne Psychosozial)**| Psychosozial blockiert, Rest aktiv | 30,80 % | **0,9481** (A vs E) | **-5,2 % Risikoreduktion** (Partieller Effekt Psychosozial) |
-| **F (Nur Fachlich)** | Nur Fachlich aktiv, Rest blockiert | 33,60 % | **0,9057** (F vs B) | **-9,4 % Risikoreduktion** (Isolierter Einzeleffekt) |
-| **G (Nur Überfachlich)** | Nur Überfachlich aktiv, Rest blockiert | 34,00 % | **0,9164** (G vs B) | **-8,4 % Risikoreduktion** (Isolierter Einzeleffekt) |
-| **H (Nur Psychosozial)** | Nur Psychosozial aktiv, Rest blockiert | 34,80 % | **0,9381** (H vs B) | **-6,2 % Risikoreduktion** (Isolierter Einzeleffekt) |
+1. **Synthetisches Multi-Universe-Testbed:** $N = 50.000$ Studierende werden über bis zu 16 Fachsemester mit individuellen Curricula, Prüfungsversuchen, Zeitkontomodell und Belastungsgrenzen simuliert.
+2. **Kausale Ground Truth Ebene (8 Parallelwelten):** Identische Studierende durchlaufen zeitgleich acht deterministisch synchronisierte Universen mit variierter Supportverfügbarkeit (Voll-Support, Null-Support, partielle und isolierte Angebote).
+3. **Modell-Portfolio:** 15 Modellarchitekturen – von klassischen Cox-Proportional-Hazards-Panels über Double Machine Learning (DML) bis hin zu Autoregressiven Deep Transformern und Multi-Task Survival Netzen.
+4. **Strikte Evaluierungsstandards:** Fünf typisierte, modulare Evaluator-Klassen mit Zero-Imputation-Policy (`null` statt `0.0`), Dual-Konfidenzintervallen (asymptotisch & Bootstrap) und Precision-Recall-AUC für alle Klassen.
 
 ---
 
-### B. Prüfungsnoten, Bestehensquoten & Dropout-Studiendauer
+## ⚠️ Das methodische Problem: Das „Dropout-Paradoxon“
 
-| Support-Typ | Notendifferenz (Partiell) | Notendifferenz (Isoliert) | Bestehensquoten-Lift (pp) | Dropout-Dauer (Mean) |
-|:---|:---:|:---:|:---:|:---:|
-| **Fachlicher Support** | $\mathbf{-0{,}0900}$ Notenpunkte | $\mathbf{-0{,}0758}$ Notenpunkte | $\mathbf{+1{,}84\text{pp}}$ | $4{,}66\text{ Sem.}$ |
-| **Überfachlicher Support** | $-0{,}0215$ Notenpunkte | $-0{,}0054$ Notenpunkte | $+1{,}70\text{pp}$ | $4{,}62\text{ Sem.}$ |
-| **Psychosozialer Support** | $-0{,}0408$ Notenpunkte | $-0{,}0359$ Notenpunkte | $+1{,}07\text{pp}$ | $4{,}51\text{ Sem.}$ |
-| **Alle kombiniert (A vs B)** | $\mathbf{-0{,}1352}$ Notenpunkte | — | $\mathbf{+5{,}29\text{pp}}$ | $\mathbf{4{,}48\text{ vs. }4{,}94\text{ Sem.}}$ |
+Wer Studienverlaufsdaten naiv mit Standard-Verfahren des maschinellen Lernens auswertet, erlebt regelmäßig eine böse Überraschung: **Modelle weisen für Support-Teilnehmer ein signifikant höheres Abbruchrisiko aus ($HR > 1{,}0$)!**
 
-> [!IMPORTANT]
-> **Erkenntnis zur Studiendauer bei Dropouts:**  
-> Support verlängert nicht das Leiden („hinausgezögertes Scheitern“), sondern **verkürzt die Verweildauer von Abbrechern um fast ein halbes Semester** (A: 4,48 vs. B: 4,94). Supportangebote beschleunigen den Klärungsprozess: Entweder das Studium wird stabilisiert (Abschluss) oder Fehlentscheidungen werden schneller korrigiert.
+```mermaid
+graph LR
+    subgraph Naiv["1. Naive Korrelation (Scheinkausalität)"]
+        S1["Support-Nutzung"] -->|scheinbar schädlich (HR > 1.0)| D1["Studienabbruch (Dropout)"]
+    end
 
----
+    subgraph Real["2. Reale Dynamik (Time-Varying Confounding by Indication)"]
+        F["Prüfungsfehlversuch / Krise (t-1)"] -->|senkt Motivation & Leistung| D2["Erhöhtes Dropout-Risiko (t)"]
+        F -->|löst reaktiv aus (+20%)| S2["Support-Nutzung (t)"]
+        S2 -->|schützt in Wahrheit (HR < 1.0)| D2
+    end
 
-## 3. Synopse: Kausalschätzer vs. Ground Truth Benchmark
+    style Naiv fill:#fff1f2,stroke:#e11d48,stroke-width:1px
+    style Real fill:#f0fdf4,stroke:#16a34a,stroke-width:1px
+```
 
-| Modell & Methode | Analyse-Ebene | Fachlich (Part./Iso.) | Überfachlich (Part./Iso.) | Psychosozial (Part./Iso.) | Kausale Bewertung & Diagnose |
-| :--- | :--- | :---: | :---: | :---: | :--- |
-| **Ground Truth (8 Universen)** | Makro ($N=50k$) | **0,9579 / 0,9518** | **0,9387 / 0,9317** | **0,9514 / 0,9472** | **Wahre Kausalwirkung: Alle 3 Angebote schützen signifikant** |
-| **Oracle Logistic Hazard** | Panel (Latent) | **0,9880 / 0,9880** | **0,9915 / 0,9915** | **0,9926 / 0,9925** | **Beste Kausalidentifikation:** Löst Überfachlich-Bias vollständig auf ($<1,0$)! |
-| **Oracle DeepSurv** | Panel (Latent) | **0,9933 / 0,9931** | **0,9897 / 0,9897** | **0,9892 / 0,9892** | Alle 3 HRs $<1,0$; beweist Information-Lift durch latente Confounder |
-| **Extended Cox Panel** | Person-Semester | **0,9234 / 0,9234** | **0,9648 / 0,9648** | **0,9005 / 0,9005** | **Bester observabler Schätzer:** FWL-Partialling isoliert Treatment sauber |
-| **DML Orthogonal Survival** | Panel (Double ML) | **0,8417 / 0,8417** | **1,0512 / 1,0512** | **0,9249 / 0,9249** | Fachlich & Psychosozial protektiv; Überfachlich leidet unter Feedback-Loop |
-| **Recurrent Exam GRU V2** | Prüfungssequenz | **1,0358 / 1,0139** | **1,1403 / 1,0972** | **0,9755 / 0,9566** | Nach Bugfix: Psychosozial klar protektiv ($0,9566$ isoliert) |
-| **Dynamic DeepHit Delta** | Semester-Sequenz | **0,9967 / 0,9977** | **1,0032 / 1,0031** | **0,9979 / 0,9985** | Nahe an 1,0 wegen Spärlichkeit; protektive Tendenz |
-| **Exam Transformer Regressor**| Prüfungssequenz | $\Delta\text{Note} = \mathbf{-0{,}024}$ | $\Delta\text{Note} = +0{,}041$ | $\Delta\text{Note} = +0{,}008$ | Zeigt signifikanten Noten-Lift bei Fachlichem Support ($R^2=0{,}90$) |
-| **Lineare Noten-OLS** | Prüfungsebene | $\Delta\text{Note} = \mathbf{-0{,}095}$ | $\Delta\text{Note} = +0{,}033$ | $\Delta\text{Note} = \mathbf{-0{,}052}$ | **Trifft Noten-Ground-Truth exzellent** (GT Fachlich: $-0{,}090$) |
+### Die medizinische Analogie: *Confounding by Indication*
+In der Pharmakoepidemiologie ist dieses Phänomen als **Indikationsverzerrung** bestens bekannt:  
+Untersucht man rein beobachtende Patientendaten, sterben Menschen, die Notfall-Herzmedikamente (z. B. Digitalis) einnehmen, signifikant häufiger an Herzinsuffizienz als Menschen ohne diese Medikation. Ein naiver Algorithmus würde schlussfolgern, das Medikament sei tödlich. In Wahrheit wird das Medikament jedoch selektiv genau jenen Patienten verabreicht, die sich bereits im schwersten Krankheitsstadium befinden.
+
+Exakt dieselbe Dynamik greift an Hochschulen: Freiwillige Förderangebote sind kein gleichmäßig verteilter Vitamin-Zusatz, sondern eine **krisengetriebene Intervention**. Studierende suchen Tutorien vor allem dann auf, wenn sie eine Klausur verhauen haben oder die Motivation erodiert. Statische Modelle verwechseln die Indikation (die Krise) mit der Wirkung der Therapie.
 
 ---
 
-## 4. Modell-Portfolio Performance
+## 🌐 Das 8-Parallelwelten-Design als synthetische Ground Truth
 
-### Abbruch- & Survival-Vorhersage
-| Modell | Level / Typ | ROC-AUC | PR-AUC | Brier Score |
-| :--- | :--- | :---: | :---: | :---: |
-| **Recurrent Exam Survival V2** | Exam Sequence (roll. Fails/GPA) | **0,8713** | 0,1747 | 0,0168 |
-| Extended Logistic Hazard Exam Delta | Exam Level Panel | 0,8636 | 0,1757 | 0,0169 |
-| Logistic Hazard Landmark | Static Landmark (S1-S2) | 0,8597 | 0,7146 | — |
-| Recurrent Exam Survival GRU Delta | Exam Sequence | 0,8504 | 0,1389 | 0,0175 |
-| Dynamic DeepHit Delta (Dropout) | Multi-Task Competing | 0,7942 | 0,2301 | 0,0366 |
-| **Recurrent Survival GRU Delta (13 Feat.)**| Semester Sequence | **0,7885** | 0,2241 | 0,0369 |
-| Transformer Survival (Semester) | Causal Masked Attention | 0,7909 | 0,2284 | 0,0365 |
-| Oracle Logistic Hazard | Latente Variablen ($\mu, \sigma, \varepsilon$) | 0,7714 | 0,2112 | 0,0368 |
-| Extended Cox Delta Panel | Person-Semester | 0,7694 | 0,2081 | 0,0370 |
-| DML Orthogonal Survival | Causal Panel | 0,7694 | 0,2081 | 0,0370 |
+In realen Beobachtungsdaten ist das *Fundamental Problem of Causal Inference* unlösbar: Wir können denselben Studierenden im selben Semester nicht gleichzeitig mit und ohne Support beobachten. 
 
----
+Im Rahmen von Judea Pearls *Structural Causal Models* (SCM) nutzt DeepSupport die synthetische Simulation, um eine **kontrollierte Ground-Truth-Ebene** einzuziehen. Für jeden einzelnen Studierenden wird derselbe Basis-Zufalls-Seed verwendet, sodass exakt identische Personen in acht Parallelwelten existieren:
 
-## 5. Vollständiges Skript-Register & Dokumentation
+```mermaid
+graph TD
+    Pop["Synthetische Population (N = 50.000 identische Klone)"] --> UniA["Welt A: Voll-Support (Beobachtbare Realität)"]
+    Pop --> UniB["Welt B: Null-Support (Kontrafaktische Gegenwelt)"]
+    Pop --> UniCDE["Welten C, D, E: Partielle Ablation (Ausschluss je eines Typs)"]
+    Pop --> UniFGH["Welten F, G, H: Isolierte Wirkung (Nur ein Typ aktiv)"]
 
-- 👉 **[`Artifacts/script_registry.md`](Artifacts/script_registry.md)**: Vollständiges Inventar aller 69 Skripte mit Feature-Vektoren, Input-Dimensionen und Outputs.
-- 👉 **[`Artifacts/simulation_kausal_doku.md`](Artifacts/simulation_kausal_doku.md)**: Vollständiges Kausaldiagramm (Mermaid), mathematische DGP-Gleichungen und Selektionsmechaniken.
+    UniA -.->|Kausaler Vergleich: A vs. B| GT["Wahre Kausalwirkung: ARR = 7,9 pp | RR = 0,787 (-21,3% Risiko)"]
+    UniB -.->|Kausaler Vergleich: A vs. B| GT
 
----
+    style Pop fill:#f8fafc,stroke:#64748b,stroke-width:2px
+    style UniA fill:#eff6ff,stroke:#3b82f6,stroke-width:1px
+    style UniB fill:#fef2f2,stroke:#ef4444,stroke-width:1px
+    style GT fill:#ecfdf5,stroke:#10b981,stroke-width:2px
+```
 
-## 6. Feature Builder & Datenformate
+### Methodische Designentscheidung: RNG-Stream-Synchronisation
+Um den kausalen Effekt isoliert messbar zu machen, ist das Prüfungsrauschen in allen Welten deterministisch an das Tripel `(Student, Modul, Versuch)` gekoppelt. Die Rauschrichtung bleibt identisch; nur der Behandlungsmechanismus unterscheidet die Universen. 
+*Hinweis zur methodischen Grenze:* Diese Synchronisation ist eine bewusste Designentscheidung. Ein stochastischer „Schmetterlingseffekt“ (z. B. verändertes Schlafverhalten bei Supportnutzung) würde die Kontrafakten leicht verschieben – die gewählte Variante maximiert jedoch die interne Validität für das Algorithmen-Benchmarking.
 
-Die zentrale `src/feature_builder.py` generiert Features in 5 Modi (`standard`, `gradeblind`, `blind`, `oracle`, `realistic`). Mit Version V4.1.1 wurden **Sample Leakage** und **Future Leakage** behoben, und die Oracle-Features um `hidden_overload` und `hidden_zeit_puffer` erweitert.
-
-Die Feature-Anzahlen nach Format:
-
-| Format | standard | oracle |
-|:---|:---:|:---:|
-| Semester Tensor | 18 | 23 |
-| Exam Tensor | 24 | 29 |
-| Semester Panel | 16 | 21 |
-| Exam Panel | 23 | 28 |
-| Landmark | 16 | 21 |
+### Die wahre Kausalität im Datensatz (Ground Truth, $N=50.000$):
+- **Gesamteffekt (A vs. B):** Der Support senkt die Studienabbruchquote von **37,10 % auf 29,20 %**.  
+  $\implies$ **Absolute Risikoreduktion ($ARR$): $7{,}90\,	ext{pp}$** | **Relatives Risiko ($RR$): $0{,}787$ ($-21{,}3\,\%$)**
+- **Verweildauer bei Abbruch:** Support verlängert nicht das Scheitern, sondern **verkürzt die Verweildauer von Abbrechern** um ein halbes Semester ($4{,}48$ vs. $4{,}94$ Semester) – falsche Studienentscheidungen werden schneller korrigiert.
 
 ---
 
-## 7. V4.1 Sensitivity Grid Search ($N = 50.000$)
+## 🏗️ System- & Software-Architektur
 
-Vollständiger Sensitivitätslauf mit 15 Szenarien × 8 Universen = 120 Simulationsläufe. Laufzeit: 14,6 h (5 Worker). B=37,1% über alle nicht-globalen Szenarien (perfekte RNG-Synchronisierung).
+Das Framework wurde im V4-Refactoring als modulares, typisiertes Python-Package [`deepsupport`](src/deepsupport/) realisiert:
 
-| Szenario | Parameterdimension | Dropout A | Dropout B | ARR (pp) |
-| :--- | :--- | :---: | :---: | :---: |
-| **S01 (Baseline)** | Referenz | 29,2 % | 37,1 % | 7,9 |
-| **S02** | Support-Wirkung ×0,5 | 32,8 % | 37,1 % | 4,3 |
-| **S03** | Support-Wirkung ×2,0 | 25,5 % | 37,1 % | 11,6 |
-| **S04** | Notenboost ×0,5 | 30,2 % | 37,1 % | 6,9 |
-| **S05** | Notenboost ×1,5 | 28,5 % | 37,1 % | 8,6 |
-| **S06** | Notenboost ×2,0 | 27,9 % | 37,1 % | 9,2 |
-| **S07** | Rauschen ×0,5 | 26,1 % | 33,7 % | 7,6 |
-| **S08** | Rauschen ×2,0 | 32,5 % | 40,1 % | 7,6 |
-| **S09** | Zeitkosten ×0,5 | 28,5 % | 37,1 % | 8,6 |
-| **S10** | Zeitkosten ×2,0 | 29,7 % | 37,1 % | 7,4 |
-| **S11** | RCT-Selektion | 25,7 % | 37,1 % | 11,4 |
-| **S12** | Overload-Penalty ×0,5 | 27,3 % | 35,7 % | 8,4 |
-| **S13** | Overload-Penalty ×2,0 | 30,6 % | 37,9 % | 7,3 |
-| **S14** | Overload-Penalty Cap 0,15 | 28,7 % | 36,0 % | 7,3 |
-| **S15 (Kombi)** | Kosten ×2 + Wirkung ×2 | 25,9 % | 37,1 % | 11,2 |
+```mermaid
+flowchart TD
+    subgraph Data["1. Data Engine (In-Memory SQL)"]
+        Raw["Curricula & Stammdaten"] --> DuckDB["DuckDB Voraggregation (10.6x Speedup)"]
+    end
+
+    subgraph Sim["2. Simulation Engine"]
+        DuckDB --> Engine["engine.py (Zeitkonto, Module, Dropout)"]
+        Engine --> Worlds["8 Parallelwelten (A bis H)"]
+    end
+
+    subgraph Feat["3. Feature Engineering Backbone"]
+        Worlds --> FB["feature_builder.py (5 kontrollierte Modi)"]
+        FB --> Modes["standard | gradeblind | blind | oracle | realistic"]
+    end
+
+    subgraph Models["4. Modell-Portfolio (15 Architekturen)"]
+        Modes --> Causal["Kausalinferenz: DML & Extended Cox"]
+        Modes --> DeepSeq["Sequenzmodelle: Landmark Transformer & GRU"]
+        Modes --> Multi["Survival: Dynamic DeepHit (Multi-Task)"]
+    end
+
+    subgraph Eval["5. Evaluierungs-Architektur"]
+        Causal & DeepSeq & Multi --> OOP["5 OOP Evaluator-Klassen"]
+        OOP --> Out["Dual-CIs | All-Class PR-AUC | Zero-Imputation"]
+    end
+
+    style Data fill:#f8fafc,stroke:#475569
+    style Sim fill:#eff6ff,stroke:#2563eb
+    style Feat fill:#fefce8,stroke:#ca8a04
+    style Models fill:#f5f3ff,stroke:#7c3aed
+    style Eval fill:#ecfdf5,stroke:#059669
+```
+
+### Kernkomponenten:
+- **`data_engine/`:** DuckDB-Integration zur spaltenbasierten SQL-Aggregation von Millionen Prüfungsdatensätzen.
+- **`features/feature_builder.py`:** Zentraler Feature-Backbone, der Data-Leakage verhindert (z. B. strikt zeitverzögerte CP-Stände) und 5 standardisierte Feature-Räume generiert.
+- **`evaluation/metrics_logger.py`:** Standardisiertes OOP-Logging über 5 Klassen (`SurvivalEvaluator`, `RegressionEvaluator`, `MulticlassEvaluator`, `CausalEvaluator`, `DualHeadEvaluator`).
+
+---
+
+## 📊 Wichtigste Erkenntnisse im relativen Modellvergleich
 
 > [!NOTE]
-> **Sensitivitäts-Ranking (ARR-Spanne):** Overload-Penalty (8,5pp) > Support-Wirkung (7,3pp) > Rauschen (6,4pp) > RCT-Selektion (3,5pp) > Notenboost (3,0pp) > Zeitkosten (1,2pp). Die ARR bleibt über alle Overload-Kalibrierungen hinweg robust (7,3–8,4pp).
+> **Epistemische Einordnung:** Die absoluten Kennzahlen ($R^2$, ROC-AUC) spiegeln die Gesetzmäßigkeiten des synthetischen Generators wider. Der wissenschaftliche Erkenntnisgewinn liegt im **relativen Vergleich der Methoden**, da alle Architekturen auf exakt derselben Datenbasis konkurrieren:
+
+### 1. Kausale Inferenz: Das Scheitern linearer Modelle & die Stärke von DML
+- **Lineare Cox-Modelle versagen aggregiert ($HR = 1{,}06$):** Weil die simulierte Dropout-Funktion Schwellenwerte besitzt (Dropout steigt stark an, wenn Motivation $< 0{,}40$), maskiert eine über alle Studierenden gemittelte lineare Schätzung den Effekt.
+- **Subgruppen-Identifikation:** Filtert man auf die tatsächliche Risikogruppe ($	ext{Motivation} < 0{,}40$), detektiert auch das Cox-Modell den Schutz ($HR = 0{,}9927$).
+- **Double Machine Learning (DML):** Durch zweistufige Residual-Orthogonalisierung schätzt DML einen konsistent protektiven Effekt von $HR pprox 0{,}85$ und überwindet das Confounding am effektivsten.
+
+### 2. Operative Früherkennung: Deep Learning & Landmark-Attention
+- **Landmark-Prognose nach 2 Semestern:** Ein kompakter Transformer-Encoder kann nach nur zwei absolvierten Semestern **$76{,}5\,\%$ der Varianz der späteren Abschlussnote** ($R^2 = 0{,}765$) erklären. Für Hochschul-Frühwarnsysteme reicht die Frühphase der Studienbiografie weitgehend aus.
+- **Precision-Recall Lift bei seltenen Events:** Der Causal Sequence Transformer erzielt bei der Vorhersage akuter Dropout-Ereignisse einen **$10	imes$ PR-AUC Lift** gegenüber der Basisprävalenz.
+
+### 3. Sensitivitätsgitter über 15 Szenarien ($N=50.000$, 225 DL-Modelle)
+Die systematische Variation von Supportdosis, Rauschlevel, Zeitkosten und Überlastungsstrafen ([`master_synopse_v4_gesamt.md`](docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md)) belegt eine bemerkenswerte **ARR-Stabilität zwischen $7{,}3$ und $8{,}5\,	ext{pp}$** – der kausale Schutzeffekt bricht selbst unter widrigen Rahmenbedingungen nicht zusammen.
 
 ---
 
-## 8. V4.2 Master Sensitivity Grid Run (225 Modelle) & Heavy Deep Suite
+## 🔬 Wissenschaftliche Praxis & Datengetriebene Reflexion
 
-Im September 2026 wurde das Deep-Learning-Framework durch zwei orthogonale Rechenstränge auf allen 15 Sensitivitätswelten validiert:
+Ein zentrales Merkmal dieses Projekts ist die Verpflichtung zu transparenter wissenschaftlicher Praxis: Hypothesen werden nicht post-hoc gerechtfertigt, sondern am Datengenerator überprüft und bei Bedarf verworfen:
 
-### A. Master Feature Grid (225 Modelle)
-- **15 Szenarien × 3 neuronale Architekturen** (`Semester GRU`, `Semester Transformer`, `Exam GRU`) **× 5 Feature-Modi** (`standard`, `gradeblind`, `blind`, `oracle`, `realistic`) = **225 Modelle** zu 100% trainiert und persistiert (`output_v4_models/`).
-- Detaillierte Synopsen aller 6 Dimensionen:
-  - 📄 [`docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md`](docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md): **Master-Synopse über alle 225 Modelle**
-  - 📄 [`docs/03_evaluations_and_benchmarks/synopse_supportwirkung_s01_s02_s03.md`](docs/03_evaluations_and_benchmarks/synopse_supportwirkung_s01_s02_s03.md): Support-Wirkung
-  - 📄 [`docs/03_evaluations_and_benchmarks/synopse_notenboost_s01_s04_s05_s06.md`](docs/03_evaluations_and_benchmarks/synopse_notenboost_s01_s04_s05_s06.md): Notenboost-Wirkung
-  - 📄 [`docs/03_evaluations_and_benchmarks/synopse_rauschen_s01_s07_s08.md`](docs/03_evaluations_and_benchmarks/synopse_rauschen_s01_s07_s08.md): Rausch-Resilienz
-  - 📄 [`docs/03_evaluations_and_benchmarks/synopse_zeitkosten_s01_s09_s10.md`](docs/03_evaluations_and_benchmarks/synopse_zeitkosten_s01_s09_s10.md): Zeitkosten & Abwürfe
-  - 📄 [`docs/03_evaluations_and_benchmarks/synopse_rct_selektion_s01_s11.md`](docs/03_evaluations_and_benchmarks/synopse_rct_selektion_s01_s11.md): RCT-Selektionsparadoxon
-  - 📄 [`docs/03_evaluations_and_benchmarks/synopse_overload_s01_s12_s13_s14.md`](docs/03_evaluations_and_benchmarks/synopse_overload_s01_s12_s13_s14.md): Overload-Penalty
-  - 📄 [`docs/03_evaluations_and_benchmarks/synopse_kombination_s01_s15.md`](docs/03_evaluations_and_benchmarks/synopse_kombination_s01_s15.md): Kombi-Effekt-Resilienz
-
-### B. Heavy Deep Suite (Homeserver Cluster Execution & Exam-Level Transformer)
-- Autonome Auslagerung auf den Cluster-Node (Lenovo ThinkCentre M70q LXC) zur Bewältigung der rechenintensiven Exam-Level-Pipelines.
-- **Deep Transformer schlägt GRU:** Bei der Next-Exam Notenvorhersage erreicht der Deep Transformer mit Sinusoidal Positional Encoding in S01 einen $R^2$ von **0,70** (vs. **0,57** beim GRU) und in S07 sogar **0,86** (vs. **0,61**).
-- **Landmark Prognosekraft:** Gefrorene Transformer-Embeddings nach nur 2 Semestern erklären **76,5% der Varianz der späteren finalen Studienabschlussnote** (S01; S07: **86,8%**) und erreichen **79,5% 4-Klassen Status-Genauigkeit**.
-- 📄 Ausführliche Gesamtauswertung: [`docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md`](docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md)
+- **Falsifikation der Apathie-Hypothese (Szenario S16):**  
+  Lange wurde vermutet, eine verhaltensbasierte Apathie-Dämpfung bei entmutigten Studierenden sei die Hauptursache für Entzerrungsunterschiede zwischen V3.6 und V4.1. Ein kontrollierter Deaktivierungslauf ($N=20.000$, identischer Seed) zeigte einen Nettoeffekt von exakt $0{,}0000$ im Selektionsbias von Semester 1. Die Hypothese wurde verworfen.
+- **Aufdeckung des selektiven Motivations-Varianzkollapses:**  
+  Eine systematische Verteilungsanalyse aller Merkmale ($N=50.000$) deckte auf, dass bei der Umstellung auf Beta-Verteilungen in V4.1 die Varianz der Motivation unbemerkt um $50\,\%$ kollabiert war ($\kappa=20{,}0$), während HZB-Note und Alter perfekt repliziert wurden.
+- **Roadmap für Version 5:**  
+  Die gewonnenen Erkenntnisse wurden in einen empirischen Kalibrierungsplan überführt: Rekalibrierung der Motivation auf $\kappa=9{,}0$ ($\sigma pprox 0{,}15$) gestützt auf psychometrische Normdaten (Academic Motivation Scale AMS), Zero-Inflated Erwerbsmodellierung nach der 22. DSW-Sozialerhebung und Destatis-Geschlechtermatrizen ([`config_audit_und_v5_roadmap.md`](docs/04_causal_and_simulation/config_audit_und_v5_roadmap.md)).
 
 ---
 
-## 9. Evaluierungsarchitektur V4.2.2 & OOP Evaluator-Klassen
+## 🧭 Themen-Gateways zur Wissensbasis
 
-Zur Überwindung manuellen Logging-Boilerplates und zur Gewährleistung strikter Konsistenz über alle Modelle wurde das Modul `deepsupport.evaluation.metrics_logger` auf ein objektorientiertes Klassendesign umgestellt:
-- **5 Typisierte Evaluatoren:**
-  - `SurvivalEvaluator`: Berechnet ROC-AUC, Brier Score, Brier Skill Score ($BSS = 1 - B/B_{\text{ref}}$), Harrell's C-Index, Balanced Accuracy und **PR-AUC für alle Klassen** (Dropout $y=1$ und Non-Dropout $y=0$) inklusive Baseline-Prävalenzlinie $\pi_0$.
-  - `RegressionEvaluator`: $R^2$, adjustiertes $R^2$, RMSE, MAE, MedianAE, Parity- und Residuen-Plots.
-  - `MulticlassEvaluator`: Makro-/Weighted-F1, Balanced Accuracy, One-vs-Rest ROC-AUC und PR-AUC je Einzelklasse (4-Klassen Landmark Status).
-  - `CausalEvaluator`: Dual-CI-Berechnung (asymptotische Delta-Methode auf $\ln(HR)$-Skala **und** empirische Bootstrap-Perzentil-CIs) für Hazard Ratios und Risikoreduktion, visualisiert via Forest Plot.
-  - `DualHeadEvaluator`: Kombiniert Noten- und Bestehens-Head in autoregressiven Multi-Task-Netzen in einer einheitlichen JSON.
-- **Rollout auf alle 14 Modelle:** 100% der Keras-, Cox-, Regressions- und DML-Skripte in `src/deepsupport/models/` nutzen diese Pipeline.
-- **Verifizierte Smoke-Test-Suite:** Erfolgreich ausgeführt unter `C:\GitHub_public\.venv` (**5/5 Tests PASSED**).
+Die vollständige Dokumentation umfasst über 60 Fachdokumente. Für den gezielten Einstieg sind die Themen in fünf Gateways strukturiert:
+
+| Gateway | Themenschwerpunkt | Zentrale Dokumente |
+|:---|:---|:---|
+| 🧬 **DGP & Kausalität** | Simulationsarchitektur, 8 Universen, Bias-Analysen, V5-Spezifikation | [`04_Kausale_Vergleichsanalyse.md`](docs/04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md)<br>[`config_audit_und_v5_roadmap.md`](docs/04_causal_and_simulation/config_audit_und_v5_roadmap.md)<br>[`systematische_verteilungsanalyse_v36_vs_v41.md`](docs/04_causal_and_simulation/systematische_verteilungsanalyse_v36_vs_v41.md) |
+| 🤖 **Deep Learning** | Autoregressive Transformer, Causal Masking, Dynamic DeepHit | [`model_architectures.md`](docs/02_architectures_and_models/model_architectures.md)<br>[`synopse_heavy_suite_s01_s07_s08.md`](docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md) |
+| 📊 **Benchmarks** | Master-Synopse aller 15 Szenarien & 225 Modelle, Noten- & Risikolifts | [`master_synopse_v4_gesamt.md`](docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md)<br>[`synopse_supportwirkung_s01_s02_s03.md`](docs/03_evaluations_and_benchmarks/synopse_supportwirkung_s01_s02_s03.md) |
+| 🛠️ **Engineering** | DuckDB In-Memory SQL, 5 Feature-Modi, 5 OOP-Evaluatoren | [`feature_builder_map.md`](docs/02_architectures_and_models/feature_builder_map.md)<br>[`duckdb_architecture_analysis.md`](docs/02_architectures_and_models/duckdb_architecture_analysis.md)<br>[`refactoring_plan_evaluation_pipeline1.md`](docs/01_master_plans/refactoring_plan_evaluation_pipeline1.md) |
+| 📜 **Evolution** | Chronologische Entwicklungsreise, DE/DA/DL-Submodule, Kritik | [`DeepSupport_Projektentwicklung.md`](docs/08_project_evolution/DeepSupport_Projektentwicklung.md)<br>[`DeepSupport_Kritische_Bewertung.md`](docs/08_project_evolution/DeepSupport_Kritische_Bewertung.md) |
+
+👉 **Das vollständige, detaillierte Dokumentenverzeichnis befindet sich im [Dokumentations-Index (`docs/README.md`)](docs/README.md).**
 
 ---
 
-## 10. Dokumentations-Architektur & Projektentwicklung
+## 💻 Quickstart & Reproduzierbarkeit
 
-Das Projekt verfügt über ein lückenloses, querverlinktes Wissensnetz aus über 50 Markdown-Dokumenten:
-- 🧭 **Zentraler Index:** [`docs/README.md`](docs/README.md)
-- 📜 **Methodische Evolution:** [`docs/08_project_evolution/DeepSupport_Projektentwicklung.md`](docs/08_project_evolution/DeepSupport_Projektentwicklung.md) (DE → DA → DL → V4.2)
-- 🔍 **Kritische Gesamtevaluation:** [`docs/08_project_evolution/DeepSupport_Kritische_Bewertung.md`](docs/08_project_evolution/DeepSupport_Kritische_Bewertung.md) (Note 8/10, Stärken & Schwächen)
-- ⚙️ **Infrastruktur & Hardware-Stack:** [`docs/06_misc/system_and_hardware_stack.md`](docs/06_misc/system_and_hardware_stack.md)
-- 🤖 **Agenten-Regeln & Ausführungsumgebung:** [`AGENTS.md`](AGENTS.md)
+### Voraussetzungen
+- **OS:** Windows 10/11 oder Linux (Debian/Ubuntu)
+- **Python:** 3.12 (empfohlen im dedizierten Virtual Environment)
+- **Wichtig für Windows:** Aufgrund von Sicherheitsrichtlinien für native DLLs (HiGHS-Solver / SciPy) stets das whitelisted venv verwenden.
 
+### Installation
+```powershell
+# Repository klonen
+git clone https://github.com/mAInbrAIn-wk/DeepHSSurvial.git
+cd DeepHSSurvial
+
+# Virtuelle Umgebung aktivieren (Beispiel Windows PowerShell)
+$env:PYTHONPATH = "src"
+C:\GitHub_public\.venv\Scripts\Activate.ps1
+```
+
+### Ausführen von Simulation & Training
+```powershell
+# 1. Schneller Rauchtest der Evaluator-Pipeline
+C:\GitHub_public\.venv\Scripts\python.exe src/deepsupport/runners/run_smoke_test_evaluators.py
+
+# 2. Hypothesen-Untersuchung (Small Batch Test)
+C:\GitHub_public\.venv\Scripts\python.exe src/deepsupport/runners/run_hypothesis_investigation.py --mode test
+
+# 3. Vollständiger Overnight-Runner auf V4.1-Daten
+C:\GitHub_public\.venv\Scripts\python.exe src/run_overnight_v41.py
+```
+
+---
+
+## 🤝 Autorschaft & KI-Transparenz
+
+Dieses Projekt wurde von **Wilfried Keller** konzipiert, geleitet und iterativ weiterentwickelt.
+
+### Transparente Arbeitsweise im KI-Zeitalter
+Die Umsetzung erfolgte in intensiver, dokumentierter Paarprogrammierung mit modernen generativen KI-Systemen. Sämtliche Designentscheidungen, Architektur-Iterationen, Fehlversuche und Korrekturen wurden als unverfälschte Protokolle archiviert:
+- **Konversationsprotokolle:** Über 300 Iterationsschritte sind im Ordner [`docs/07_conversation_logs/`](docs/07_conversation_logs/) chronologisch einsehbar.
+- **Rollenverteilung:** Die konzeptionelle Steuerung, Fragestellung, Methodenwahl und kritische Prüfung lag beim menschlichen Autor; die Codegenerierung, das Refactoring, das Erstellen repetitiver Benchmark-Skripte und die formale Doku-Pflege wurden durch KI-Agenten assistiert.

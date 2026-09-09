@@ -9,6 +9,8 @@ tags: [dokumentation, index, navigation]
 
 Dieses Verzeichnis bündelt alle architektonischen Entscheidungen (ADRs), Kausalsynthesen, Evaluierungsberichte, Master-Pläne und Entwicklungs-Protokolle des DeepSupport-Projekts.
 
+[👈 **Zurück zur Projektübersicht / Portfolio Showcase**](../README.md)
+
 ---
 
 ## 🧭 Inhaltsverzeichnis
@@ -47,6 +49,9 @@ Dieses Verzeichnis bündelt alle architektonischen Entscheidungen (ADRs), Kausal
 ### 4. [04_causal_and_simulation/](04_causal_and_simulation/) — Kausale Inferenz & Data-Generating Process
 - [`04_Kausale_Vergleichsanalyse.md`](04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md): Empirische Gesamtauswertung der 8 Parallelwelten (A–H) vs. Kausal-Schätzer.
 - [`03_Uebersicht_Kausale_Ansaetze.md`](04_causal_and_simulation/03_Uebersicht_Kausale_Ansaetze.md): Methodischer Vergleich von Naive vs. FWL-Partialling vs. DML vs. Oracle-Mediation.
+- [`systematische_verteilungsanalyse_v36_vs_v41.md`](04_causal_and_simulation/systematische_verteilungsanalyse_v36_vs_v41.md): Empirische Verteilungsanalyse aller Merkmale ($N=50.000$) und Aufdeckung des selektiven Motivations-Varianzkollapses ($\kappa=20{,}0$).
+- [`config_audit_und_v5_roadmap.md`](04_causal_and_simulation/config_audit_und_v5_roadmap.md): Systematischer Config-Audit (Zombies, Magic Numbers) & empirischer Kalibrierungsplan für Version 5 (DZHW, Destatis).
+- [`datenprovenienz_und_generator_zuordnung_v36_v41.md`](04_causal_and_simulation/datenprovenienz_und_generator_zuordnung_v36_v41.md): Lückenlose Dokumentation der Generator-Versionen und Daten-Herkunft (V3.1 bis V4.1).
 
 ---
 
