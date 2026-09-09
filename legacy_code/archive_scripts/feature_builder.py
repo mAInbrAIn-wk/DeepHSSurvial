@@ -68,13 +68,22 @@ def _load_raw_data(data_dir: Union[str, Path]) -> Tuple[pd.DataFrame, pd.DataFra
     agg_abschluesse_path = data_dir / 'agg_abschluesse.csv'
     agg_pruefungen_path = data_dir / 'agg_pruefungen.csv'
 
-    if not agg_abschluesse_path.exists():
-        candidates = [Path('output_dl'), Path('../output_dl'), Path('src/output_dl'), Path('output_dl_v3')]
-        for c in candidates:
-            if (c / 'agg_abschluesse.csv').exists():
-                agg_abschluesse_path = c / 'agg_abschluesse.csv'
-                agg_pruefungen_path = c / 'agg_pruefungen.csv'
-                break
+    if not agg_abschluesse_path.exists() or not agg_pruefungen_path.exists():
+        # Falls Rohdaten vorhanden sind, automatisch on-the-fly aggregieren
+        if (data_dir / 'abschluesse.csv').exists() and (data_dir / 'pruefungen.csv').exists():
+            print(f"[FeatureBuilder] Aggregierte Daten fehlen in {data_dir}. Starte automatische Aggregation ...")
+            try:
+                from deepsupport.data_engine.aggregate import aggregiere_daten
+            except ImportError:
+                from aggregate import aggregiere_daten
+            aggregiere_daten(data_dir)
+        else:
+            candidates = [Path('output_dl'), Path('../output_dl'), Path('output_dl_v3')]
+            for c in candidates:
+                if (c / 'agg_abschluesse.csv').exists():
+                    agg_abschluesse_path = c / 'agg_abschluesse.csv'
+                    agg_pruefungen_path = c / 'agg_pruefungen.csv'
+                    break
 
     df_abschluesse = pd.read_csv(agg_abschluesse_path)
     df_pruefungen = pd.read_csv(agg_pruefungen_path)

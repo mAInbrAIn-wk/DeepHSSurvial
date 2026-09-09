@@ -41,6 +41,11 @@ def run_h3_cox_nonlinear(s01_dir: Path, output_dir: Path, sample_limit: int = No
     print("=" * 76)
     t0 = time.time()
     
+    s01_dir = Path(s01_dir)
+    if not (s01_dir / "agg_abschluesse.csv").exists() and (s01_dir / "abschluesse.csv").exists():
+        print(f"[H3] Aggregierte Daten fehlen in {s01_dir}. Führe automatische Aggregation durch ...")
+        aggregiere_daten(s01_dir)
+
     panel_df, feature_cols, target_col, _ = fb.build_semester_panel_df(
         s01_dir, mode='oracle', temporal='prev'
     )
@@ -115,6 +120,11 @@ def run_h2_v41_supp_half(s02_dir: Path, output_dir: Path, epochs: int = 40) -> D
     h2_out = output_dir / "H2_v41_supp_half"
     h2_out.mkdir(parents=True, exist_ok=True)
     
+    s02_dir = Path(s02_dir)
+    if not (s02_dir / "agg_abschluesse.csv").exists() and (s02_dir / "abschluesse.csv").exists():
+        print(f"[H2] Aggregierte Daten fehlen in {s02_dir}. Führe automatische Aggregation durch ...")
+        aggregiere_daten(s02_dir)
+
     print(f"Trainiere DML auf Szenario S02 (Daten: {s02_dir}) mit {epochs} Epochen ...")
     model = train_dml_orthogonal_survival(
         data_dir=s02_dir,
