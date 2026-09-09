@@ -257,7 +257,7 @@ def train_deep_transformer_models(
     data_dir: Path = Path('src/output_dl'),
     output_dir: Optional[Path] = None,
     temporal: str = 'prev',
-    mode: str = 'standard',
+    mode: str = 'gradeblind',
     d_model: int = 64,
     num_heads: int = 4,
     num_blocks: int = 2,
@@ -316,12 +316,15 @@ def train_deep_transformer_models(
     out_s = Dense(1, activation='linear', kernel_regularizer=_get_regularizer(reg_type, l2_val)[0])(head_s)
     m_sem_reg = Model(inputs=inp_s, outputs=out_s, name="Deep_Semester_Transformer_Regressor")
     m_sem_reg.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss='mse', metrics=['mae'])
-    es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+    callbacks_sem = [
+        tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True),
+        tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr=1e-5, verbose=0)
+    ]
 
     hist_s = m_sem_reg.fit(
         X_sem_clean[tr_s], y_sem_clean[tr_s],
         validation_data=(X_sem_clean[va_s], y_sem_clean[va_s]),
-        epochs=epochs, batch_size=batch_size, callbacks=[es], verbose=0
+        epochs=epochs, batch_size=batch_size, callbacks=callbacks_sem, verbose=0
     )
     preds_s = m_sem_reg.predict(X_sem_clean[te_s], verbose=0).flatten()
     fit_time_sem = time.time() - t0_sem
@@ -365,10 +368,15 @@ def train_deep_transformer_models(
     m_ex_reg = Model(inputs=inp_e, outputs=out_e, name="Deep_Exam_Transformer_Regressor")
     m_ex_reg.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss='mse', metrics=['mae'])
 
+    callbacks_ex = [
+        tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True),
+        tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr=1e-5, verbose=0)
+    ]
+
     hist_e = m_ex_reg.fit(
         X_ex_clean[tr_e], y_ex_clean[tr_e],
         validation_data=(X_ex_clean[va_e], y_ex_clean[va_e]),
-        epochs=epochs, batch_size=batch_size, callbacks=[es], verbose=0
+        epochs=epochs, batch_size=batch_size, callbacks=callbacks_ex, verbose=0
     )
     preds_e = m_ex_reg.predict(X_ex_clean[te_e], verbose=0).flatten()
     fit_time_ex = time.time() - t0_ex
@@ -404,10 +412,14 @@ def train_deep_transformer_models(
         num_blocks=num_blocks, reg_type=reg_type, l2_val=l2_val,
         loss_type=loss_type, gamma=gamma, alpha=alpha
     )
+    callbacks_sv = [
+        tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True),
+        tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr=1e-5, verbose=0)
+    ]
     hist_sv = m_sv.fit(
         X_sv[tr_sv], y_sv[tr_sv],
         validation_data=(X_sv[va_sv], y_sv[va_sv]),
-        epochs=epochs, batch_size=batch_size, callbacks=[es], verbose=0
+        epochs=epochs, batch_size=batch_size, callbacks=callbacks_sv, verbose=0
     )
     fit_time_sv = time.time() - t0_sv
 
@@ -446,8 +458,8 @@ def train_deep_transformer_models(
 
     print("\n" + "=" * 78)
     print(f"   [OK] DEEP TRANSFORMER SUITE ERFOLGREICH BEENDET")
-    print(f"   Semester R2 : {metrics_sem.get('r2', 0.0):.4f} (RMSE: {metrics_sem.get('rmse', 0.0):.4f})")
-    print(f"   Exam R2     : {metrics_ex.get('r2', 0.0):.4f} (RMSE: {metrics_ex.get('rmse', 0.0):.4f})")
+    print(f"   Semester R2 : {metrics_sem.get('r2_score', metrics_sem.get('r2', 0.0)):.4f} (RMSE: {metrics_sem.get('rmse', 0.0):.4f})")
+    print(f"   Exam R2     : {metrics_ex.get('r2_score', metrics_ex.get('r2', 0.0)):.4f} (RMSE: {metrics_ex.get('rmse', 0.0):.4f})")
     print(f"   Survival AUC: {metrics_sv.get('roc_auc', 0.0):.4f} (PR-AUC: {metrics_sv.get('pr_auc_dropout', 0.0):.4f})")
     print("=" * 78)
 
@@ -456,10 +468,10 @@ def train_deep_transformer_models(
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Modern Deep Transformer Suite (V4.2)")
-    parser.add_argument('--data_dir', type=str, default='src/output_v4_grid/S01_baseline/universe_A')
+    parser.add_argument('--data_dir', type=str, default='data_v4_grid/S01_baseline/universe_A')
     parser.add_argument('--output_dir', type=str, default=None)
     parser.add_argument('--temporal', type=str, default='prev', choices=['prev', 'cum'])
-    parser.add_argument('--mode', type=str, default='standard')
+    parser.add_argument('--mode', type=str, default='gradeblind', choices=['standard', 'gradeblind', 'blind', 'oracle', 'realistic'])
     parser.add_argument('--d_model', type=int, default=64)
     parser.add_argument('--num_heads', type=int, default=4)
     parser.add_argument('--num_blocks', type=int, default=2)
