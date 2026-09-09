@@ -178,11 +178,11 @@ Das Curriculum steuert über Workload, fachliche Hürden und Prüfungsturnus die
 
 ### 2.1 Fächerübergreifender Noten- und Schwierigkeitsvergleich (Sunburst I)
 
-Das erste hierarchische Sunburst-Diagramm visualisiert das Notengefüge der gesamten Modelluniversität. Der innere Ring repräsentiert die fünf Fachrichtungen, während der äußere Ring alle 89 akkreditierten Module auffächert. Die Farbcodierung spiegelt den empirischen Notendurchschnitt über alle Erst- und Wiederholungsprüfungen wider ($1{,}0$ bis $5{,}0$).
+Das erste Sunburst-Diagramm visualisiert das Notengefüge der gesamten Modelluniversität unter Verwendung der originalen hierarchischen Aggregationslogik (`go.Sunburst` mit `branchvalues="total"` und der Farbskala `RdYlGn_r` von $1{,}0$ bis $5{,}0$). Der innere Ring repräsentiert die fünf Fachrichtungen, während der äußere Ring alle 89 akkreditierten Module mit ihren Klarnamen auffächert.
 
 ![Sunburst Noten-Vergleich aller Module](../images/sunburst_noten_vergleich.png)
 
-> **Interaktives Diagramm:** Eine stufenlos zoombare Vektorversion mit Tooltips zu ECTS, Fehlquoten und Teilnehmerzahlen steht unter [docs/interactive/sunburst_noten_vergleich.html](../interactive/sunburst_noten_vergleich.html) bereit.
+> **Interaktives Diagramm:** Eine stufenlos zoombare Vektorversion mit Tooltips zu Prüfungsvolumina und exakten Notenschnitten steht unter [docs/interactive/sunburst_noten_vergleich.html](../interactive/sunburst_noten_vergleich.html) bereit.
 
 #### Empirische Notenbefunde nach Fachbereichen ($N = 852.368$ Prüfungen)
 
@@ -197,7 +197,7 @@ Das erste hierarchische Sunburst-Diagramm visualisiert das Notengefüge der gesa
 
 ### 2.2 Curriculare Support-Verzahnung (Sunburst II)
 
-Das komplementäre Sunburst-Diagramm ordnet das institutionelle Fördersystem hierarchisch von innen nach außen: Fördertypus $\rightarrow$ Spezifisches Förderprogramm $\rightarrow$ Profitierende Studiengänge $\rightarrow$ Adressierte Fachmodule.
+Das komplementäre Sunburst-Diagramm bildet die dreistufige Hierarchie der Förderlandschaft ab: Programmname $\rightarrow$ Profitierender Studiengang $\rightarrow$ Zielmodul (`path=['sup_name', 'stg_name', 'mod_name']`).
 
 ![Sunburst Verteilung der Förderangebote](../images/sunburst_support_verteilung.png)
 
@@ -220,19 +220,59 @@ Das komplementäre Sunburst-Diagramm ordnet das institutionelle Fördersystem hi
 | `SUP11` | Studienberatung | psychosozial | $5\,\text{h}$ | 6.986 | 7.634 | Transversal (Status- und Fachberatung) |
 | `SUP12` | Peer-Support-Gruppe | psychosozial | $15\,\text{h}$ | 6.951 | 7.618 | Transversal (Gemeinschaftsbildung) |
 
-#### Mathematische Koppelung an die Prüfungssimulation (`engine.py`)
+---
 
-In der Simulationsmechanik moduliert fachlicher Support die kontinuierliche latente Leistung $L_{i,m}$ vor Diskretisierung in Notenstufen ($1{,}0$ bis $5{,}0$):
+### 2.3 Prüfungsmechanik & Stochastische Notenfindung: Das Auswürfeln der Prüfungen
 
-$$\Delta L_{\text{Support}} = \text{boost} = \min\left(\text{boost}_{\text{raw}}; \, \text{deckel}\right)$$
+Die Generierung von Klausurversuchen und Noten folgt einem mehrstufigen, deterministisch reproduzierbaren stochastischen Prozess (`simuliere_pruefung` in `src/deepsupport/simulation/engine.py`).
 
-$$\text{boost}_{\text{raw}} = \left( \sum_{a \in \mathcal{A}_{\text{akt}}} w_{a,m} + \frac{2}{3} \sum_{a \in \mathcal{A}_{\text{hist}} \setminus \mathcal{A}_{\text{akt}}} w_{a,m} \right) \times \gamma_{\text{boost}} \times \mu_{\text{mult}}$$
+#### 1. Semesterweise Modulbelegung
+Zu Beginn jedes Semesters ermittelt der Simulator die zu belegenden Module:
+- **Turnusprüfung:** Ein Modul wird nur zugelassen, wenn sein Prüfungsturnus (`WS`, `SS` oder `beides`) mit dem aktuellen Semestertyp übereinstimmt (`turnus in ("beides", akt_sem_typ)`).
+- **Zulassungsvoraussetzung:** Das Modul muss offen sein und entweder im aktuellen Fachsemester curriculär empfohlen sein (`empfohlenes_fachsemester <= fachsem`) oder es handelt sich um eine Wiederholungsprüfung (`versuche > 0`).
+- **Abschlussarbeits-Sperre:** Die Bachelorarbeit darf erst belegt werden, wenn nahezu alle Leistungspunkte erworben sind ($\text{CP}_{\text{bestanden}} \ge \text{CP}_{\text{gesamt}} - 18$).
+- **Modulabwurf bei Zeitüberlastung:** Übersteigt der geplante Workload das Zeitbudget, werden die anspruchsvollsten Module probabilistisch zurückgestellt ($p_{\text{drop}}$, siehe Abschnitt 3.1).
 
-Hierbei bezeichnet $\mathcal{A}_{\text{akt}}$ die im aktuellen Semester genutzten Angebote, $\mathcal{A}_{\text{hist}}$ frühere Teilnahmen an auf dieses Modul bezogenen Förderungen (partielles $2/3$-Carry-over-Gedächtnis für Wiederholungsprüfungen), $\gamma_{\text{boost}} = 0{,}08$ das Basisgewicht, $\mu_{\text{mult}} = 5{,}0$ den Szenario-Multiplikator und $\text{deckel} = 1{,}0$ die Obergrenze.
+#### 2. Kontinuierliche latente Leistungsfunktion ($L_{i,m}$)
+Die Prüfungsleistung eines Studierenden $i$ im Modul $m$ beim Versuch $v$ wird als kontinuierliche latente Variable berechnet:
 
-Transversale Angebote wirken dagegen dynamisch auf die latenten Zustandsvariablen:
-- **Überfachlich:** $\Delta \text{Motivation} = +0{,}02 \times \mu_{\text{mult}}$, $\Delta \text{Integration} = +0{,}01 \times \mu_{\text{mult}}$
-- **Psychosozial:** $\Delta \text{Motivation} = +0{,}015 \times \mu_{\text{mult}}$, $\Delta \text{Integration} = +0{,}035 \times \mu_{\text{mult}}$
+$$L_{i,m} = L_{\text{start}} + (2{,}5 - \text{erwartete\_note}_i) \cdot \gamma_{\text{hzb}} + (M_i - 0{,}5) \cdot \gamma_{\text{mot}} + (I_i - 0{,}5) \cdot \gamma_{\text{int}} - S_m \cdot \gamma_{\text{diff}} + (v - 1) \cdot \gamma_{\text{learn}} - P_{\text{overload}} + \epsilon_{\text{exam}} + B_{\text{supp}}$$
+
+Die Modellparameter sind wie folgt kalibriert:
+- $L_{\text{start}} = 0{,}50$: Basis-Leistungsniveau.
+- $\text{erwartete\_note}_i \in [1{,}0; 4{,}0]$: Individuelle Leistungserwartung, initialisiert über die HZB-Abiturnote (Gewicht $\gamma_{\text{hzb}} = 0{,}15$).
+- Motivation $M_i \in [0{,}05; 1{,}0]$ (Gewicht $\gamma_{\text{mot}} = 0{,}15$).
+- Soziale Integration $I_i \in [0{,}05; 1{,}0]$ (Gewicht $\gamma_{\text{int}} = 0{,}05$).
+- Modulschwierigkeit $S_m \in [0{,}20; 0{,}90]$ (Gewicht $\gamma_{\text{diff}} = 0{,}30$).
+- **Lerneffekt bei Wiederholungsversuchen:** Für jeden Wiederholungsversuch ($v > 1$) wird ein Vorbereitungsgewinn addiert: $(v - 1) \cdot \gamma_{\text{learn}}$ mit $\gamma_{\text{learn}} = 0{,}05$.
+- **Overload Penalty:** $P_{\text{overload}} = (\text{Overload-Stunden} / 100) \cdot 0{,}10$, dämpft die Klausurleistung bei Zeitmangel.
+- **Deterministisches Prüfungsrauschen ($\epsilon_{\text{exam}}$):**  
+  Um perfekte Kausalisolation zwischen Universen zu garantieren, wird das Rauschen nicht über den globalen Simulator-Zufall gezogen, sondern über einen isolierten Hash-Seed generiert:
+  $$\text{seed}_{\text{exam}} = (\text{base\_seed} \oplus \text{CRC32}(m\_id \parallel v)) \pmod{2^{32}}$$
+  $$\epsilon_{\text{exam}} \sim \mathcal{N}(0; \, \sigma_{\text{rauschen}}^2) \quad \text{mit} \quad \sigma_{\text{rauschen}} = 0{,}18$$
+- **Fachlicher Förderboost ($B_{\text{supp}}$):**  
+  Additiver Leistungsgewinn durch Tutorien inklusive $2/3$-Carry-over-Gedächtnis aus Vorsemestern (gedeckelt auf $\text{deckel} = 1{,}0$).
+
+#### 3. Diskretisierung in das deutsche Hochschulnotensystem
+Die latente Leistung $L_{i,m}$ wird über die Funktion `leistung_zu_note` in diskrete Notenstufen überführt:
+
+$$\text{note}_{\text{raw}} = \text{clip}(5{,}0 - L_{i,m} \cdot 4{,}0; \, 1{,}0; \, 5{,}0)$$
+
+Das deutsche Notenspektrum umfasst elf diskrete Stufen:
+$$\mathcal{G} = \{1{,}0, \, 1{,}3, \, 1{,}7, \, 2{,}0, \, 2{,}3, \, 2{,}7, \, 3{,}0, \, 3{,}3, \, 3{,}7, \, 4{,}0, \, 5{,}0\}$$
+
+Die Vergabe erfolgt mit einer **scharfen Durchfall-Schwelle**:
+$$\text{note} = \begin{cases} 5{,}0 & \text{falls } \text{note}_{\text{raw}} \ge 4{,}0 \quad (\text{bestanden} = \text{False}) \\ \arg\min_{g \in \mathcal{G}} |g - \text{note}_{\text{raw}}| & \text{falls } \text{note}_{\text{raw}} < 4{,}0 \quad (\text{bestanden} = \text{True}) \end{cases}$$
+
+#### 4. Kontrafaktischer Zwilling (`note_counterfactual`)
+Simultan zur realisierten Note berechnet der Simulator die kontrafaktische Note:
+$$\text{note}_{\text{counterfactual}} = \text{leistung\_zu\_note}(L_{i,m} - B_{\text{supp}})$$
+Da $\epsilon_{\text{exam}}$ identisch ist, beziffert `note - note_counterfactual` zeilenweise den reinen Kausaleffekt des Support-Boosts auf Klausurebene.
+
+#### 5. Drittversuchs-Regel & Zwangsexmatrikulation
+Fällt ein Studierender durch (`note == 5.0`), steigt der Versuchsindex:
+- Bei $v < 3$: Modul verbleibt im Status "offen" und wird im nächsten zulässigen Turnus erneut belegt.
+- Bei $v \ge 3$: Das Modul erhält den Status "gescheitert". Sofern es sich nicht um die Bachelorarbeit handelt, greift die Prüfungsordnung: `studi.exmatrikuliert = True` (Endgültig nicht bestanden).
 
 ---
 
@@ -302,8 +342,8 @@ $$p_{\text{drop}} = \left[ 0{,}01 + 0{,}30 \cdot \max(0; 0{,}40 - M) + 0{,}20 \c
 mit $c_{\text{sem}} = 1{,}4$ für Fachsemester 1 und $c_{\text{sem}} = 0{,}6$ für Fachsemester $\ge 5$.
 
 ```mermaid
-graph LR
-    subgraph "Additive Terme in berechne_dropout"
+flowchart LR
+    subgraph S1["Additive Terme in berechne_dropout"]
         T1["Basisterm: 0.01"]
         T2["Fehlversuche: + 0.04 * K_fail"]
         T3["CP-Rückstand: + 0.15 * min(CP/30, 1)"]
@@ -312,9 +352,9 @@ graph LR
         T6["Overload: + 0.10 * min(Penalty, 0.3)"]
     end
     T1 & T2 & T3 & T4 & T5 & T6 --> SUM["Summe p"]
-    SUM --> S1{"Fachsemester == 1?"}
-    S1 -- "Ja" --> MULT["Faktor 1.4"]
-    S1 -- "Nein" --> NORM["Faktor 1.0 (Sem 2-4) bzw. 0.6 (Sem >=5)"]
+    SUM --> COND{"Fachsemester == 1?"}
+    COND -- "Ja" --> MULT["Faktor 1.4"]
+    COND -- "Nein" --> NORM["Faktor 1.0 (Sem 2-4) bzw. 0.6 (Sem >=5)"]
     MULT --> HALF["Dämpfung: * 0.5 (Clip: [0.0, 0.45])"]
     NORM --> HALF
     HALF --> P_FINAL["Endgültiges p_drop"]
@@ -391,19 +431,30 @@ Trotz der Inklusion dieser statischen Kontrollvariablen wiesen die Cox-Modelle f
 Wird der Inanspruchnahmestatus auf aggregierter Personenebene definiert (z. B. `ever_used_support = True`, falls ein Studierender zu irgendeinem Zeitpunkt des Studiums Hilfe in Anspruch genommen hat), entsteht eine massive systematische Verzerrung:
 
 ```mermaid
-gantt
-    title Dekonstruktion des Immortal Time Bias
-    dateFormat  X
-    axisFormat %s
+flowchart TD
+    subgraph S1["Gruppe A: Früher Dropout (Unbehandelt)"]
+        direction LR
+        A1["t = 0: Immatrikulation"] --> A2["t = 1: Fehlversuche in Klausuren"] --> A3["t = 1: Vorzeitiger Abbruch"]
+        style A3 fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    end
 
-    section Früher Dropout (Unbehandelt)
-    Immatrikulation (t=0) :done, d1, 0, 1
-    Abbruch nach Prüfungsversagen (t=1) :crit, d2, 1, 2
+    subgraph S2["Gruppe B: Später Absolvent (Support-Nutzer in Semester 4)"]
+        direction LR
+        B1["t = 0: Immatrikulation"] --> B2["t = 1 bis 3: Aktives Studium<br><b>IMMORTAL TIME WINDOW</b><br>(kann definitionsgemäß nicht abbrechen)"]
+        B2 --> B3["t = 4: Erste Support-Nutzung"]
+        B3 --> B4["t = 6: Erfolgreicher Abschluss"]
+        style B2 fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,stroke-dasharray: 5 5
+        style B4 fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    end
 
-    section Später Absolvent (Support-Nutzer)
-    Immortal Time (t=0 bis t=4) :active, s1, 0, 4
-    Erste Support-Nutzung (t=4) :done, s2, 4, 5
-    Erfolgreicher Abschluss (t=6) :s3, 5, 7
+    subgraph S3["Systematischer Bias bei statischer Aggregation (ever_used_support)"]
+        direction TB
+        C1["Statisches Modell rechnet 'Immortal Time' (Sem 1-3) der Support-Gruppe zu"]
+        C2["Frühe Dropouts (Sem 1-3) landen zu 100% in der Nicht-Nutzer-Gruppe"]
+        C3["Resultat: Künstlich kollabierte Hazard Ratio (HR << 1.0) als Zensierungs-Artefakt!"]
+        C1 --> C2 --> C3
+        style C3 fill:#fee2e2,stroke:#b91c1c,stroke-width:2px
+    end
 ```
 
 1. **Die Asymmetrie der Expositionsgelegenheit:**  
@@ -433,30 +484,85 @@ Um die Indikationsverzerrung (Selektion in Förderangebote auf Basis latenter Sc
 
 ```mermaid
 flowchart LR
-    subgraph "Stufe 1: ML-Nuisance-Schätzung"
+    subgraph S1["Stufe 1: ML-Nuisance-Schätzung"]
         X["Kovariatenmatrix X (Noten, CP, Overload)"] --> M1["Propensity-Modell: g(X) = E[D|X]"]
         X --> M2["Outcome-Modell: m(X) = E[Y|X]"]
     end
     
-    subgraph "Stufe 2: Residualisierung"
+    subgraph S2["Stufe 2: Residualisierung"]
         D["Treatment D"] --> RES_D["D_tilde = D - g(X)"]
         M1 --> RES_D
         Y["Outcome Y"] --> RES_Y["Y_tilde = Y - m(X)"]
         M2 --> RES_Y
     end
     
-    subgraph "Stufe 3: Kausale Identifikation"
+    subgraph S3["Stufe 3: Kausale Identifikation"]
         RES_D --> REG["Orthogonale Regression: Y_tilde = theta * D_tilde + epsilon"]
         RES_Y --> REG
         REG --> THETA["Kausaler Effekt: theta (ATE / RR)"]
     end
 ```
 
-Durch die Kreuzvalidierungs-Orthogonalisierung ($K$-Fold Cross-Fitting) konvergiert der DML-Schätzer mit parametrischer Rate $\sqrt{N}$ gegen den wahren Behandlungseffekt, frei von Regularisierungs- und Selektionsverzerrungen:
-- **Naives Cox (Fachlicher Support):** $HR = 1{,}199$ (Scheinbare Risikoerhöhung um $+20\,\%$)
-- **Double Machine Learning (DML):** $RR = 0{,}964$ (Statistisch signifikanter Schutzeffekt, $p = 0{,}038$)
-- **Autoregressiver Transformer DML:** $RR = 0{,}887$
-- **Experimentelle Ground Truth (Universum A vs. B):** $RR = 0{,}786$ ($ARR = 7{,}95\,\text{pp}$, $NNT = 12{,}6$)
+Durch die Kreuzvalidierungs-Orthogonalisierung ($K$-Fold Cross-Fitting) konvergiert der DML-Schätzer mit parametrischer Rate $\sqrt{N}$ gegen den wahren Behandlungseffekt, frei von Regularisierungs- und Selektionsverzerrungen.
+
+---
+
+### 4.4 Dynamische Feedbackschleifen: Teufelskreis vs. Protektionsspirale
+
+Im Simulator existieren zirkuläre Rückkopplungen zwischen Leistung, Motivation, Zeitbelastung und Verbleib, die den Zeitverlauf prägen:
+
+```mermaid
+flowchart TD
+    subgraph Negativ["Der Teufelskreis des Studienabbruchs"]
+        direction TB
+        N1["Prüfungsversagen (K_fail >= 1)"] --> N2["Demotivation (-0.05 pro Fehlversuch)"]
+        N2 --> N3["Leistungsabfall in Folgeklausuren"]
+        N2 --> N4["Steigender Hinge-Zuschlag in berechne_dropout"]
+        N1 --> N5["Wiederholungszwang erzeugt Zeitdefizit"]
+        N5 --> N6["Modulabwurf (p_drop) oder Overload-Penalty"]
+        N6 --> N7["Kumulativer CP-Rückstand (> 15-30 CP)"]
+        N7 --> N4
+        N4 --> N8["Studienabbruch (Dropout)"]
+        style N8 fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    end
+
+    subgraph Positiv["Die Protektionsspirale durch Support"]
+        direction TB
+        P1["Bedarfsorientierte Support-Teilnahme"] --> P2["Fachlicher Notenboost (+ Boost)"]
+        P2 --> P3["Prüfungserfolg (bestanden = True)"]
+        P3 --> P4["Motivationserhalt / Super-Klausur-Boost"]
+        P3 --> P5["Regulärer CP-Erwerb (kein CP-Rückstand)"]
+        P4 & P5 --> P6["Minimierung von p_drop"]
+        P6 --> P7["Erfolgreicher Studienabschluss"]
+        style P7 fill:#dcfce7,stroke:#10b981,stroke-width:2px
+    end
+```
+
+- **Der Teufelskreis:** Ein akutes Scheitern an einer Hürdenklausur im 1. Semester senkt die Motivation um $-0{,}05$. Im 2. Semester kollidiert die notwendige Wiederholung mit neuen Pflichtmodulen. Wählt der Student den Modulabwurf, baut er CP-Rückstand auf; behält er alle Module, droht Overload-Penalty. Beide Pfade erhöhen $p_{\text{drop}}$ in den Semestern 2 bis 4 nachhaltig.
+- **Die Protektionsspirale:** Ein rechtzeitig in Anspruch genommenes Tutorium neutralisiert die Modulschwierigkeit, sichert das Bestehen und verhindert sowohl Demotivation als auch CP-Verzug.
+
+---
+
+### 4.5 Die methodische Reise zur Überwindung des Confounding by Indication
+
+Das Auffinden des wahren kausalen Effekts erforderte eine mehrstufige methodische Evolution über sieben Stufen, die in den Forschungsdokumenten detailliert protokolliert ist:
+
+| Stufe | Methodischer Ansatz | Punktschätzer | Kausale Gültigkeit & Limitation |
+|:---:|:---|:---:|:---|
+| **1** | **Naives Cox Proportional Hazards** | $HR = 1{,}199$ | **Fehlschlag:** Maskiert Schutzwirkung vollständig; weist Support eine Risikoerhöhung um $+20\,\%$ zu (*Confounding by Indication*). |
+| **2** | **Statische Kovariaten-Adjustierung (Dashboard)** | $HR \ll 0{,}50$ | **Fehlschlag:** Verzerrt durch *Immortal Time Bias* (Nicht-Nutzer tragen frühe Dropouts allein; Spätteilnehmer müssen zwingend überleben). |
+| **3** | **Subgruppen-Stratifikation** ($\text{Mot} < 0{,}40$) | $HR = 0{,}992$ | **Teilerfolg:** Schätzer kippt in die protektive Zone ($\Delta HR = -0{,}207$), eliminiert Indikation jedoch nur unvollständig. |
+| **4** | **Counting-Process-Panel** ($[t_{\text{start}}, t_{\text{stop}})$) | $HR = 1{,}085$ | **Struktureller Fortschritt:** Beseitigt den Immortal Time Bias vollständig, lässt dynamische Selektion jedoch unkorrigiert. |
+| **5** | **Inverse Probability Weighting (IPW / MSM)** | $RR = 0{,}982$ | **Fortschritt:** Balanciert beobachtbare Indikatoren, leidet jedoch unter Instabilitäten bei extremen Propensity-Gewichten. |
+| **6** | **Double Machine Learning (DML, Frisch-Waugh-Lovell)** | $RR = 0{,}964$ | **Durchbruch:** Orthogonale Residualisierung entkoppelt Indikation vom Nettoeffekt ($p = 0{,}038$). |
+| **7** | **Autoregressiver Transformer DML** | $RR = 0{,}887$ | **Beste Modellschätzung:** Erfasst sequentielle Feedbackschleifen und nähert sich der experimentellen Realität an. |
+| **GT** | **Strukturelles Kausalmodell (Universum A vs. B)** | **$RR = 0{,}786$** | **Goldstandard:** Perfekt synchronisiertes kontrafaktisches Experiment ($ARR = 7{,}95\,\text{pp}$, $NNT = 12{,}6$). |
+
+Die chronologische Entstehungsgeschichte, detaillierte mathematische Beweisführungen und Vergleichsanalysen sind in den folgenden Fachdokumenten dokumentiert:
+- Zur historischen Entdeckung des Selektionsbias und dem Paradoxon: [`../07_conversation_logs/01_History_Selection_Bias_and_Confounding.md`](../07_conversation_logs/01_History_Selection_Bias_and_Confounding.md)
+- Zum formalen Vergleich aller Kausalansätze (FWL vs. DML vs. Oracle): [`03_Uebersicht_Kausale_Ansaetze.md`](03_Uebersicht_Kausale_Ansaetze.md)
+- Zur empirischen Gesamtauswertung der 8 Parallelwelten: [`04_Kausale_Vergleichsanalyse.md`](04_Kausale_Vergleichsanalyse.md)
+- Zum systematischen Methodenreview kontrafaktischer Schätzer: [`counterfactual_methods_review.md`](counterfactual_methods_review.md)
 
 ---
 
@@ -466,6 +572,9 @@ Durch die Kreuzvalidierungs-Orthogonalisierung ($K$-Fold Cross-Fitting) konvergi
 |:---|:---|:---|
 | **Visuelle Datenexploration** | [visuelle_datenexploration_v4.md](visuelle_datenexploration_v4.md) | Publikationsfähige Plots (Kaplan-Meier, Treemap, KDE-Boxplots, Forest Plot). |
 | **Kausale Vergleichsanalyse** | [04_Kausale_Vergleichsanalyse.md](04_Kausale_Vergleichsanalyse.md) | Ausführliche mathematische Herleitung von DML, IPW und SCM-Ground-Truth. |
+| **Übersicht Kausale Ansätze** | [03_Uebersicht_Kausale_Ansaetze.md](03_Uebersicht_Kausale_Ansaetze.md) | Methodischer Vergleich von Naive vs. FWL-Partialling vs. DML vs. Oracle-Mediation. |
+| **Review Kontrafaktischer Methoden** | [counterfactual_methods_review.md](counterfactual_methods_review.md) | Umfassende Evaluation kontrafaktischer Modellarchitekturen und Schätzmethoden. |
+| **Historisches Selection-Bias-Protokoll** | [../07_conversation_logs/01_History_Selection_Bias_and_Confounding.md](../07_conversation_logs/01_History_Selection_Bias_and_Confounding.md) | Chronologischer Diskurs zur Genese der Parallelwelten und Aufdeckung des Indikations-Confoundings. |
 | **Systematische Verteilungsanalyse** | [systematische_verteilungsanalyse_v36_vs_v41.md](systematische_verteilungsanalyse_v36_vs_v41.md) | Psychometrischer und demografischer Kovariatencheck (V3.6 vs. V4.1). |
 | **Config-Audit & V5 Roadmap** | [config_audit_und_v5_roadmap.md](config_audit_und_v5_roadmap.md) | Parameter-Dokumentation des DGP und DZHW-Rekalibrierungsplan für Version 5. |
 | **Master-Synopse V4 Gesamt** | [../03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md](../03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md) | Benchmarks aller 15 Sensitivitätsszenarien und 225 ML-/DL-Modelle. |
