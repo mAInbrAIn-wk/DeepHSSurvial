@@ -126,6 +126,13 @@ GRID_SCENARIOS = [
         "name": "Kosten UND Wirkung Verdoppelt (Faktor 2 + Mult 10.0)",
         "dim": "Kombi",
         "override": {"support_kosten_faktor": 2.0, "support_effect_multiplier": 10.0}
+    },
+    # --- Selektionsmechanismen / Apathie-Ablation ---
+    {
+        "id": "S16_no_apathy_dampening",
+        "name": "Ohne Apathie-Dämpfung (Lineare Support-Suche ohne Kollaps bei mot<0.2)",
+        "dim": "Selektion",
+        "override": {"disable_apathy_dampening": True}
     }
 ]
 
