@@ -3,6 +3,24 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
+## [V4.2.5 Config-Audit, DGP-Leerstellen & V5-Roadmap] - 2026-09-09
+### Added
+- **Systematischer Config-Audit & V5-Roadmap (`docs/04_causal_and_simulation/config_audit_und_v5_roadmap.md`):**
+  - Vollständiger Codeabgleich aller 32 Einträge in `CONFIG` gegen `src/deepsupport/simulation/engine.py`.
+  - Aufdeckung historischer "Zombies": `gewicht_erwerb` (durch Zeitkontomodell funktionslos), `gewicht_motivation_rauschen` und `gewicht_integration_rauschen` (durch Beta-Verteilung verwaist).
+  - Identifikation von 5 "heimlichen" Defaults in `engine.py` (`overload_penalty_factor`, `overload_penalty_cap`, `support_kosten_faktor`, `rct_support_uptake`, `disable_apathy_dampening`), die in `CONFIG` fehlten.
+  - Vollständiger Katalog von über 25 hartcodierten Parametern (*Magic Numbers*) in Merkmalsgenerierung, Zeitkonto, Supportlogik und Dropout-Berechnung.
+- **Empirischer Kalibrierungsplan für Version 5:**
+  - Motivation: Rekalibrierung von $\kappa=20{,}0$ auf $\kappa=9{,}0$ ($\sigma \approx 0{,}15$), gestützt auf psychometrische Normdaten (Academic Motivation Scale AMS, SELLMO).
+  - HZB-Note: KMK-/Destatis-Abiturnotennormierung ($\kappa=6{,}5$, Bundesdurchschnitt $2{,}40$).
+  - Erwerbstätigkeit: Zero-inflated Modellierung nach 22. DSW-Sozialerhebung ($37\,\%$ bei $0\,\text{h}$, Erwerbstätige mit Modus $15\,\text{h}$, 20h BAföG-Knick).
+  - Migrationshintergrund & Geschlecht: Anpassung auf $28\,\%$ Migrationsquote und studiengangsspezifische Geschlechtermatrizen aus Destatis Fachserie 11.
+- **Backlog-Spezifikation (Nice-to-Have):**
+  - Dynamische Motivations-Trajektorien als akkumulierter Entfremdungsprozess nach der Erwartungs-Wert-Theorie (Eccles & Wigfield; Heublein et al. 2017/2022).
+  - Realism-Mode: Informelle Lerngruppen- und Peer-Netzwerkbildung zur Workload-Pufferung (Tinto-Modell).
+- **Aktualisierung von Projekt-Roadmaps:**
+  - `ToDo.md` und `LIMITATIONEN_FUTURE_WORK.md` um V5-Phasenplan und Backlog-Einträge erweitert.
+
 ## [V4.2.4 Systematische Verteilungsanalyse & Falsifikation der Apathie-Hypothese] - 2026-09-09
 ### Added
 - **Systematische Verteilungs- & Clipping-Analyse (`docs/04_causal_and_simulation/systematische_verteilungsanalyse_v36_vs_v41.md`):**

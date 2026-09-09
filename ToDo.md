@@ -1,8 +1,8 @@
 ---
 created: 2026-09-02
-last_updated: 2026-09-06
+last_updated: 2026-09-09
 status: aktiv
-tags: [todo, roadmap, tasks]
+tags: [todo, roadmap, tasks, v5-roadmap]
 ---
 
 # Aktuelle Baustellen (DeepSupport)
@@ -12,10 +12,25 @@ tags: [todo, roadmap, tasks]
 - [x] **Cross-Szenario-Synthese (S01–S15):** Vollständige metrische Synopse über alle 15 Szenarien und 225 Modelle generiert ([`master_synopse_v4_gesamt.md`](docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md)).
 - [x] **Heavy Deep Suite (S01, S07, S08):** Vollständige Ausführung (GRU, Deep Transformer, Fail PR-AUC, Landmark Representation Learning) und Synopse ([`synopse_heavy_suite_s01_s07_s08.md`](docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md)).
 - [x] **Klassenspezifische Evaluatoren implementieren (V4.2.2):** Vollständige Ablösung des manuellen Logging-Boilerplates durch 5 modulare OOP-Evaluator-Klassen (`SurvivalEvaluator`, `RegressionEvaluator`, `MulticlassEvaluator`, `CausalEvaluator`, `DualHeadEvaluator`), PR-AUC für alle Klassen, Dual-CIs, Rollout auf alle 14 Modellskripte und verifizierte Smoke-Test-Suite.
+- [x] **Systematischer Config-Audit & V5-Roadmap:** Vollständiger Codeabgleich (`CONFIG` vs. `engine.py`), Identifikation aller Zombies und Magic Numbers sowie empirischer Kalibrierungsplan ([`config_audit_und_v5_roadmap.md`](docs/04_causal_and_simulation/config_audit_und_v5_roadmap.md)).
 - [ ] **Nachtlauf S01 Baseline (Fast + Heavy Suite):** Voller Integrationstest der neuen Evaluator-Pipeline auf der Baseline-Welt.
 - [ ] **DeepLearning README prüfen:** Review der neu hinzugefügten README im Submodul DeepLearning (Fehler, Leakage-Disclaimer).
 - [ ] **MoE / Stacking Router:** Router basierend auf kontrafaktischen Universen trainieren.
 - [ ] **Dashboard Erweitern:** Tabs 2-5 (Causal & Stress-Test Reports) in das interaktive HTML SVG Dashboard integrieren.
+
+## 🚀 Version 5 Roadmap & DGP-Refactoring
+- [x] **Audit & Spezifikation:** Dokumentation aller Leerstellen, Zombies und empirischen Kalibrierungsziele erstellt ([`config_audit_und_v5_roadmap.md`](docs/04_causal_and_simulation/config_audit_und_v5_roadmap.md)).
+- [ ] **Phase 1 (Config-Bereinigung):** Zombies archivieren (`gewicht_erwerb`, `gewicht_motivation_rauschen`, `gewicht_integration_rauschen`), 5 heimliche Defaults (`overload_penalty_factor`, `support_kosten_faktor`, etc.) explizit in `CONFIG` aufnehmen.
+- [ ] **Phase 2 (Engine-Parametrisierung):** Alle 25+ hartcodierten Konstanten aus `engine.py` in strukturierte Config-Dataclasses auslagern.
+- [ ] **Phase 3 (Empirische Startverteilungen):**
+  - Motivation: $\kappa_{\text{Motivation}} = 9{,}0$ ($\sigma \approx 0{,}15$, Behebung des V4.1-Varianzkollapses).
+  - HZB-Note: $\kappa = 6{,}5$ als konfigurierbarer Parameter.
+  - Erwerbstätigkeit: Zero-Inflated kontinuierliche Verteilung (37 % bei 0h, 63 % erwerbstätig mit Modus 15h, 20h BAföG-Knick) nach 22. DSW-Sozialerhebung.
+  - Migrationshintergrund: Anpassung auf bundesweite DSW-Quote (28 %).
+  - Geschlechterverteilung: Fachbereichsgenaue Matrizen pro Studiengang aus Destatis Fachserie 11.
+- [ ] **Phase 4 (V5-Validierungslauf):** Head-to-Head-Simulationslauf $N=50.000$ und Re-Benchmarking der Kausal- und Survivalmodelle.
+- [ ] **Nice-to-Have / Backlog (Dynamische Trajektorien):** Modellierung des Studienverlaufs als Desillusions- und Entfremdungsprozess (Eccles & Wigfield; Heublein et al. 2017/2022).
+- [ ] **Nice-to-Have / Backlog (Realism-Mode):** Stochastischer Peer-Graph pro Kohorte zur Abbildung von Lerngruppen-Synergien und Isolationsrisiken (Tinto-Netzwerkmodell).
 
 ## 📊 Daten & Visualisierung
 - [ ] **Neues ERD (Entity Relationship Diagram):** Ein aktuelles ERD für die finale V4 Datenarchitektur erstellen (das alte aus Projekt_DE ist veraltet).

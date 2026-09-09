@@ -16,8 +16,20 @@ Der synthetische Generator unterscheidet Studiengänge derzeit primär über:
 
 *Future Work:* Erweiterung des Generators um fachbereichsspezifische Klimafaktoren und empirisch kalibrierte Motivationsverläufe nach DZHW-/CHE-Studierendensurveys.
 
-### B. Parametrische Annahmen
-Die Parameter der Simulation (z. B. `gewicht_support_boost = 0.04`, `p += 0.20` nach Fehlversuch) wurden heuristisch-plausibel gewählt. Obwohl eine Ground Truth existiert, wurde bisher keine systematische Parameter-Sensitivitätsanalyse (Grid Search über Generator-Seeds) durchgeführt.
+### B. Parametrische Sensitivität & Sensitivitäts-Grid (V4.1 / V4.2)
+Die heuristisch-plausibel gewählten Parameter wurden im **V4.1/V4.2 Sensitivity Grid** (15 Szenarien $\times$ 8 Universen, $N=50.000$) systematisch evaluiert (ARR-Spanne $7{,}3 - 8{,}5\,\text{pp}$). Die Sensitivitätsanalyse zeigte eine hohe strukturelle Stabilität des relativen Risikos, deckte jedoch eine signifikante Nichtlinearität auf: Lineare Cox-Modelle maskieren den Schutzeffekt des Supports ($HR=1{,}06$), während der Schutzeffekt in der tatsächlichen Risikogruppe ($\text{Motivation} < 0{,}40$) greift ($HR=0{,}9927$).
+
+### C. DGP-Varianzkollaps & Beta-Kalibrierung (V4.1)
+Bei der Umstellung von Gauß-Clipping auf Beta-Verteilungen in V4.1 wurde die empirische Varianz von HZB-Note und Alter perfekt repliziert, die Standardabweichung der Motivation und sozialen Integration kollabierte jedoch um $50\,\%$ ($\sigma_{\text{V3}} \approx 0{,}24 \rightarrow \sigma_{\text{V4}} \approx 0{,}12$ bei $\kappa=20{,}0$). Dies führte zu einer unnatürlich sterilen Studienabbrecherpopulation in Semester 1.
+*Future Work (Version 5):* Rekalibrierung auf $\kappa_{\text{Motivation}} = 9{,}0$ ($\sigma \approx 0{,}15$), was den psychometrischen Normdaten (Academic Motivation Scale AMS, SELLMO) entspricht. Siehe [`docs/04_causal_and_simulation/config_audit_und_v5_roadmap.md`](docs/04_causal_and_simulation/config_audit_und_v5_roadmap.md).
+
+### D. Konfigurations-Zombies & Hartcodierte Parameter
+Der systematische Config-Audit deckte verwaiste Parameter in `CONFIG` auf (`gewicht_erwerb`, `gewicht_motivation_rauschen`, `gewicht_integration_rauschen`), 5 ungesicherte `.get()`-Defaults in `engine.py` (`overload_penalty_factor`, etc.) sowie über 25 hartcodierte Parameter (*Magic Numbers*).
+*Future Work (Version 5):* Vollständige Bereinigung, strukturierte Config-Klassen und Parametrisierung aller Simulationskonstanten.
+
+### E. Dynamische Trajektorien & Realism-Mode (Backlog / Nice-to-Have)
+- **Motivationsverläufe:** Erweiterung der linearen Feedback-Gleichungen um akkumulierte Desillusionsprozesse nach der Erwartungs-Wert-Theorie (Eccles & Wigfield; Heublein et al. 2017/2022).
+- **Peer-Gruppendynamik (Realism-Mode):** Modellierung sozialer Netzwerke und informeller Lerngruppen zur Pufferung von Workload und Isolationsrisiken (Tinto-Modell).
 
 ---
 
