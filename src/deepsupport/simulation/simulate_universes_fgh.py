@@ -83,7 +83,7 @@ def simulate_universes_fgh():
         print(f"    Exportiere CSVs nach {uni_output} ...")
         df_dict = stammdaten.copy()
         df_dict.update(as_dataframe(studierende, stammdaten))
-        exportiere_csv(df_dict, uni_output)
+        exportiere_csv(df_dict, uni_output, cfg=CONFIG, generator_script=__file__, extra_info={"universe": uni_key, "universe_label": uni_cfg["label"]})
         
         print(f"    Aggregiere DataCube in {uni_output} ...")
         aggregiere_daten(uni_output)

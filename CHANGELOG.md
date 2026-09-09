@@ -3,6 +3,29 @@
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
+## [V4.2.3 Hypothesen-Falsifikation & Datenprovenienz-Engine] - 2026-09-08
+### Added
+- **Projekt-Skill `hypothesis-falsifier` (`.agent/skills/hypothesis-falsifier/SKILL.md`):**
+  - Standardisiertes 5-Stufen-Protokoll: Claim Extraction → Formal $H_0/H_1$ Specification → Falsification Criteria & Bounds → Standalone Verification Execution → Decision Matrix & Documentation.
+  - Verhindert narrative Spekulation und Post-hoc-Rationalisierungen bei unerwarteten Modell- und Simulationsergebnissen.
+- **Automatische Datenprovenienz & Generator-Lineage (`src/export.py`):**
+  - Jeder Datenexport via `exportiere_csv()` erzeugt ab sofort automatisch eine `generation_metadata.json` mit Git-Commit, Branch, Dirty-Flag, UTC-Zeitstempel, aufrufendem Skript, Interpreter-Pfad und vollständigem Konfigurations-Dump.
+  - Systematisches Zuordnungsdokument in `docs/04_causal_and_simulation/datenprovenienz_und_generator_zuordnung_v36_v41.md`: Lückenlose Zuordnung von V3.1/V3.2 (`output_dl_v2`), V3.6 Clean (`src/output_dl_v36_clean`) und V4.1 Baseline S01 (`data_v4_grid/S01_baseline`).
+- **Hypothesen-Untersuchungs-Suite (`src/deepsupport/runners/run_hypothesis_investigation.py` / `run_hypothesis_investigation.py`):**
+  - Einheitlicher Runner zur systematischen Überprüfung der drei DGP- und Modell-Hypothesen H1 (Dosis-Skalierung auf V3.6), H2 (Dosis-Halbierung auf V4.1) und H3 (Nicht-lineare Schwellenwert-Dynamik im Extended Cox).
+  - Unterstützt `--mode test` (schneller Testlauf auf kleiner Batch mit Subsampling/5 Epochen) und `--mode full` (vollständiger Nachtlauf für ThinkCentre/EliteDesk).
+  - Vollständige Verzeichnis-Isolation (`output_hypothesis_test_quick/` bzw. `output_hypothesis_investigation/`), kein Überschreiben bestehender Primärdaten.
+- **Empirische Ergebnisse des Testlaufs (Small Batch, Exit-Code 0):**
+  - **H3 (Nicht-lineare Cox-Dynamik): CONFIRMED.** Der lineare Extended Cox schätzt aggregiert $HR = 1.0952$ ($p < 0.001$), während die vulnerable Subgruppe (Motivation $< 0.40$) auf $HR = 1.0300$ absinkt ($\Delta = -0.0652$). Belegt, dass lineares Pooling über nicht-lineare Schwellenwerte den Schutzeffekt maskiert.
+  - **H2 (Dosis-Halbierung V4.1 S02): CONFIRMED.** Im Szenario S02 (Dosis $+0.05$ statt $+0.10$) schwächt sich der DML-Schutzeffekt von $HR = 0.8500$ ($-15\%$ Risiko) signifikant auf $HR = 0.9385$ ($-6.2\%$ Risiko) ab.
+  - **H1 (Dosis-Skalierung V3.6): FALSIFIED für überfachlichen Support ($HR = 1.0001$).** Beweist mikro-empirisch, dass in V3.6 die massive Selektionskluft ($\Delta = -0.2715$) ohne das in V4.1 eingeführte Apathy-Dampening selbst durch eine 5-fache Dosis nicht allein kompensiert werden kann (beim fachlichen Support sank das HR hingegen auf $0.9287$).
+
+### Fixed
+- **Auflösung des historischen 1.064-Opfer-Rätsels:**
+  - Aufklärung, dass die 1.064 Studierenden, die durch fachlichen Support abgebrochen haben, aus der frühen Version V3.1/V3.2 stammten. In V3.6 Clean war diese Zahl durch den stochastischen Puffer bereits auf 67 geschrumpft, in V4.1 Baseline beträgt sie 207 bei gleichzeitig 1.672 geretteten Studierenden.
+- **Modulare Importe & Rückwärtskompatibilität:**
+  - Wiederherstellung von `src/models.py` und `src/config.py` (Weiterleitung auf `deepsupport.data_engine.config`), Behebung von Pfad-Präzedenzen zwischen `src/` und `legacy_code/`.
+
 ## [V4.2.2 OOP Evaluator Architecture & Knowledge Graph] - 2026-09-06
 ### Added
 - **5 OOP Evaluator-Klassen (`src/deepsupport/evaluation/metrics_logger.py`):**

@@ -1,8 +1,13 @@
 import json
+import sys
+import copy
+import platform
+import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 import pandas as pd
 import numpy as np
-from typing import Dict, List
+from typing import Dict, List, Optional
 from config import CONFIG
 from models import Student
 
@@ -103,10 +108,76 @@ def as_dataframe(studierende: List[Student], stammdaten: Dict[str, pd.DataFrame]
         "abschluesse_df": pd.DataFrame(abschluesse_rows),
     }
 
-def exportiere_csv(daten: Dict[str, pd.DataFrame], output_dir: Path) -> None:
+def _get_git_info() -> Dict[str, Optional[str]]:
+    try:
+        commit = subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, timeout=2).decode().strip()
+    except Exception:
+        commit = "unknown"
+    try:
+        branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.DEVNULL, timeout=2).decode().strip()
+    except Exception:
+        branch = "unknown"
+    try:
+        status_out = subprocess.check_output(["git", "status", "--porcelain"], stderr=subprocess.DEVNULL, timeout=2).decode().strip()
+        is_dirty = len(status_out) > 0
+    except Exception:
+        is_dirty = None
+    return {
+        "commit": commit,
+        "branch": branch,
+        "dirty": is_dirty
+    }
+
+def schreibe_generation_metadata(
+    output_dir: Path, 
+    cfg: Optional[Dict] = None, 
+    generator_script: Optional[str] = None, 
+    extra_info: Optional[Dict] = None
+) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    meta_path = output_dir / "generation_metadata.json"
+    
+    config_dump = copy.deepcopy(cfg if cfg is not None else CONFIG)
+    safe_config = {}
+    for k, v in config_dump.items():
+        if isinstance(v, (str, int, float, bool, list, dict)) or v is None:
+            safe_config[k] = v
+        else:
+            safe_config[k] = str(v)
+            
+    meta = {
+        "schema_version": "1.0",
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "git": _get_git_info(),
+        "environment": {
+            "python_version": sys.version,
+            "platform": platform.platform(),
+            "executable": sys.executable
+        },
+        "generator": {
+            "entry_script": sys.argv[0] if sys.argv else "unknown",
+            "generator_script": generator_script or (sys.argv[0] if sys.argv else "unknown")
+        },
+        "config": safe_config
+    }
+    if extra_info:
+        meta["extra_info"] = extra_info
+        
+    with open(meta_path, "w", encoding="utf-8") as f:
+        json.dump(meta, f, indent=2, ensure_ascii=False)
+    print(f"  [OK] {'generation_metadata.json':<25} geschrieben")
+
+def exportiere_csv(
+    daten: Dict[str, pd.DataFrame], 
+    output_dir: Path, 
+    cfg: Optional[Dict] = None,
+    generator_script: Optional[str] = None,
+    extra_info: Optional[Dict] = None
+) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     for key, df in daten.items():
         if df is not None:
             pfad = output_dir / f"{key.replace('_df', '')}.csv"
             df.to_csv(pfad, index=False, sep=",", decimal=".")
             print(f"  [OK] {pfad.name:<25} {len(df):>8} Zeilen")
+    schreibe_generation_metadata(output_dir, cfg=cfg, generator_script=generator_script, extra_info=extra_info)

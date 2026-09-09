@@ -9,8 +9,10 @@ import time
 sys.path.insert(0, str(Path('src').absolute()))
 from config import CONFIG
 from export import as_dataframe, exportiere_csv
-# Wir nutzen die neue Engine v4
-from simulation_v4 import generiere_stammdaten, generiere_studierende, simuliere_verlaeufe
+try:
+    from deepsupport.simulation.engine import generiere_stammdaten, generiere_studierende, simuliere_verlaeufe
+except ImportError:
+    from simulation_v4 import generiere_stammdaten, generiere_studierende, simuliere_verlaeufe
 
 def run_v4_universes(population_seed: int = 12345, base_output_override: Path = None):
     print("Starte True Counterfactual Trajectory Simulator (Simulator V4 Engine) ...")
@@ -79,7 +81,7 @@ def run_v4_universes(population_seed: int = 12345, base_output_override: Path = 
         
         uni_out = base_output / f"universe_{uni_key}"
         uni_out.mkdir(parents=True, exist_ok=True)
-        exportiere_csv(df_dict, uni_out)
+        exportiere_csv(df_dict, uni_out, cfg=CONFIG, generator_script=__file__, extra_info={"scenario_id": "S01_baseline", "universe": uni_key, "universe_label": uni_cfg["label"]})
         
         dropout_cnt = sum(1 for s in studierende if s.abgebrochen or s.exmatrikuliert or (not s.abschluss_erreicht and len(s.einschreibungen) >= 16))
         drop_rate = dropout_cnt / len(studierende)

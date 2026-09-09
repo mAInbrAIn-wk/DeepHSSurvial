@@ -42,7 +42,14 @@ def train_dml_orthogonal_survival(data_dir: Path = Path('src/output_dl'),
                                   temporal: str = 'prev',
                                   mode: str = 'standard',
                                   epochs: int = 50,
-                                  batch_size: int = 2048):
+                                  batch_size: int = 2048,
+                                  output_dir: Path = None):
+    if output_dir is None:
+        out_env = os.environ.get("OUTPUT_DIR")
+        output_dir = Path(out_env) if out_env else Path(data_dir)
+    else:
+        output_dir = Path(output_dir)
+
     print("\n" + "=" * 74)
     print(f"   DOUBLE MACHINE LEARNING (DML) ORTHOGONALIZED SURVIVAL (temporal={temporal}, mode={mode})")
     print("=" * 74)
@@ -189,7 +196,7 @@ def train_dml_orthogonal_survival(data_dir: Path = Path('src/output_dl'),
     print("=" * 74)
 
     # Logging
-    base_dir = data_dir
+    base_dir = output_dir
     model_name = f"dml_orthogonal_survival_{temporal}_{mode}" if (temporal != 'prev' or mode != 'standard') else "dml_orthogonal_survival"
 
     metrics_dict = {
@@ -220,9 +227,16 @@ def train_dml_orthogonal_survival(data_dir: Path = Path('src/output_dl'),
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Double Machine Learning Survival Model")
     parser.add_argument('--data_dir', type=str, default='src/output_dl')
+    parser.add_argument('--output_dir', type=str, default=None)
     parser.add_argument('--temporal', type=str, default='prev', choices=['prev', 'cum'])
     parser.add_argument('--mode', type=str, default='standard')
     parser.add_argument('--epochs', type=int, default=40)
     args = parser.parse_args()
 
-    train_dml_orthogonal_survival(Path(args.data_dir), temporal=args.temporal, mode=args.mode, epochs=args.epochs)
+    train_dml_orthogonal_survival(
+        Path(args.data_dir),
+        temporal=args.temporal,
+        mode=args.mode,
+        epochs=args.epochs,
+        output_dir=Path(args.output_dir) if args.output_dir else None
+    )

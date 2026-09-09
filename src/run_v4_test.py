@@ -11,8 +11,10 @@ CONFIG["num_studierende"] = 2000
 CONFIG["output_dir"] = "src/output_v4_test"
 CONFIG["seed"] = 42
 
-# Wir importieren explizit aus simulation_v4!
-from simulation_v4 import generiere_stammdaten, generiere_studierende, simuliere_verlaeufe
+try:
+    from deepsupport.simulation.engine import generiere_stammdaten, generiere_studierende, simuliere_verlaeufe
+except ImportError:
+    from simulation_v4 import generiere_stammdaten, generiere_studierende, simuliere_verlaeufe
 from export import as_dataframe, exportiere_csv
 from aggregate import aggregiere_daten
 from validate import validiere_und_dokumentiere
