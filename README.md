@@ -152,9 +152,15 @@ flowchart TD
 > **Epistemische Einordnung:** Die absoluten Kennzahlen ($R^2$, ROC-AUC) spiegeln die Gesetzmäßigkeiten des synthetischen Generators wider. Der wissenschaftliche Erkenntnisgewinn liegt im **relativen Vergleich der Methoden**, da alle Architekturen auf exakt derselben Datenbasis konkurrieren:
 
 ### A. Kausale Inferenz: Das Scheitern linearer Modelle & die Stärke von DML
-- **Lineare Cox-Modelle versagen aggregiert ($HR = 1{,}06$):** Weil die simulierte Dropout-Funktion Schwellenwerte besitzt (Dropout steigt stark an, wenn Motivation $< 0{,}40$), maskiert eine über alle Studierenden gemittelte lineare Schätzung den Effekt.
-- **Subgruppen-Identifikation:** Filtert man auf die tatsächliche Risikogruppe ($\text{Motivation} < 0{,}40$), detektiert auch das Cox-Modell den Schutz ($HR = 0{,}9927$).
-- **Double Machine Learning (DML):** Durch zweistufige Residual-Orthogonalisierung schätzt DML einen konsistent protektiven Effekt von $HR \approx 0{,}85$ und überwindet das Confounding am effektivsten.
+
+![Kausaler Forest Plot](docs/images/forest_plot_kausal_vergleich.png)
+
+*(Vollständige visuelle Datenexploration mit 6 Publikationsgrafiken und interaktiven HTML-Dashboards: [`visuelle_datenexploration_v4.md`](docs/04_causal_and_simulation/visuelle_datenexploration_v4.md))*
+
+- **Lineare Cox-Modelle versagen aggregiert ($HR = 1{,}20$):** Weil die simulierte Dropout-Funktion Schwellenwerte besitzt (Dropout steigt stark an, wenn Motivation $< 0{,}40$), maskiert eine über alle Studierenden gemittelte lineare Schätzung den Effekt und erliegt dem *Confounding by Indication*.
+- **Subgruppen-Identifikation:** Filtert man auf die tatsächliche Risikogruppe ($\text{Motivation} < 0{,}40$), detektiert auch das Cox-Modell den Schutz ($HR = 0{,}992$).
+- **Double Machine Learning (DML):** Durch zweistufige Residual-Orthogonalisierung schätzt DML einen konsistent protektiven Effekt ($RR = 0{,}887$ bis $0{,}964$) und überwindet das Confounding am effektivsten.
+- **SCM Ground Truth (Universum A vs. B):** Der kontrafaktische Benchmark belegt eine reale Risikoreduktion auf $RR = 0{,}786$ ($ARR = 7{,}95\,\text{pp}$).
 
 ### B. Operative Früherkennung: Deep Learning & Landmark-Attention
 - **Landmark-Prognose nach 2 Semestern:** Ein kompakter Transformer-Encoder kann nach nur zwei absolvierten Semestern **$76{,}5\,\%$ der Varianz der späteren Abschlussnote** ($R^2 = 0{,}765$) erklären. Für Hochschul-Frühwarnsysteme reicht die Frühphase der Studienbiografie weitgehend aus.
@@ -184,7 +190,7 @@ Die vollständige Dokumentation umfasst über 60 Fachdokumente. Für den gezielt
 
 | Gateway | Themenschwerpunkt | Zentrale Dokumente |
 |:---|:---|:---|
-| **DGP & Kausalität** | Simulationsarchitektur, 8 Universen, Bias-Analysen, V5-Spezifikation | [`04_Kausale_Vergleichsanalyse.md`](docs/04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md)<br>[`config_audit_und_v5_roadmap.md`](docs/04_causal_and_simulation/config_audit_und_v5_roadmap.md)<br>[`systematische_verteilungsanalyse_v36_vs_v41.md`](docs/04_causal_and_simulation/systematische_verteilungsanalyse_v36_vs_v41.md) |
+| **DGP & Kausalität** | Simulationsarchitektur, 8 Universen, Bias-Analysen, V5-Spezifikation | [`visuelle_datenexploration_v4.md`](docs/04_causal_and_simulation/visuelle_datenexploration_v4.md)<br>[`04_Kausale_Vergleichsanalyse.md`](docs/04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md)<br>[`config_audit_und_v5_roadmap.md`](docs/04_causal_and_simulation/config_audit_und_v5_roadmap.md)<br>[`systematische_verteilungsanalyse_v36_vs_v41.md`](docs/04_causal_and_simulation/systematische_verteilungsanalyse_v36_vs_v41.md) |
 | **Deep Learning** | Autoregressive Transformer, Causal Masking, Dynamic DeepHit | [`model_architectures.md`](docs/02_architectures_and_models/model_architectures.md)<br>[`synopse_heavy_suite_s01_s07_s08.md`](docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md) |
 | **Benchmarks** | Master-Synopse aller 15 Szenarien & 225 Modelle, Noten- & Risikolifts | [`master_synopse_v4_gesamt.md`](docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md)<br>[`synopse_supportwirkung_s01_s02_s03.md`](docs/03_evaluations_and_benchmarks/synopse_supportwirkung_s01_s02_s03.md) |
 | **Engineering** | DuckDB In-Memory SQL, 5 Feature-Modi, 5 OOP-Evaluatoren | [`feature_builder_map.md`](docs/02_architectures_and_models/feature_builder_map.md)<br>[`duckdb_architecture_analysis.md`](docs/02_architectures_and_models/duckdb_architecture_analysis.md)<br>[`refactoring_plan_evaluation_pipeline1.md`](docs/01_master_plans/refactoring_plan_evaluation_pipeline1.md) |

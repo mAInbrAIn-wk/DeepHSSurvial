@@ -9,11 +9,11 @@ tags: [dokumentation, index, navigation]
 
 Dieses Verzeichnis bündelt alle architektonischen Entscheidungen (ADRs), Kausalsynthesen, Evaluierungsberichte, Master-Pläne und Entwicklungs-Protokolle des DeepSupport-Projekts.
 
-[👈 **Zurück zur Projektübersicht / Portfolio Showcase**](../README.md)
+[**Zurueck zur Projektuebersicht / Portfolio Showcase**](../README.md)
 
 ---
 
-## 🧭 Inhaltsverzeichnis
+## Inhaltsverzeichnis
 
 ### 1. [01_master_plans/](01_master_plans/) — Strategie & Roadmaps
 - [`02_Methodische_Evolution_und_Synthese.md`](01_master_plans/02_Methodische_Evolution_und_Synthese.md): Historischer und methodischer Reifegrad (Selection Bias → Causal Panels → Competing Risks → Attention).
@@ -33,8 +33,8 @@ Dieses Verzeichnis bündelt alle architektonischen Entscheidungen (ADRs), Kausal
 
 ### 3. [03_evaluations_and_benchmarks/](03_evaluations_and_benchmarks/) — Synopsen & Benchmarks (V4.2)
 - **Gesamtsynthesen:**
-  - 🌟 [`master_synopse_v4_gesamt.md`](03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md): **Master-Synthese über alle 15 Szenarien und 225 DL-Modelle** des Feature Grids.
-  - 🌟 [`synopse_heavy_suite_s01_s07_s08.md`](03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md): **Heavy Deep Suite Gesamtauswertung** (Dual-Head GRU vs. Deep Transformer, Fail PR-AUC, Landmark Representation Learning).
+  - [`master_synopse_v4_gesamt.md`](03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md): **Master-Synthese über alle 15 Szenarien und 225 DL-Modelle** des Feature Grids.
+  - [`synopse_heavy_suite_s01_s07_s08.md`](03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md): **Heavy Deep Suite Gesamtauswertung** (Dual-Head GRU vs. Deep Transformer, Fail PR-AUC, Landmark Representation Learning).
 - **Isolierte Sensitivitäts-Synopsen:**
   - [`synopse_supportwirkung_s01_s02_s03.md`](03_evaluations_and_benchmarks/synopse_supportwirkung_s01_s02_s03.md): Variation der Supportwirkung (0.5× bis 2.0×).
   - [`synopse_notenboost_s01_s04_s05_s06.md`](03_evaluations_and_benchmarks/synopse_notenboost_s01_s04_s05_s06.md): Isolierte Analyse des Notenboosts auf den fachlichen Support.
@@ -47,6 +47,7 @@ Dieses Verzeichnis bündelt alle architektonischen Entscheidungen (ADRs), Kausal
 ---
 
 ### 4. [04_causal_and_simulation/](04_causal_and_simulation/) — Kausale Inferenz & Data-Generating Process
+- [`visuelle_datenexploration_v4.md`](04_causal_and_simulation/visuelle_datenexploration_v4.md): Visuelle Datenexploration & Kausale Evidenz (6 Publikationsgrafiken, Kohorten-Sunburst, Modul-Treemap, KDE-Varianzanalyse, Kausaler Forest Plot & Kaplan-Meier-Dynamik).
 - [`04_Kausale_Vergleichsanalyse.md`](04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md): Empirische Gesamtauswertung der 8 Parallelwelten (A–H) vs. Kausal-Schätzer.
 - [`03_Uebersicht_Kausale_Ansaetze.md`](04_causal_and_simulation/03_Uebersicht_Kausale_Ansaetze.md): Methodischer Vergleich von Naive vs. FWL-Partialling vs. DML vs. Oracle-Mediation.
 - [`systematische_verteilungsanalyse_v36_vs_v41.md`](04_causal_and_simulation/systematische_verteilungsanalyse_v36_vs_v41.md): Empirische Verteilungsanalyse aller Merkmale ($N=50.000$) und Aufdeckung des selektiven Motivations-Varianzkollapses ($\kappa=20{,}0$).
