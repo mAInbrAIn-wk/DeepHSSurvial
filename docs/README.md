@@ -48,6 +48,7 @@ Dieses Verzeichnis bündelt alle architektonischen Entscheidungen (ADRs), Kausal
 
 ### 4. [04_causal_and_simulation/](04_causal_and_simulation/) — Kausale Inferenz & Data-Generating Process
 - [`datenarchitektur_und_eda_v4.md`](04_causal_and_simulation/datenarchitektur_und_eda_v4.md): **Datenarchitektur, Relationales Schema & EDA** (Vollständiges Mermaid-ERD aller 11 Tabellen, Curriculares Noten- & Support-Gefüge via Sunburst I & II, mathematische DGP-Dekonstruktion von Overload/Dropouts & biostatistische Auflösung des Immortal Time Bias).
+- [`grundlagen_survival_analyse_und_zensierung.md`](04_causal_and_simulation/grundlagen_survival_analyse_und_zensierung.md): **Methodische Grundlagen der Survival-Analyse & Zensierungsmathematik** (Formales Time-to-Event-Framework, Greenwood-Formel, Auflösung des Verweildauer-Missverständnisses, Competing Risks CIF vs. Absolventen-Zensierung, Cox & Dynamic DeepHit).
 - [`visuelle_datenexploration_v4.md`](04_causal_and_simulation/visuelle_datenexploration_v4.md): Visuelle Datenexploration & Kausale Evidenz (6 Publikationsgrafiken, Kohorten-Sunburst, Modul-Treemap, KDE-Varianzanalyse, Kausaler Forest Plot & Kaplan-Meier-Dynamik).
 - [`04_Kausale_Vergleichsanalyse.md`](04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md): Empirische Gesamtauswertung der 8 Parallelwelten (A–H) vs. Kausal-Schätzer.
 - [`03_Uebersicht_Kausale_Ansaetze.md`](04_causal_and_simulation/03_Uebersicht_Kausale_Ansaetze.md): Methodischer Vergleich von Naive vs. FWL-Partialling vs. DML vs. Oracle-Mediation.

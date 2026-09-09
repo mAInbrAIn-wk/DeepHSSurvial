@@ -412,7 +412,7 @@ Für die künftige Modellgeneration Version 5 ist daher ein empirisch rekalibrie
 
 ## 4. Biostatistische Methodik: Vom statischen Dashboard zur Kausalinferenz
 
-Die methodische Evolution von DeepSupport dokumentiert den Übergang von deskriptiven, korrelativen Auswertungen zu rigorosen kausalen Identifikationsstrategien.
+Die methodische Evolution von DeepSupport dokumentiert den Übergang von deskriptiven, korrelativen Auswertungen zu rigorosen kausalen Identifikationsstrategien. Die formalen mathematischen Grundlagen, Zensierungsdefinitionen, die Greenwood-Formel, das Verweildauer-Missverständnis sowie Competing Risks sind im Referenzdokument [grundlagen_survival_analyse_und_zensierung.md](grundlagen_survival_analyse_und_zensierung.md) dediziert ausgearbeitet.
 
 ### 4.1 Die methodische Ausgangslage im historischen Dashboard (`Dashboard_Survival_beta.ipynb`)
 
@@ -571,6 +571,7 @@ Die chronologische Entstehungsgeschichte, detaillierte mathematische Beweisführ
 | Dokument | Pfad | Thematischer Bezug |
 |:---|:---|:---|
 | **Visuelle Datenexploration** | [visuelle_datenexploration_v4.md](visuelle_datenexploration_v4.md) | Publikationsfähige Plots (Kaplan-Meier, Treemap, KDE-Boxplots, Forest Plot). |
+| **Grundlagen der Survival-Analyse** | [grundlagen_survival_analyse_und_zensierung.md](grundlagen_survival_analyse_und_zensierung.md) | Formale mathematische Fundierung, Zensierungsarten, Greenwood-Formel, Auflösung des Verweildauer-Missverständnisses, Competing Risks. |
 | **Kausale Vergleichsanalyse** | [04_Kausale_Vergleichsanalyse.md](04_Kausale_Vergleichsanalyse.md) | Ausführliche mathematische Herleitung von DML, IPW und SCM-Ground-Truth. |
 | **Übersicht Kausale Ansätze** | [03_Uebersicht_Kausale_Ansaetze.md](03_Uebersicht_Kausale_Ansaetze.md) | Methodischer Vergleich von Naive vs. FWL-Partialling vs. DML vs. Oracle-Mediation. |
 | **Review Kontrafaktischer Methoden** | [counterfactual_methods_review.md](counterfactual_methods_review.md) | Umfassende Evaluation kontrafaktischer Modellarchitekturen und Schätzmethoden. |
