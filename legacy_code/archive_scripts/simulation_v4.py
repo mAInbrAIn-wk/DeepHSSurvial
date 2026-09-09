@@ -366,10 +366,12 @@ def simuliere_verlaeufe(studierende: List[Student], stammdaten: Dict[str, pd.Dat
                                     p += 0.20
                     elif typ == "ueberfachlich":
                         p = 0.05 + (0.5 - studi.motivation) * 0.15
-                        if studi.motivation < 0.2: p *= (studi.motivation / 0.2)
+                        if not cfg.get("disable_apathy_dampening", False) and studi.motivation < 0.2:
+                            p *= (studi.motivation / 0.2)
                     else: # psychosozial
                         p = 0.01 + (0.5 - studi.soziale_integration) * 0.12
-                        if studi.soziale_integration < 0.2: p *= (studi.soziale_integration / 0.2)
+                        if not cfg.get("disable_apathy_dampening", False) and studi.soziale_integration < 0.2:
+                            p *= (studi.soziale_integration / 0.2)
                     
                     if studi.erstakademiker and typ in ("fachlich", "psychosozial"): p += 0.05
                     p = float(np.clip(p, 0.0, 0.9))
