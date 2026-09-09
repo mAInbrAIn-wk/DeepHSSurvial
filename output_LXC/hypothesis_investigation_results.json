@@ -1,0 +1,41 @@
+{
+  "timestamp_start": "2026-09-09T01:42:34Z",
+  "mode": "full",
+  "hypotheses_evaluated": [
+    "H1",
+    "H2",
+    "H3"
+  ],
+  "results": {
+    "H3": {
+      "status": "CONFIRMED",
+      "duration_s": 17.5,
+      "overall_hr": 1.0601127818904734,
+      "overall_p": 1.6069387208279589e-15,
+      "vulnerable_mot_low_hr": 0.9927061050271498,
+      "vulnerable_mot_low_p": 0.4749267333543906,
+      "resilient_mot_high_hr": 1.122539153733863,
+      "resilient_mot_high_p": 2.957009930618708e-06,
+      "cp_high_risk_hr": 1.0658893722344596,
+      "cp_zero_risk_hr": 0.9728074681289202,
+      "verdict": "CONFIRMED: Linearer Cox scheitert an Schwellenwert-DGP; Vulnerable Subgruppe zeigt signifikant niedrigere HR als Resiliente."
+    },
+    "H2": {
+      "status": "FALSIFIED",
+      "duration_s": 104.66,
+      "hr_uebf_s02": 0.8121684789657593,
+      "hr_uebf_s01_ref": 0.85,
+      "diff_hr": -0.0378,
+      "verdict": "FALSIFIED"
+    },
+    "H1": {
+      "status": "AMBIGUOUS",
+      "duration_s": 538.44,
+      "hr_v36_mult5": 0.9607284665107727,
+      "hr_v36_clean_ref": 0.9809,
+      "diff_hr": -0.0202,
+      "verdict": "Ergebnis: HR=0.9607 vs Ref=0.9809"
+    }
+  },
+  "timestamp_end": "2026-09-09T01:53:35Z"
+}

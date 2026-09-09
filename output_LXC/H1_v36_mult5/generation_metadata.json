@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "timestamp_utc": "2026-09-09T01:51:48.386937+00:00",
+  "git": {
+    "commit": "33642ee8b289f9ff9833cd1da87aa917aca84811",
+    "branch": "main",
+    "dirty": true
+  },
+  "environment": {
+    "python_version": "3.12.3 (main, Jul  6 2026, 13:53:24) [GCC 14.2.0]",
+    "platform": "Linux-7.0.14-15-pve-x86_64-with-glibc2.41",
+    "executable": "/home/mluser/.pyenv/versions/3.12.3/bin/python3"
+  },
+  "generator": {
+    "entry_script": "run_hypothesis_investigation.py",
+    "generator_script": "simulation_v3.py"
+  },
+  "config": {
+    "anomalie_quote": 0.05,
+    "csv_decimal": ".",
+    "csv_encoding": "utf-8",
+    "csv_sep": ",",
+    "end_jahr": 2024,
+    "gewicht_erwerb": 0.006,
+    "gewicht_hzb": 0.4,
+    "gewicht_integration": 0.2,
+    "gewicht_integration_erstakademiker": 0.05,
+    "gewicht_integration_erwerb": 0.003,
+    "gewicht_integration_migration": 0.05,
+    "gewicht_integration_rauschen": 0.25,
+    "gewicht_lerneffekt": 0.2,
+    "gewicht_motivation": 0.5,
+    "gewicht_motivation_erwerb": 0.004,
+    "gewicht_motivation_hzb": 0.08,
+    "gewicht_motivation_rauschen": 0.25,
+    "gewicht_rauschen": 0.18,
+    "gewicht_schwierigkeit": 0.3,
+    "gewicht_support_boost": 0.08,
+    "integration_startwert": 0.65,
+    "leistung_startwert": 0.55,
+    "log_every_n_studis": 1000,
+    "max_simulations_semester": 16,
+    "motivation_startwert": 0.65,
+    "n_studierende": 50000,
+    "output_dir": "output_dl",
+    "seed": 42,
+    "start_jahr": 2015,
+    "support_deckel": 1.0,
+    "support_effect_multiplier": 5.0,
+    "zeitkonto_budget_h": 900
+  },
+  "extra_info": {
+    "hypothesis": "H1",
+    "mult": 5.0
+  }
+}
