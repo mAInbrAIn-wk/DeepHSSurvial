@@ -538,6 +538,7 @@ def build_semester_panel_df(
         pr_sem['hidden_overload_prev'] = pr_sem.groupby('studierenden_id')['hidden_overload'].shift(1).fillna(0.0)
 
     df_abschluesse['is_dropout'] = df_abschluesse['status'].str.strip().str.lower().isin(['abgebrochen', 'exmatrikuliert', 'zeitueberschreitung']).astype(int)
+    df_abschluesse['is_grad'] = (df_abschluesse['status'].str.strip().str.lower() == 'abgeschlossen').astype(int)
     df_abschluesse['hzb_typ_ord'] = df_abschluesse['hzb_typ'].map(HZB_ORDINAL_MAP).fillna(3.0)
     df_abschluesse['migrationshintergrund'] = df_abschluesse['migrationshintergrund'].fillna(False).astype(float)
     df_abschluesse['erstakademiker'] = df_abschluesse['erstakademiker'].fillna(False).astype(float)
@@ -545,11 +546,16 @@ def build_semester_panel_df(
     for s_name in STUDIENGAENGE_LIST:
         df_abschluesse[f"stg_{s_name.replace(' ', '_')}"] = (df_abschluesse['stg_name'] == s_name).astype(float)
 
-    stud_cols = ['studierenden_id', 'is_dropout', 'studiendauer_semester', 'hzb_note', 'hzb_typ_ord', 'stg_name', 'migrationshintergrund', 'erstakademiker', 'erwerbstaetigkeit_std', 'hidden_zeit_puffer'] + [f"stg_{s.replace(' ', '_')}" for s in STUDIENGAENGE_LIST]
+    stud_cols = ['studierenden_id', 'status', 'is_dropout', 'is_grad', 'studiendauer_semester', 'hzb_note', 'hzb_typ_ord', 'stg_name', 'migrationshintergrund', 'erstakademiker', 'erwerbstaetigkeit_std', 'hidden_zeit_puffer'] + [f"stg_{s.replace(' ', '_')}" for s in STUDIENGAENGE_LIST]
     stud_cols = [c for c in stud_cols if c in df_abschluesse.columns]
 
     panel_df = pr_sem.merge(df_abschluesse[stud_cols], on='studierenden_id', how='left')
     panel_df['event'] = np.where((panel_df['fachsemester'] == panel_df['studiendauer_semester']) & (panel_df['is_dropout'] == 1), 1, 0)
+    panel_df['competing_event'] = np.where(
+        panel_df['fachsemester'] == panel_df['studiendauer_semester'],
+        np.where(panel_df['is_dropout'] == 1, 1, np.where(panel_df['is_grad'] == 1, 2, 0)),
+        0
+    )
     panel_df['delta_gpa'] = panel_df['gpa_prev'] - panel_df['hzb_note']
 
     feature_cols: List[str] = ['hzb_note', 'hzb_typ_ord'] + [f"stg_{s.replace(' ', '_')}" for s in STUDIENGAENGE_LIST[1:]]
@@ -632,15 +638,21 @@ def build_exam_panel_df(
     df_abschluesse['is_dropout'] = df_abschluesse['status'].str.strip().str.lower().isin(
         ['abgebrochen', 'exmatrikuliert', 'zeitueberschreitung']
     ).astype(int)
+    df_abschluesse['is_grad'] = (df_abschluesse['status'].str.strip().str.lower() == 'abgeschlossen').astype(int)
     df_abschluesse['hzb_typ_ord'] = df_abschluesse['hzb_typ'].map(HZB_ORDINAL_MAP).fillna(3.0)
     for s_name in STUDIENGAENGE_LIST:
         df_abschluesse[f"stg_{s_name.replace(' ', '_')}"] = (df_abschluesse['stg_name'] == s_name).astype(float)
 
-    stud_cols = ['studierenden_id', 'is_dropout', 'hzb_note', 'hzb_typ_ord', 'migrationshintergrund', 'erstakademiker', 'erwerbstaetigkeit_std'] + [f"stg_{s.replace(' ', '_')}" for s in STUDIENGAENGE_LIST]
+    stud_cols = ['studierenden_id', 'status', 'is_dropout', 'is_grad', 'hzb_note', 'hzb_typ_ord', 'migrationshintergrund', 'erstakademiker', 'erwerbstaetigkeit_std'] + [f"stg_{s.replace(' ', '_')}" for s in STUDIENGAENGE_LIST]
     stud_cols = [c for c in stud_cols if c in df_abschluesse.columns]
 
     panel_df = df_pruefungen.merge(df_abschluesse[stud_cols], on='studierenden_id', how='left')
     panel_df['event'] = np.where(panel_df['is_last_exam'] & (panel_df['is_dropout'] == 1), 1, 0)
+    panel_df['competing_event'] = np.where(
+        panel_df['is_last_exam'],
+        np.where(panel_df['is_dropout'] == 1, 1, np.where(panel_df['is_grad'] == 1, 2, 0)),
+        0
+    )
 
     feature_cols: List[str] = ['hzb_note', 'hzb_typ_ord'] + [f"stg_{s.replace(' ', '_')}" for s in STUDIENGAENGE_LIST[1:]]
     if not realistic:

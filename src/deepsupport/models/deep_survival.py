@@ -163,7 +163,17 @@ def train_deep_survival(data_dir: Path = Path('src/output_dl'),
 
     test_risk = deepsurv.predict(X_test, verbose=0).flatten()
     c_idx_ds = fast_c_index(y_surv[test_idx, 0], y_surv[test_idx, 1], test_risk)
-    auc_ds = float(roc_auc_score(y_event[test_idx], test_risk))
+
+    # Breslow Baseline Hazard Schätzung für exakte Kalibrierung
+    train_risk = deepsurv.predict(X_train, verbose=0).flatten()
+    df_h0 = estimate_cumulative_baseline_hazard(y_surv[train_idx, 0], y_surv[train_idx, 1], train_risk)
+    test_times = y_surv[test_idx, 0]
+    idx_h0 = np.searchsorted(df_h0['time'].values, test_times, side='right') - 1
+    h0_test = np.where(idx_h0 >= 0, df_h0['cum_h0'].values[np.clip(idx_h0, 0, len(df_h0) - 1)], 0.0)
+    calibrated_risk_ds = 1.0 - np.exp(-h0_test * np.exp(test_risk))
+    auc_ds = float(roc_auc_score(y_event[test_idx], calibrated_risk_ds))
+    pr_auc_ds = float(average_precision_score(y_event[test_idx], calibrated_risk_ds))
+    brier_ds = float(brier_score_loss(y_event[test_idx], calibrated_risk_ds))
 
     # 2. Landmark Logistic Hazard
     print("[2/2] Trainiere Landmark Logistic Hazard ...")
@@ -197,6 +207,8 @@ def train_deep_survival(data_dir: Path = Path('src/output_dl'),
     print("=" * 74)
     print(f"  • DeepSurv C-Index          : {c_idx_ds:.4f}")
     print(f"  • DeepSurv ROC-AUC          : {auc_ds:.4f}")
+    print(f"  • DeepSurv PR-AUC           : {pr_auc_ds:.4f}")
+    print(f"  • DeepSurv Brier            : {brier_ds:.4f}")
     print(f"  • Logistic Hazard ROC-AUC   : {auc_lh:.4f}")
     print(f"  • Logistic Hazard PR-AUC    : {pr_auc_lh:.4f}")
     print(f"  • Logistic Hazard C-Index   : {c_idx_lh:.4f}")
@@ -210,12 +222,14 @@ def train_deep_survival(data_dir: Path = Path('src/output_dl'),
 
     metrics_ds = {
         "C-Index": c_idx_ds,
-        "ROC-AUC": auc_ds
+        "ROC-AUC": auc_ds,
+        "PR-AUC": pr_auc_ds,
+        "Brier_Score": brier_ds
     }
     evaluator_ds = SurvivalEvaluator(base_dir=base_dir, model_name=model_name_ds, mode=mode)
     evaluator_ds.evaluate_and_log(
         y_true=y_event[test_idx],
-        y_prob=test_risk,
+        y_prob=calibrated_risk_ds,
         model=deepsurv,
         history=hist_ds.history if hasattr(hist_ds, 'history') else hist_ds,
         extra_metrics=metrics_ds

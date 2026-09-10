@@ -7,7 +7,7 @@
 [![Parallel Universes](https://img.shields.io/badge/Ground_Truth-8_Parallel_Worlds-10B981?style=flat)](docs/04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md)
 [![Sensitivity Grid](https://img.shields.io/badge/Sensitivity_Grid-15_Scenarios_x_225_Models-6366F1?style=flat)](docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md)
 
-> **Hinweis zur KI-Transparenz:** Dieses Projekt wurde als transparentes Portfolio- und Forschungsprojekt in intensiver Paarprogrammierung mit modernen KI-Systemen (Antigravity IDE, Claude Opus/Sonnet 4.6, Gemini 3.1/3.6/3.7) entwickelt und lückenlos dokumentiert. Ausführliche Details siehe [Abschnitt Autorschaft & KI-Transparenz](#10-autorschaft--ki-transparenz).
+> **Hinweis zur KI-Transparenz:** Dieses Projekt wurde als transparentes Portfolio- und Forschungsprojekt in intensiver Paarprogrammierung mit modernen KI-Systemen (Antigravity IDE, Claude Opus/Sonnet 4.6, Gemini Pro 3.1, Flash 3.6/3.7/3.8) entwickelt und lückenlos dokumentiert. Ausführliche Details siehe [Abschnitt Autorschaft & KI-Transparenz](#10-autorschaft--ki-transparenz).
 
 ---
 
@@ -19,7 +19,7 @@ Dieses Projekt hat einen ganz konkreten, praktischen Ausgangspunkt: Vor einigen 
 
 Im Bildungsbereich stehen Entscheidungsträger vor einem Dilemma: Reale Individualdaten von Studierenden sind aus guten Gründen (Datenschutz, institutionelle Silos zwischen Prüfungsamt und Lernmanagementsystemen) extrem restriktiv geschützt. Noch schwerwiegender ist jedoch das **methodische Problem**: Studierende wählen Fördermaßnahmen nicht zufällig aus. Wer sich in einer akuten Leistungskrise befindet, greift eher nach Hilfe. 
 
-Das Projekt **DeepSupport** ist das Resultat einer mehrstufigen intellektuellen Reise, um dieses Problem von Grund auf zu verstehen und methodisch zu untersuchen:
+Das Projekt **DeepSupport** ist das Resultat einer hartnäckigen Auseinandersetzung mit dieser Fragestellung um dieses Problem von Grund auf zu verstehen und methodisch zu untersuchen:
 - **Phase 1 (Data Engineering):** Konzeption relationaler Datenmodelle in 3NF und eines ROLAP Star-Schemas zur Abbildung universitärer Studienverläufe.
 - **Phase 2 (Data Analysis):** Entwicklung eines ersten dynamisch-stochastischen Studierendensimulators und Entdeckung des *Time-Varying Confounding*.
 - **Phase 3 (Deep Learning):** Einsatz moderner Sequenzmodelle (Causal Transformers, Recurrent Neural Networks, Dynamic DeepHit) zur Vorhersage von Noten und Studienabbrüchen.

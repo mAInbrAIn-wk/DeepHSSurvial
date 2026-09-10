@@ -26,7 +26,7 @@ Dieses Dokument buendelt alle aktiven, geplanten und zurueckgestellten Vorhaben 
 
 | # | Thema | Referenz | Status | Geplante Umsetzung |
 |:--|:------|:---------|:-------|:-------------------|
-| **P1** | **PyTorch / PyCox Fork** | `docs/01_master_plans/pytorch_pycox_port_plan.md` | Bereit zum Start | Eigenstaendiger paralleler Modellstrang in PyTorch/PyCox: `LogisticHazard`, `DeepHit`, PyTorch-basierte Transformer mit Treatment-Effekt-Koepfen fuer ITE-Schaetzung. Keine destruktive Migration, sondern Portfolio-Erweiterung. |
+| **P1** | **PyTorch / PyCox Fork** | `docs/03_evaluations_and_benchmarks/pytorch_pycox_benchmark_v42.md` | Abgeschlossen (2026-09-11) | Parallele Modell-Suite in PyTorch 2.x & PyCox erweitert: `LogisticHazard` ($AUC=0{,}7628$), `DeepHit` ($C=0{,}8407$), `PyTorchCoxPH` (Breslow-kalibriert: $\text{Brier}=0{,}0381, C=0{,}9308$), `PyTorchCoxTime` ($AUC=0{,}7648, \text{PR-AUC}=0{,}1221$), `DeepHitCompetingRisks` (Abschluss $AUC=0{,}9943$, Dropout $AUC=0{,}7328$), `ExamTransformerRegressor` (Gradeblind $R^2=0{,}8143$), `CausalExamSurvival` (Step-AUC $= 0{,}8981$, PR-AUC $= 0{,}1861$), plus schlüsselfertiger LXC-Runner `src/run_torch_lxc.py`. |
 | **P2** | **Re-Run Kausale Mediation auf V4-Daten** | `docs/04_causal_and_simulation/kausale_mediationsanalyse_v42.md` | Abgeschlossen (2026-09-10) | 4-Stufen-Prüfplan vollständig durchgeführt: Selektions-Audit ($d = -0{,}945$), Realistische Mediation ($OR = 1{,}195$), Oracle-Entzauberung ($OR \le 0{,}999$). |
 | **P3** | **Submodul-Review `DeepLearning/README.md`** | `ToDo.md` | Offen | Bereinigung veralteter Pfad- und Leakage-Hinweise im Submodul. |
 
@@ -58,6 +58,7 @@ Dieses Dokument buendelt alle aktiven, geplanten und zurueckgestellten Vorhaben 
 
 | Thema | Dokument / Artefakt | Datum |
 |:------|:--------------------|:------|
+| **PyTorch & PyCox Modeling Suite** | `docs/03_evaluations_and_benchmarks/pytorch_pycox_benchmark_v42.md` | 10. Sep 2026 |
 | **Marginal Structural Models (MSM & IPTW)** | `docs/04_causal_and_simulation/marginal_structural_models_v42.md` | 10. Sep 2026 |
 | **Kausale Mediationsanalyse V4.2** | `docs/04_causal_and_simulation/kausale_mediationsanalyse_v42.md` | 10. Sep 2026 |
 | **V4.2 Master Sensitivity Grid (S01–S15)** | `docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md` (225 Modelle, N=50.000) | 04. Sep 2026 |
