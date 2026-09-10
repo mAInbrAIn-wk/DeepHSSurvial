@@ -15,10 +15,10 @@ Dieses Dokument buendelt alle aktiven, geplanten und zurueckgestellten Vorhaben 
 
 | # | Thema | Referenz / Modul | Status | Geplante Umsetzung |
 |:--|:------|:-----------------|:-------|:-------------------|
-| **T1** | **Deep Transformer Modernisierung** | `docs/06_misc/benefit_analyse_deep_transformer_suite.md`, `src/deep_transformer_regression.py` | In Vorbereitung | Reduktion von $d=128 \to 64$, 4 Heads, Integration von `SinCosPositionalEncoding`, L2-Weight-Decay (`kernel_regularizer=l2(1e-4)`) zur Beseitigung des Overfittings; Halbierung der Rechenzeit. |
-| **T2** | **Sideproject A: Regularisierungs-Benchmark** | `docs/01_master_plans/modellarchitektur_uebersicht_und_ueberarbeitungsplan.md` (Modul 4) | In Vorbereitung | Systematischer Vergleich: Reine L2-Regularisierung ($\lambda \in \{10^{-5}, 10^{-4}, 10^{-3}\}$) vs. Dropout ($p \in \{0.1, 0.2, 0.3\}$) vs. ElasticNet auf Tabellen- und Sequenzdaten. |
-| **T3** | **Sideproject B: Asymmetrischer Focal Loss Grid** | `docs/01_master_plans/modellarchitektur_uebersicht_und_ueberarbeitungsplan.md` (Modul 5) | In Vorbereitung | Fokussierung auf die seltene Dropout-Klasse ($\approx 3{,}8\,\%$ Baserate) via $\gamma \in \{1.0, 2.0\}$ und $\alpha \in \{0.25, 0.50\}$ zur Maximierung der Minority PR-AUC. |
-| **T4** | **Baseline S01 Re-Run (Integrationstest)** | `ToDo.md` | Offen | Vollstaendiger Durchlauf aller modernisierten Modelle auf Universum A mit den 5 neuen OOP-Evaluatoren. |
+| **T1** | **Deep Transformer Modernisierung** | `docs/06_misc/benefit_analyse_deep_transformer_suite.md`, `src/deep_transformer_regression.py` | Abgeschlossen (2026-09-10) | Schlanker $d=64$, 4 Heads, 2 Blocks Backbone mit SinCosPositionalEncoding, AttentionPooling, L2-Regularisierung. Gradeblind $R^2 = 0{,}7850$, Standard $R^2 = 0{,}9885$, Survival AUC $= 0{,}8890$. |
+| **T2** | **Sideproject A: Regularisierungs-Benchmark** | `output_v4_models/S01_baseline/universe_A/metrics/deep_transformer_nightly_9runs_summary.md` | Abgeschlossen (2026-09-10) | 9-Run-Benchmark (7.85h): Hybrid konvergiert 3x schneller als unregularisiert (26.8m vs 77.2m). Overfitting auf $N=50.000$ beseitigt. |
+| **T3** | **Sideproject B: Asymmetrischer Focal Loss Grid** | `src/deep_transformer_regression.py` | Archiviert | Aus Standard-Benchmark ausgegliedert, da BCE saubere Kalibrierung für Survival/Brier liefert. |
+| **T4** | **Gradeblind Oracle Exploration** | `src/deepsupport/data_engine/feature_builder.py` | Geplant | Theoretische Obergrenze der GPA-Vorhersage rein aus latenten DGP-Ressourcen ohne Noten. |
 
 ---
 
@@ -26,8 +26,8 @@ Dieses Dokument buendelt alle aktiven, geplanten und zurueckgestellten Vorhaben 
 
 | # | Thema | Referenz | Status | Geplante Umsetzung |
 |:--|:------|:---------|:-------|:-------------------|
-| **P1** | **PyTorch / PyCox Fork** | `docs/01_master_plans/pytorch_pycox_port_plan.md` | Geplant (morgen) | Eigenstaendiger paralleler Modellstrang in PyTorch/PyCox: `LogisticHazard`, `DeepHit`, PyTorch-basierte Transformer mit Treatment-Effekt-Koepfen fuer ITE-Schaetzung. Keine destruktive Migration, sondern Portfolio-Erweiterung. |
-| **P2** | **Re-Run Kausale Mediation auf V4-Daten** | `docs/01_master_plans/analyseplan_mediation_confounding.md`, `docs/04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md` | Offen | Aktualisierung der Imai/Pearl-Mediationsanalyse (ACME/ADE fuer Fachlich, Ueberfachlich, Psychosozial) von V3.6 auf die finalen V4.1/V4.2 S01 Daten. |
+| **P1** | **PyTorch / PyCox Fork** | `docs/01_master_plans/pytorch_pycox_port_plan.md` | Bereit zum Start | Eigenstaendiger paralleler Modellstrang in PyTorch/PyCox: `LogisticHazard`, `DeepHit`, PyTorch-basierte Transformer mit Treatment-Effekt-Koepfen fuer ITE-Schaetzung. Keine destruktive Migration, sondern Portfolio-Erweiterung. |
+| **P2** | **Re-Run Kausale Mediation auf V4-Daten** | `docs/04_causal_and_simulation/kausale_mediationsanalyse_v42.md` | Abgeschlossen (2026-09-10) | 4-Stufen-Prüfplan vollständig durchgeführt: Selektions-Audit ($d = -0{,}945$), Realistische Mediation ($OR = 1{,}195$), Oracle-Entzauberung ($OR \le 0{,}999$). |
 | **P3** | **Submodul-Review `DeepLearning/README.md`** | `ToDo.md` | Offen | Bereinigung veralteter Pfad- und Leakage-Hinweise im Submodul. |
 
 ---
