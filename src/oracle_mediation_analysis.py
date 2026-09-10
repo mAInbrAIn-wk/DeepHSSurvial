@@ -57,7 +57,8 @@ def run_oracle_mediation(data_dir: Path = Path('data_v4_grid/S01_baseline/univer
         'event', 'fach_supp_count', 'uebf_supp_count', 'psych_supp_count',
         'delta_cp_prev', 'fails_prev', 'gpa_prev', 'hzb_note', 'erwerbstaetigkeit_std',
         'erstakademiker', 'hidden_motivation_prev', 'hidden_soziale_integration_prev',
-        'hidden_overload_prev', 'hidden_zeit_puffer'
+        'hidden_overload_prev', 'hidden_zeit_puffer',
+        'cp_earned', 'is_fail', 'hidden_motivation', 'hidden_soziale_integration'
     ]
 
     missing = [c for c in valid_cols if c not in panel_df.columns]
@@ -68,8 +69,10 @@ def run_oracle_mediation(data_dir: Path = Path('data_v4_grid/S01_baseline/univer
     df_clean = panel_df.dropna(subset=valid_cols).copy()
     print(f"[INFO] Analysiere Oracle Mediationspfade für {len(df_clean):,} Person-Semester Zeilen ({df_clean['studierenden_id'].nunique():,} Studierende)...")
 
-    # Generischer Leistungs-Mediator
-    df_clean['mediator_performance'] = df_clean['delta_cp_prev'] - df_clean['fails_prev'] * 5.0
+    # Post-treatment Mediatoren (zeitlich im aktuellen Semester t)
+    df_clean['mediator_performance'] = df_clean['cp_earned'] - df_clean['is_fail'] * 5.0
+    df_clean['delta_motivation'] = df_clean['hidden_motivation'] - df_clean['hidden_motivation_prev']
+    df_clean['delta_soziale_integration'] = df_clean['hidden_soziale_integration'] - df_clean['hidden_soziale_integration_prev']
 
     # Spezifikation der Treatments und ihrer wahren Mediatoren laut DGP
     treatments = {
@@ -80,12 +83,12 @@ def run_oracle_mediation(data_dir: Path = Path('data_v4_grid/S01_baseline/univer
         },
         "ueberfachlich": {
             "col": "uebf_supp_count",
-            "true_mediator": "hidden_motivation_prev",
+            "true_mediator": "delta_motivation",
             "latent_confounders": "hidden_soziale_integration_prev + hidden_overload_prev"
         },
         "psychosozial": {
             "col": "psych_supp_count",
-            "true_mediator": "hidden_soziale_integration_prev",
+            "true_mediator": "delta_soziale_integration",
             "latent_confounders": "hidden_motivation_prev + hidden_overload_prev"
         }
     }

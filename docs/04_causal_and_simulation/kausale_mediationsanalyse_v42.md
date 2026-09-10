@@ -45,8 +45,8 @@ Die nachfolgende Synopse vergleicht die Ergebnisse über alle vier methodischen 
 | **Stufe 1** | **Ground Truth Makroeffekt**<br>(Universum A vs. B / F / G / H) | $\text{ARR} = +3{,}5\text{ pp}$<br>($RR = 0{,}906$) | $\text{ARR} = +3{,}1\text{ pp}$<br>($RR = 0{,}916$) | $\text{ARR} = +2{,}3\text{ pp}$<br>($RR = 0{,}938$) | **Wahre Kausalität:** Alle 3 Maßnahmen senken das Dropout-Risiko substanziell (Gesamt-ARR $+7{,}9$ pp). |
 | **Stufe 2** | **Selektions-Audit ($t_0$)**<br>(Zustand bei Erstnutzung vs. Nie-Nutzer) | $\text{GPA: } d = +0{,}505$<br>$\text{Fails: } d = +0{,}328$ | $\text{Motivation: } \mathbf{d = -0{,}945}$<br>$\text{GPA: } d = +0{,}830$ | $\text{Integration: } \mathbf{d = -0{,}686}$<br>$\text{Erwerb: } d = +0{,}087$ | **Beweis der Indikation:** Nutzer sind bei $t_0$ extrem negativ vorselektiert ($p < 0{,}0001$). |
 | **Stufe 3** | **Realistische Mediation (Imai)**<br>(Nur beobachtbare Variablen, $B=100$) | $\text{Total } OR = \mathbf{1{,}195}$<br>$\text{ADE } OR = 1{,}192$ | $\text{Total } OR = \mathbf{1{,}077}$<br>$\text{ADE } OR = 1{,}040$ | $\text{Total } OR = \mathbf{1{,}030}$<br>$\text{ADE } OR = 1{,}014$ | **Scheitern naiver Methoden:** Alle CIs liegen strikt über $1{,}0$. Falscher Schluss: Support sei schädlich. |
-| **Stufe 4** | **Oracle Mediation (V4.2)**<br>(Konfiguration `2_Oracle_Confounder`) | $\text{Total } OR = 1{,}078$<br>$\text{ADE } OR = 1{,}077$ | $\text{Total } OR = \mathbf{0{,}999}$<br>$\text{ADE } OR = 0{,}999$ | $\text{Total } OR = \mathbf{0{,}993}$<br>$\text{ADE } OR = 0{,}993$ | **Entzauberung:** Sobald latente Confounder kontrolliert werden, bricht das Scheingift in sich zusammen. |
-| **Stufe 4** | **Oracle Mediation (V4.2)**<br>(Konfiguration `4_Oracle_Both`) | $\text{ADE } OR = 1{,}077$<br>$\text{ACME } OR = 1{,}000$ | $\text{ADE } OR = \mathbf{0{,}999}$<br>$\text{ACME } OR = 1{,}064$ | $\text{ADE } OR = \mathbf{0{,}993}$<br>$\text{ACME } OR = 1{,}008$ | **Mechanistische Zerlegung:** Direkter Schutzeffekt ($ADE < 1{,}0$) wird sichtbar. |
+| **Stufe 4** | **Oracle Mediation (V4.2)**<br>(Konfiguration `2_Oracle_Confounder`) | $\text{Total } OR = 1{,}081$<br>$\text{ADE } OR = 1{,}173$ | $\text{Total } OR = \mathbf{0{,}975}$<br>$\text{ADE } OR = 0{,}988$ | $\text{Total } OR = \mathbf{0{,}974}$<br>$\text{ADE } OR = 1{,}003$ | **Entzauberung:** Sobald latente Confounder kontrolliert werden, schlägt der Gesamteffekt für überfachlich & psychosozial in signifikanten Schutz ($OR < 1{,}0$) um. |
+| **Stufe 4** | **Oracle Mediation (V4.2)**<br>(Konfiguration `4_Oracle_Both`) | $\text{ADE } OR = 1{,}173$<br>$\text{ACME } OR = \mathbf{0{,}921}$ | $\text{ADE } OR = 1{,}023$<br>$\text{ACME } OR = \mathbf{1{,}003}$ | $\text{ADE } OR = 1{,}039$<br>$\text{ACME } OR = \mathbf{0{,}959}$ | **Mechanistische Zerlegung:** ACME belegt starke Schutzwirkung über Noten/CP ($OR = 0{,}921$) und Integration ($OR = 0{,}959$). |
 
 ---
 
@@ -172,18 +172,18 @@ flowchart TD
 
 | Support | Konfiguration | Total OR (95% CI) | Direct OR / ADE (95% CI) | Mediated OR / ACME (95% CI) | Anteil vermittelt (PM) |
 | :--- | :--- | :---: | :---: | :---: | :---: |
-| **Fachlich** | `1_Realistic` | 1,159 [1,115, 1,204] | 1,167 [1,122, 1,213] | 0,993 [0,991, 0,994] | -4,9% |
-| | `2_Oracle_Confounder` | **1,078** [1,036, 1,121] | **1,077** [1,036, 1,121] | 1,000 [0,999, 1,001] | 0,2% |
-| | `3_Oracle_Mediator` | 1,159 [1,115, 1,204] | 1,167 [1,122, 1,213] | 0,993 [0,991, 0,994] | -4,9% |
-| | `4_Oracle_Both` | **1,078** [1,036, 1,121] | **1,077** [1,036, 1,121] | 1,000 [0,999, 1,001] | 0,2% |
-| **Überfachlich** | `1_Realistic` | 1,038 [1,022, 1,055] | 1,033 [1,017, 1,050] | 1,005 [1,004, 1,006] | 13,0% |
-| | `2_Oracle_Confounder` | **0,999** [0,983, 1,015] | **0,999** [0,983, 1,015] | 1,000 [1,000, 1,001] | -7,5% |
-| | `3_Oracle_Mediator` | 1,076 [1,059, 1,093] | 1,003 [0,987, 1,020] | 1,072 [1,069, 1,076] | 95,4% |
-| | `4_Oracle_Both` | 1,062 [1,045, 1,079] | **0,999** [0,983, 1,015] | 1,064 [1,061, 1,067] | 102,4% |
-| **Psychosozial** | `1_Realistic` | 1,021 [0,997, 1,045] | 1,016 [0,993, 1,041] | 1,005 [1,004, 1,005] | 21,7% |
-| | `2_Oracle_Confounder` | **0,993** [0,970, 1,017] | **0,993** [0,970, 1,017] | 1,000 [0,999, 1,001] | -2,0% |
-| | `3_Oracle_Mediator` | 1,022 [0,999, 1,047] | 1,003 [0,980, 1,027] | 1,019 [1,015, 1,023] | 85,6% |
-| | `4_Oracle_Both` | 1,001 [0,978, 1,025] | **0,993** [0,970, 1,017] | 1,008 [1,004, 1,011] | 757,8% |
+| **Fachlich** | `1_Realistic` | 1,157 [1,113, 1,203] | 1,267 [1,216, 1,320] | **0,913** [0,909, 0,918] | -62,2% |
+| | `2_Oracle_Confounder` | **1,081** [1,039, 1,124] | 1,173 [1,125, 1,223] | **0,921** [0,917, 0,925] | -106,0% |
+| | `3_Oracle_Mediator` | 1,157 [1,113, 1,203] | 1,267 [1,216, 1,320] | **0,913** [0,909, 0,918] | -62,2% |
+| | `4_Oracle_Both` | **1,081** [1,039, 1,124] | 1,173 [1,125, 1,223] | **0,921** [0,917, 0,925] | -106,0% |
+| **Überfachlich** | `1_Realistic` | 1,004 [0.988, 1,020] | 1,011 [0,995, 1,028] | **0,992** [0,990, 0,994] | -211,0% |
+| | `2_Oracle_Confounder` | **0,975** [0,960, 0,991] | **0,988** [0,972, 1,004] | **0,988** [0,986, 0,990] | 49,7% |
+| | `3_Oracle_Mediator` | 1,036 [1,019, 1,053] | 1,033 [1,015, 1,052] | 1,002 [0,993, 1,011] | 6,7% |
+| | `4_Oracle_Both` | 1,027 [1,010, 1,043] | 1,023 [1,005, 1,042] | 1,003 [0,994, 1,012] | 11,7% |
+| **Psychosozial** | `1_Realistic` | 0,990 [0,967, 1,013] | 1,016 [0,992, 1,041] | **0,974** [0,972, 0,977] | 256,9% |
+| | `2_Oracle_Confounder` | **0,974** [0,951, 0,997] | 1,003 [0,979, 1,027] | **0,971** [0,969, 0,974] | 110,2% |
+| | `3_Oracle_Mediator` | 1,019 [0,995, 1,043] | 1,040 [1,013, 1,069] | **0,980** [0,966, 0,994] | -108,9% |
+| | `4_Oracle_Both` | **0,997** [0,974, 1,021] | 1,039 [1,012, 1,067] | **0,959** [0,946, 0,973] | 1393,5% |
 
 ---
 
@@ -256,6 +256,7 @@ Die Ergebnisse belegen, dass statische lineare und logistische Panel-Regressione
 | Dokument | Pfad | Relation |
 | :--- | :--- | :--- |
 | **Master-Analyseplan** | [analyseplan_mediation_confounding.md](../01_master_plans/analyseplan_mediation_confounding.md) | Ursprüngliches Design des 4-Stufen-Prüfplans |
+| **Methodischer Leitfaden** | [mediator_vs_confounder_leitfaden.md](mediator_vs_confounder_leitfaden.md) | Ausführlicher Leitfaden zu Confounder vs. Mediator, 2x2-Grid & Langzeitwirkungen |
 | **Audit-Bericht Stufe 2** | [selection_bias_audit_report.md](../../output_v4_models/S01_baseline/universe_A/diagnostics/selection_bias_audit_report.md) | Detaillierte deskriptive Statistiken der $t_0$-Vorbelastung |
 | **Realistischer Bericht Stufe 3** | [structural_mediation_report.md](../../output_v4_models/S01_baseline/universe_A/diagnostics/structural_mediation_report.md) | Bootstrap-Ergebnisse ohne latente Variablen |
 | **Oracle-Bericht Stufe 4** | [oracle_mediation_report.md](../../output_v4_models/S01_baseline/universe_A/diagnostics/oracle_mediation_report.md) | Vollständige Ergebnistabelle der 4 Oracle-Konfigurationen |
