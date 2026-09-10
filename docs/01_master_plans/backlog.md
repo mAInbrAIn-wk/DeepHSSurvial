@@ -49,7 +49,7 @@ Dieses Dokument buendelt alle aktiven, geplanten und zurueckgestellten Vorhaben 
 |:--|:------|:-------|:-------|:--------|
 | **C1** | **Dynamische Motivations-Trajektorien** | `config_audit_und_v5_roadmap.md` | Konzept | Akkumulierter Entfremdungsprozess nach Eccles & Wigfield (Erwartungs-Wert-Theorie). |
 | **C2** | **Realism-Mode: Tinto-Peer-Netzwerk** | `LIMITATIONEN_FUTURE_WORK.md` | Konzept | Informelle Lerngruppen und Peer-Netzwerkbildung zur Workload-Pufferung. |
-| **C3** | **Marginal Structural Models (MSM)** | `analyseplan_mediation_confounding.md` | Konzept | IPTW-Schaetzung fuer zeitvariierende Confounder mit Rueckkopplung. |
+| **C3** | **Marginal Structural Models (MSM)** | `marginal_structural_models_v42.md` | **abgeschlossen** | IPTW-Schätzung für zeitvariierende Confounder mit Rückkopplung implementiert & validiert. |
 | **C4** | **Parquet-Partitionierung** | `docs/02_architectures_and_models/duckdb_architecture_analysis.md` | Konzept | Multi-Universe Parquet-Layout: `output_dl/data/universe=*/exams.parquet`. |
 
 ---
@@ -58,6 +58,8 @@ Dieses Dokument buendelt alle aktiven, geplanten und zurueckgestellten Vorhaben 
 
 | Thema | Dokument / Artefakt | Datum |
 |:------|:--------------------|:------|
+| **Marginal Structural Models (MSM & IPTW)** | `docs/04_causal_and_simulation/marginal_structural_models_v42.md` | 10. Sep 2026 |
+| **Kausale Mediationsanalyse V4.2** | `docs/04_causal_and_simulation/kausale_mediationsanalyse_v42.md` | 10. Sep 2026 |
 | **V4.2 Master Sensitivity Grid (S01–S15)** | `docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md` (225 Modelle, N=50.000) | 04. Sep 2026 |
 | **Heavy Deep Suite (S01, S07, S08)** | `docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md` | 04. Sep 2026 |
 | **5 OOP Evaluator-Klassen** | `src/deepsupport/evaluation/metrics_logger.py` (Smoke-Tests 5/5 PASSED) | 06. Sep 2026 |
