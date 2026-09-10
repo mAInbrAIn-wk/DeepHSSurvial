@@ -83,7 +83,7 @@ def run_nightly_suite():
             }
             sem = m.get('deep_semester_regressor', {})
             ex = m.get('deep_exam_regressor', {})
-            sv = m.get('deep_exam_survival_bce', {})
+            sv = m.get('deep_exam_survival', {})
             print(f"--> Fertig in {elapsed:.1f}s | Sem R2: {sem.get('r2_score', sem.get('r2', 0.0)):.4f} | Exam R2: {ex.get('r2_score', ex.get('r2', 0.0)):.4f} | Surv AUC: {sv.get('roc_auc', 0.0):.4f}")
         except Exception as e:
             elapsed = time.time() - t0
@@ -129,7 +129,7 @@ def run_nightly_suite():
             }
             sem = m.get('deep_semester_regressor', {})
             ex = m.get('deep_exam_regressor', {})
-            sv = m.get('deep_exam_survival_bce', {})
+            sv = m.get('deep_exam_survival', {})
             print(f"--> Fertig in {elapsed:.1f}s | Sem R2: {sem.get('r2_score', sem.get('r2', 0.0)):.4f} | Exam R2: {ex.get('r2_score', ex.get('r2', 0.0)):.4f} | Surv AUC: {sv.get('roc_auc', 0.0):.4f}")
         except Exception as e:
             elapsed = time.time() - t0
@@ -170,7 +170,7 @@ def run_nightly_suite():
             res = results.get(f"feature_mode_{mode}", {}).get("metrics", {})
             sem = res.get("deep_semester_regressor", {})
             ex = res.get("deep_exam_regressor", {})
-            sv = res.get("deep_exam_survival_bce", {})
+            sv = res.get("deep_exam_survival", {})
             el = results.get(f"feature_mode_{mode}", {}).get("elapsed_s", 0.0)
             f.write(f"| `{mode}` | {sem.get('r2_score', sem.get('r2', 0.0)):.4f} | {sem.get('rmse', 0.0):.4f} | {ex.get('r2_score', ex.get('r2', 0.0)):.4f} | {ex.get('rmse', 0.0):.4f} | {sv.get('roc_auc', 0.0):.4f} | {sv.get('pr_auc_dropout', 0.0):.4f} | {el:.1f} |\n")
 
@@ -185,7 +185,7 @@ def run_nightly_suite():
             res = results.get(run_key, {}).get("metrics", {})
             sem = res.get("deep_semester_regressor", {})
             ex = res.get("deep_exam_regressor", {})
-            sv = res.get("deep_exam_survival_bce", {})
+            sv = res.get("deep_exam_survival", {})
             el = results.get(run_key, {}).get("elapsed_s", 0.0)
             f.write(f"| `{reg}` | {sem.get('r2_score', sem.get('r2', 0.0)):.4f} | {sem.get('rmse', 0.0):.4f} | {ex.get('r2_score', ex.get('r2', 0.0)):.4f} | {ex.get('rmse', 0.0):.4f} | {sv.get('roc_auc', 0.0):.4f} | {sv.get('pr_auc_dropout', 0.0):.4f} | {el:.1f} |\n")
 
