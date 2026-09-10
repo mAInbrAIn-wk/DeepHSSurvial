@@ -9,13 +9,13 @@ tags: [causal-inference, mediation-analysis, confounding-by-indication, imai-pea
 
 Diese Forschungsanalyse dokumentiert die vollständige Durchführung des 4-Stufen-Prüfplans aus dem Masterplan ([analyseplan_mediation_confounding.md](../01_master_plans/analyseplan_mediation_confounding.md)) auf der $N=50.000$ Baseline-Kohorte (V4.2 S01, Universum A).
 
-Sie löst das methodische Kernparadoxon des DeepSupport-Projekts empirisch auf: **Warum deklarieren naive statistische Modelle Support-Maßnahmen fälschlicherweise als schädlich ($OR > 1$), während der kontrafaktische Makro-Ground-Truth eine massive Risikoreduktion beweist ($RR = 0{,}787$, ARR = $+7{,}9$ Prozentpunkte)?**
+Sie löst das methodische Kernparadoxon des DeepSupport-Projekts anhand des synthetischen Data-Generating Process (DGP) auf: **Warum deklarieren naive statistische Modelle Support-Maßnahmen fälschlicherweise als schädlich ($OR > 1$), während der kontrafaktische Makro-Ground-Truth eine massive Risikoreduktion beweist ($RR = 0{,}787$, ARR = $+7{,}9$ Prozentpunkte)?**
 
 ---
 
 ## 1. Das Kernparadoxon: Observationale vs. Kontrafaktische Kausalität
 
-In empirischen Hochschuldaten sowie in naiven observationalen Regressionen tritt regelmäßig das Phänomen des **Confounding by Indication (Auswahlverzerrung)** auf:
+In naiven observationalen Panel-Regressionen mit endogener Selbstselektion tritt das Phänomen des **Confounding by Indication (Auswahlverzerrung)** auf:
 
 ```mermaid
 flowchart TD
@@ -64,7 +64,7 @@ Der Vergleich der identischen 50.000 Studierenden über die Parallel-Universen d
   - Universum G (nur überfachlich): $34{,}0\%$ Dropout ($\text{ARR} = +3{,}1$ pp)
   - Universum H (nur psychosozial): $34{,}8\%$ Dropout ($\text{ARR} = +2{,}3$ pp)
 
-*Ergebnis Stufe 1:* Jeder der drei Support-Typen besitzt in der realen Simulationsmechanik einen eindeutig lebensrettenden Effekt.
+*Ergebnis Stufe 1:* Jeder der drei Support-Typen besitzt in der kontrollierten Simulationsmechanik des DGP einen eindeutig lebensrettenden Effekt.
 
 ---
 
@@ -94,7 +94,7 @@ Das Audit ([selection_bias_audit_report.md](../../output_v4_models/S01_baseline/
 - **Logistisches Selektionsmodell:**
   $$\text{Pr}(\text{Fach\_Supp}_t = 1 \mid X_{t-1}): \quad OR(\text{HZB-Note}) = \mathbf{2{,}039} \quad [1{,}982, 2{,}097]$$
 
-*Ergebnis Stufe 2:* Der empirische Nachweis des Confounding by Indication ist erbracht. Die Teilnahme an Support ist kein Zufallsereignis, sondern eine direkte Folge akuter Leistungskrisen und Motivationsabstürze.
+*Ergebnis Stufe 2:* Der quantitative Nachweis des Confounding by Indication im DGP ist zweifelsfrei erbracht. Die Teilnahme an Support ist kein Zufallsereignis, sondern eine direkte Folge akuter Leistungskrisen und Motivationsabstürze im simulierten Lebenslauf.
 
 ---
 
@@ -122,28 +122,51 @@ Daraus ergeben sich:
 
 ### Stufe 4: Oracle Mediationsanalyse mit V4.2-Latenten
 
-In Stufe 4 ([oracle_mediation_report.md](../../output_v4_models/S01_baseline/universe_A/diagnostics/oracle_mediation_report.md)) wurden die latenten Simulationsvariablen (`hidden_motivation_prev`, `hidden_soziale_integration_prev`, `hidden_overload_prev`) schrittweise in das Modell integriert:
+In Stufe 4 ([oracle_mediation_report.md](../../output_v4_models/S01_baseline/universe_A/diagnostics/oracle_mediation_report.md)) wurden die latenten Simulationsvariablen (`hidden_motivation_prev`, `hidden_soziale_integration_prev`, `hidden_overload_prev`) schrittweise in das Modell integriert. Dies spannt eine vollständige $2 \times 2$-Matrix auf:
 
 ```mermaid
-flowchart LR
-    subgraph Config1["1. Realistic"]
-        T1["Treatment"] -->|OR = 1.038| Y1["Dropout"]
+flowchart TD
+    subgraph Config1["1. Realistic (Naive Mediation)"]
+        X1["Beobachtbare Confounder (X_obs)"] --> T1["Treatment (T)"]
+        X1 --> Y1["Dropout (Y)"]
+        T1 -->|ADE: OR = 1.033| Y1
+        T1 -->|Kanal| M1["Beobachtete Performance (M_obs)"]
+        M1 -->|ACME: OR = 1.005| Y1
+        T1 -.->|Total: OR = 1.038 (Verzerrt)| Y1
     end
 
-    subgraph Config2["2. Oracle Confounder"]
-        H2["Latente Krisen (t0)"] --> T2["Treatment"]
-        H2 --> Y2["Dropout"]
-        T2 -->|OR = 0.999| Y2
+    subgraph Config2["2. Oracle Confounder (Unconfounded Selection)"]
+        H2["Latente Krisen (H_latent)<br>+ X_obs"] --> T2["Treatment (T)"]
+        H2 --> Y2["Dropout (Y)"]
+        T2 -->|ADE: OR = 0.999| Y2
+        T2 -->|Kanal| M2["Beobachtete Performance (M_obs)"]
+        M2 -->|ACME: OR = 1.000| Y2
+        T2 ==>|Total Model: OR = 0.999<br>Unconfounded, unmediated Panel-Effekt| Y2
     end
 
-    subgraph Config4["4. Oracle Both"]
-        H4["Latente Confounder"] --> T4["Treatment"]
-        H4 --> Y4["Dropout"]
-        T4 -->|ADE = 0.999| Y4
-        T4 -->|Kanal| M4["Wahre Zielgröße (M)"]
-        M4 -->|ACME| Y4
+    subgraph Config3["3. Oracle Mediator (True Channel, Confounded Selection)"]
+        X3["Beobachtbare Confounder (X_obs)"] --> T3["Treatment (T)"]
+        X3 --> Y3["Dropout (Y)"]
+        T3 -->|ADE: OR = 1.003| Y3
+        T3 -->|Kanal| M3["Wahre DGP-Zielgröße (M_true)<br>(z.B. latente Motivation)"]
+        M3 -->|ACME: OR = 1.072| Y3
+        T3 -.->|Total: OR = 1.076 (Verzerrt)| Y3
+    end
+
+    subgraph Config4["4. Oracle Both (Full Oracle Decomposition)"]
+        H4["Latente Confounder (H_latent)<br>+ X_obs"] --> T4["Treatment (T)"]
+        H4 --> Y4["Dropout (Y)"]
+        T4 -->|ADE: OR = 0.999| Y4
+        T4 -->|Wahrer Kanal| M4["Wahre DGP-Zielgröße (M_true)"]
+        M4 -->|ACME: OR = 1.064| Y4
+        T4 ==>|Total: OR = 1.062| Y4
     end
 ```
+
+> [!NOTE]
+> **Wo ist die unconfounded, unmediated Version verortet?**
+> - **Auf Makro-Ebene (Ground Truth des DGP):** Das ist **Stufe 1** (Universum A vs. Universum B). Identische 50.000 Studierende (synchroner RNG-Seed), einmal mit und einmal ohne Förderangebote ($RR = 0{,}787$, $\text{ARR} = +7{,}9$ Prozentpunkte). Hier existiert per Konstruktion weder Confounding noch Mediationszerlegung.
+> - **Auf Panel-Ebene (Mikro-Regression):** Das ist in Stufe 4 das **Total-Modell von `2_Oracle_Confounder`** ($\text{logit}(P(Y=1)) \sim T + \mathbf{X}_{\text{obs}} + \mathbf{H}_{\text{latent}}$). Es kontrolliert für alle Selektionskrisen und lässt den Mediator $M$ vollständig außen vor.
 
 #### Detaillierte Resultate über alle 4 Konfigurationen:
 
@@ -164,28 +187,67 @@ flowchart LR
 
 ---
 
-## 4. Wissenschaftliche Synthese & Diskussion
+## 4. Methodische Synthese & simulationsmechanische Diskussion
 
-Die 4-Stufen-Analyse liefert fundamentale Einsichten für Kausalinferenz in bildungs- und verhaltenswissenschaftlichen Paneldaten:
+### 1. Quantitative Einordnung: Warum liegen die Panel Odds Ratios nahe bei 1,0?
 
-### 1. Auflösung des Scheingifts (Überfachlich & Psychosozial)
-- Im realistischen Modell erscheinen überfachlicher ($OR = 1{,}038 - 1{,}077$) und psychosozialer Support ($OR = 1{,}021 - 1{,}030$) schädlich.
-- **Oracle-Entzauberung:** Sobald `hidden_motivation_prev` und `hidden_soziale_integration_prev` als Confounder kontrolliert werden, fällt das Odds Ratio sofort auf **$OR \le 0{,}999$** bzw. **$OR = 0{,}993$**.
-- Der scheinbar schädliche Effekt war ein reines statistisches Artefakt der **Indikationskrise**: Die Studierenden brachen nicht wegen des Supports ab, sondern *trotz* des Supports wegen ihrer extremen Vorbelastung.
+Ein scheinbarer Widerspruch besteht zwischen dem Makro-Ground-Truth ($RR = 0{,}787$, Risikoreduktion um $21{,}3\%$, $\text{ARR} = 7{,}9$ Prozentpunkte) und den auf Person-Semester-Ebene geschätzten Odds Ratios nahe bei $1{,}0$ ($OR = 0{,}993$ bis $0{,}999$). Dieser Unterschied erklärt sich exakt aus der mathematischen Struktur des DGP:
+
+1. **Zeithorizont und Basisprävalenz:**
+   - Das Person-Semester-Panel umfasst $N = 345.133$ Beobachtungszeilen. Die Dropout-Prävalenz pro Semesterzeile liegt bei lediglich $\approx 4{,}17\%$.
+   - Das Odds Ratio misst die marginale Änderung der Abbruch-Odds in *einem einzelnen Semester* bei Inanspruchnahme in diesem Semester.
+   - Über einen Studienverlauf von 6 bis 10 Fachsemestern akkumulieren sich selbst marginale Semester-Schutzeffekte im Überlebensverlauf exponentiell: Aus kleinen Differenzen der Semester-Hazardrate resultiert im Aggregat der makroskopische ARR von $7{,}9$ Prozentpunkten.
+
+2. **Nicht-lineare Schwellenfunktion im DGP (`berechne_dropout`):**
+   - Im Simulationscode (`src/deepsupport/simulation/engine.py`, Zeile 193) senkt Motivation das Abbruchrisiko nur dann direkt, wenn sie unter die kritische Schwelle fällt:
+     $$p_{\text{dropout}} \propto \max(0{,}0, \; 0{,}40 - \text{motivation}) \times 0{,}30$$
+   - Die Verteilungsanalyse der Support-Teilnehmenden zeigt: Der Mittelwert von `hidden_motivation_prev` unter den Teilnehmenden liegt bei $0{,}507$. Lediglich **$18{,}9\%$** der Teilnehmenden weisen eine Vorsemester-Motivation von $< 0{,}40$ auf.
+   - Für die verbleibenden **$81{,}1\%$** der Teilnehmenden greift der Dropout-Schutz im selben Semester rechnerisch nicht direkt in `berechne_dropout`, sondern wirkt **dynamisch-präventiv**: Der Motivationsboost ($+0{,}10$ bei Multiplikator 5.0) stabilisiert die Studierenden gegen den stochastischen Negativdrift der Folgesemester und verbessert die Klausurnoten (`simuliere_pruefung`).
+   - Eine statische, gleichzeitige Panel-Logit-Regression kann diesen zeitlich gestreckten Schutzpfad prinzipbedingt nur als minimales Signal ($OR = 0{,}999$) erfassen.
+
+3. **Der entscheidende methodische Vorzeichenwechsel:**
+   - Die Relevanz der Stufe 4 liegt nicht in einer großen numerischen Abweichung von 1,0, sondern im **vollständigen Kollaps des Scheingifts**:
+     - Naiv / Unkorrigiert (`1_Realistic`): $OR = 1{,}077$ ($p < 0{,}001$) $\implies$ grob fehlerhafte Indikation von Schädlichkeit.
+     - Oracle-korrigiert (`2_Oracle_Confounder`): $OR = 0{,}999$ bzw. $0{,}993$ $\implies$ das scheinbare Mehrrisiko verschwindet vollständig.
+
+---
 
 ### 2. Warum bleibt der fachliche Support bei $OR = 1{,}078$?
-Fachlicher Support sinkt von $OR = 1{,}195$ (Stufe 3) auf $OR = 1{,}078$ (Stufe 4), bleibt aber leicht über $1{,}0$. Hierfür identifiziert die V4.2-Simulationsmechanik zwei reale Gründe:
-1. **Modulspezifisches vs. Semesteraggregiertes Matching:**
-   Der fachliche Support wird im DGP getriggert, wenn ein Studierender in einem *spezifischen Modul* durchgefallen ist (`modul_states[m].versuche > 0`). Auf Semesterebene sieht das Regressionsmodell jedoch nur aggregierte Vorsemester-Fehlversuche (`fails_prev`), wodurch modulspezifisches Confounding verbleibt.
-2. **Reale Zeitkosten im V4-Overload-Dilemma:**
-   In Version 4 erzeugt fachlicher Support reale Zeitkosten (`support_kosten_faktor = 1.0`, d. h. 30 Stunden Präsenz- und Übungszeit). Wenn ein vorbelasteter Studierender mit hoher Erwerbstätigkeit teilnimmt, treibt der Support die Semesterarbeitslast über das Zeitbudget, was zu akuten Modulabwürfen oder Overload-Strafen führt.
+
+Während überfachlicher ($OR = 0{,}999$) und psychosozialer Support ($OR = 0{,}993$) im Oracle-Modell die Parität erreichen bzw. unterschreiten, sinkt fachlicher Support von $OR = 1{,}195$ (Stufe 3) zwar deutlich, verbleibt aber bei $OR = 1{,}078$. Die Code-Inspektion der Simulations-Engine (`src/deepsupport/simulation/engine.py`) deckt hierfür drei konkrete Ursachen auf:
+
+1. **Wirkungsort und fehlende direkte Dropout-Wirkung:**
+   - Im DGP erhöht fachlicher Support weder die Motivation noch die soziale Integration (Zeilen 396–404 enthalten keinen Eintrag für `fachlich`).
+   - Er wirkt ausschließlich auf die Klausurnote des konkreten Moduls (`fachlicher_boost`, Zeile 444).
+   - In der Semester-Dropout-Formel (`berechne_dropout`, Zeile 193) geht die Modulnote jedoch überhaupt nicht direkt ein; sie beeinflusst den Abbruch nur indirekt über bestandene Credit Points und Fehlversuche.
+
+2. **Zeitverzögerung des primären Schutzeffekts (Exmatrikulation nach Versuch 3):**
+   - Fachlicher Support wird getriggert, wenn ein Studierender in einem Modul durchgefallen ist (`versuche > 0`). Die lebensrettende Schutzwirkung besteht darin, im zweiten oder dritten Versuch ein Scheitern (`versuche >= 3`, Zwangsexmatrikulation, Zeile 480) zu verhindern.
+   - Diese Schutzwirkung manifestiert sich häufig erst 1 bis 2 Semester später. Im Semester der Inanspruchnahme erfasst die zeitgleiche Panel-Regression lediglich die akute Krise des vorherigen Fehlversuchs.
+
+3. **Reale Zeitkosten im V4-Overload-Dilemma:**
+   - In Version 4 verursacht Support reale Zeitkosten: `support_zeit_kosten += angebot['kosten_h'] * kosten_faktor` ($30\text{h}$ pro Modul, Zeile 384).
+   - Bei Studierenden mit hoher Erwerbstätigkeit treibt diese Zusatzlast das Semester-Arbeitsbudget in den Überschuss (`ueberschuss > 0`).
+   - Dies löst im DGP zwei direkte negative Effekte aus:
+     a) **Modulabwürfe (`p_drop`, Zeile 413):** Der Studierende wirft geplante Module ab, wodurch der Semester-CP-Erwerb sinkt.
+     b) **Overload-Penalty (Zeile 429):** Sie fließt direkt in `berechne_dropout` ein ($+ \min(\text{overload\_penalty}, 0{,}3) \times 0{,}10$) und drückt zusätzlich die Noten in *allen anderen* Klausuren desselben Semesters.
+   - Im Semester der Inanspruchnahme überwiegen die akuten Zeitkosten den noch nicht voll realisierten Schutzeffekt.
+
+4. **Modulspezifisches Matching vs. Semester-Aggregat:**
+   - Fachlicher Support wird modulspezifisch belegt (`ang_to_mod.get(ang_id)`). Das Semester-Panel aggregiert jedoch nur die Gesamtzahl der Fehlversuche (`fails_prev`). Modulspezifische Härtefälle werden im aggregierten Panel unvollständig ausbalanciert.
+
+---
 
 ### 3. Konsequenzen für die Modellarchitektur
-- Statistische Standard-Regressionsmodelle (OLS, Logit, Cox ohne zeitabhängige Strata) sind für die Evaluation von Fördermaßnahmen im Hochschulkontext **strukturell ungeeignet**, wenn Selektionsvariablen latent bleiben.
-- Erforderlich sind:
-  1. **Doppelt robuste Verfahren (Double Machine Learning / DML):** Zur orthogonalen Trennung von Treatment-Propensity und Outcome.
-  2. **Marginal Structural Models (MSM) mit IPTW:** Zur Bereinigung zeitabhängiger Confounder, die gleichzeitig Mediatoren früherer Behandlungen sind.
-  3. **Tiefgehende Sequenzmodelle:** Transformer und GRUs, die Verlaufsdynamiken über die gesamte Studienhistorie erfassen und Verhaltensänderungen vor dem Abbruch abbilden.
+
+Die Ergebnisse belegen, dass statische lineare und logistische Panel-Regressionen strukturell unfähig sind, dynamische Fördermaßnahmen in sequentiellen Prozessen unverzerrt zu bewerten:
+
+1. **Doppelt robuste Verfahren (Double Machine Learning / DML):**
+   - Orthogonale Trennung der Treatment-Propensity (Modellierung der Selektion bei $t_0$) von der Outcome-Funktion zur Eliminierung von Regularisierungs- und Selektionsverzerrungen erster Ordnung.
+2. **Marginal Structural Models (MSM) mit inverser Propensity-Gewichtung (IPTW):**
+   - Zur korrekten Schätzung von Behandlungen bei zeitabhängigen Confoundern (wie Fehlversuchen und CP-Rückstand), die gleichzeitig Mediatoren früherer Teilnahmen sind.
+3. **Deep Sequence Models (Transformer / GRUs / PyCox):**
+   - Tiefgehende autoregressive Modelle, die zeitliche Trajektorien, Akkumulationseffekte und modulspezifische Abhängigkeiten ohne künstliche Panel-Kompression abbilden.
 
 ---
 
@@ -194,7 +256,7 @@ Fachlicher Support sinkt von $OR = 1{,}195$ (Stufe 3) auf $OR = 1{,}078$ (Stufe 
 | Dokument | Pfad | Relation |
 | :--- | :--- | :--- |
 | **Master-Analyseplan** | [analyseplan_mediation_confounding.md](../01_master_plans/analyseplan_mediation_confounding.md) | Ursprüngliches Design des 4-Stufen-Prüfplans |
-| **Audit-Bericht Stufe 2** | [selection_bias_audit_report.md](../../output_v4_models/S01_baseline/universe_A/diagnostics/selection_bias_audit_report.md) | Detaillierte empirische Statistiken der $t_0$-Vorbelastung |
+| **Audit-Bericht Stufe 2** | [selection_bias_audit_report.md](../../output_v4_models/S01_baseline/universe_A/diagnostics/selection_bias_audit_report.md) | Detaillierte deskriptive Statistiken der $t_0$-Vorbelastung |
 | **Realistischer Bericht Stufe 3** | [structural_mediation_report.md](../../output_v4_models/S01_baseline/universe_A/diagnostics/structural_mediation_report.md) | Bootstrap-Ergebnisse ohne latente Variablen |
 | **Oracle-Bericht Stufe 4** | [oracle_mediation_report.md](../../output_v4_models/S01_baseline/universe_A/diagnostics/oracle_mediation_report.md) | Vollständige Ergebnistabelle der 4 Oracle-Konfigurationen |
 | **Datenarchitektur V4.2** | [datenarchitektur_und_eda_v4.md](datenarchitektur_und_eda_v4.md) | Erklärung des DGP, der latenten Variablen und Overload-Mechanik |
