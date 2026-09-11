@@ -17,7 +17,7 @@ Der Lauf umfasst vier Modellfamilien:
 3. **Hybride Autoregressoren (Dual-Head Multi-Task):** `AutoregressiveNextExamTransformer` und `AutoregressiveNextExamGRU` über $802.000$ Prüfungshistorien mit synchroner Notenregression ($Y_{k+1}$, MSE) und Bestehenswahrscheinlichkeit ($P(\text{pass}_{k+1})$, Logits BCE).
 4. **Sequentielle Verlaufs-Survival-Modelle:** `SemesterGRU` und `SemesterTransformer` mit TimeDistributed Hazard-Heads über bis zu 16 Fachsemester.
 
-Die Zwischenergebnisse für die ersten fünf Kernszenarien (**S01 Baseline**, **S02 Support Half**, **S03 Support Double**, **S07 Noise Half**, **S08 Noise Double**) wurden erfolgreich synchronisiert und gegen die bisherigen Keras/TensorFlow-Referenzen evaluiert.
+Die Zwischenergebnisse für die ersten fünf Kernszenarien (**S01 Baseline**, **S02 Support Half**, **S03 Support Double**, **S07 Noise Half**, **S08 Noise Double**) liegen nun **vollständig abgeschlossen über alle 4 Modellphasen** vor. Zudem hat das selektionsbias-bereinigte Szenario **S11 RCT Calibrated** bereits Phase 1 (Panel-Survival) und Phase 2 (Transformer-Regressoren & Kausales Survival) erfolgreich beendet und rechnet aktuell an den Phasen 3 und 4.
 
 ---
 
@@ -63,9 +63,9 @@ Die Zwischenergebnisse für die ersten fünf Kernszenarien (**S01 Baseline**, **
 
 ---
 
-## 3. Cross-Scenario Sensitivitätsanalyse (S01, S02, S03, S07, S08)
+## 3. Cross-Scenario Sensitivitätsanalyse (S01, S02, S03, S07, S08, S11)
 
-Die Auswertung über die fünf vorliegenden Szenarien offenbart faszinierende theoretische Gesetzmäßigkeiten des datengenerierenden Prozesses (DGP):
+Die Auswertung über die vorliegenden Szenarien offenbart fundamentale Gesetzmäßigkeiten des datengenerierenden Prozesses (DGP) und validiert die theoretischen Grenzen statistischer Vorhersagbarkeit:
 
 ### A. Autoregressive Next-Exam Vorhersage über die Szenarien
 
@@ -75,55 +75,73 @@ Die Auswertung über die fünf vorliegenden Szenarien offenbart faszinierende th
 | **S03_supp_double** | Doppelte Support-Wirkung ($m = 10{,}0$) | **0,7206** | **0,7083** | **0,9476** | **0,9914** | **0,0575** |
 | **S01_baseline** | Referenz ($m = 5{,}0, \sigma = 0{,}18$) | 0,7124 | 0,7324 | 0,9432 | 0,9882 | 0,0668 |
 | **S02_supp_half** | Halbierte Support-Wirkung ($m = 2{,}5$) | 0,7037 | 0,7478 | 0,9367 | 0,9840 | 0,0762 |
+| **S08_noise_double** | Verdoppelter Störterm ($\sigma = 0{,}36$) | 0,3871 | 1,1602 | 0,8383 | 0,9519 | 0,1152 |
 
 > [!NOTE]
-> - **Rausch-Einfluss:** Bei halbiertem Rauschen (`S07`) steigt die Bestimmtheit der nächsten Examensnote dramatisch auf **$R^2 = 0{,}8762$** (RMSE sinkt von $0{,}73$ auf $0{,}46$). Die Bestehensprognose erreicht mit $\text{ROC-AUC} = 0{,}9808$ nahezu deterministische Trennschärfe.
-> - **Wirkungs-Monotonie:** Mit steigender Support-Wirkung ($S02 \to S01 \to S03$) steigt $R^2$ von $0{,}7037$ auf $0{,}7206$ und der Brier Score sinkt von $0{,}0762$ auf $0{,}0575$, da wirksamerer Support die Studienverläufe stabilisiert und homogenisiert.
+> - **Rausch-Einfluss (Vollständige Rauschachse S07 -> S01 -> S08):** Bei verdoppeltem Rauschen (`S08`) sinkt das Bestimmtheitsmaß der nächsten Klausurnote drastisch auf **$R^2 = 0{,}3871$** (RMSE steigt auf **$1{,}1602$** Notenstufen). Bei halbiertem Rauschen (`S07`) steigt es hingegen auf **$R^2 = 0{,}8762$** (RMSE $0{,}4587$). Die Modelle spiegeln die theoretische Grenze der Vorhersagbarkeit exakt wider: Hohes Rauschen im Benotungsprozess stellt reine aleatorische Unsicherheit dar, die kein Modell überwinden kann.
+> - **GRU-Äquivalenz:** Die Werte für das `PyTorchAutoregressiveNextExamGRU` sind nahezu deckungsgleich: S07 $R^2 = 0{,}8742$ (RMSE $0{,}4624$), S01 $R^2 = 0{,}7118$ (RMSE $0{,}7331$), S08 $R^2 = 0{,}3874$ (RMSE $1{,}1599$).
+> - **Wirkungs-Monotonie:** Mit steigender Support-Wirkung ($S02 \to S01 \to S03$) steigt $R^2$ von $0{,}7037$ auf $0{,}7206$ und der Brier Score der Bestehensprognose sinkt von $0{,}0762$ auf $0{,}0575$, da effektiver Support Noten stabilisiert und Ausreißer verringert.
 
 ---
 
-### B. Sequentielle Semester- und Examens-Survival-Modelle
+### B. Exam Transformer Regressor (Gradeblind auf Absolventenkohorte)
+
+| Szenario | Parameter-Fokus | GPA-Regr. $R^2$ | RMSE | MAE |
+| :--- | :--- | :---: | :---: | :---: |
+| **S07_noise_half** | Halbierter Störterm ($\sigma = 0{,}09$) | **0,8818** | **0,2380** | **0,1847** |
+| **S02_supp_half** | Halbierte Support-Wirkung ($m = 2{,}5$) | **0,8208** | 0,2703 | 0,2126 |
+| **S11_rct_calibrated** | RCT Support-Inanspruchnahme (Bias-frei) | **0,8178** | 0,2728 | 0,2148 |
+| **S01_baseline** | Referenz ($m = 5{,}0, \sigma = 0{,}18$) | 0,8090 | 0,2617 | 0,2048 |
+| **S03_supp_double** | Doppelte Support-Wirkung ($m = 10{,}0$) | 0,7956 | **0,2536** | **0,1983** |
+| **S08_noise_double** | Verdoppelter Störterm ($\sigma = 0{,}36$) | 0,5433 | 0,2712 | 0,2169 |
+
+> [!NOTE]
+> Auch auf der Absolventenkohorte zeigt sich die Rauschempfindlichkeit: Während der gradeblinde Regressor unter Baseline- und halbiertem Rauschen über $80\,\%$ bis $88\,\%$ der Abschlussnoten-Varianz allein aus Modulwahl und Verlaufscharakteristika erklärt, sinkt $R^2$ unter doppelter Störung auf $0{,}5433$.
+
+---
+
+### C. Sequentielle Semester- und Examens-Survival-Modelle
 
 | Szenario | Semester GRU ROC-AUC | Semester GRU PR-AUC | Semester Transf. ROC-AUC | Semester Transf. PR-AUC | Causal Exam Survival ROC-AUC | Causal Exam Survival PR-AUC |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **S07_noise_half** | **0,8414** | **0,3312** | **0,8416** | **0,3265** | **0,8981** | **0,1923** |
 | **S02_supp_half** | 0,8250 | 0,3299 | 0,8249 | 0,3269 | 0,9017 | 0,1998 |
+| **S11_rct_calibrated** | *(Phase 4 läuft)* | *(in Arbeit)* | *(Phase 4 läuft)* | *(in Arbeit)* | **0,8963** | **0,2063** |
 | **S01_baseline** | 0,8197 | 0,3003 | 0,8154 | 0,2885 | 0,8932 | 0,1776 |
 | **S03_supp_double** | 0,8029 | 0,2363 | 0,8071 | 0,2432 | 0,8942 | 0,1552 |
-| **S08_noise_double** | n/a* | n/a* | n/a* | n/a* | 0,8659 | 0,1375 |
-
-*\*S08 wurde während Phase 2 gepusht, Phase 3 und 4 folgen im weiteren Lauf.*
+| **S08_noise_double** | 0,7605 | 0,2173 | 0,7626 | 0,2186 | 0,8659 | 0,1375 |
 
 > [!TIP]
-> - **PR-AUC und Event-Prävalenz:** Die scheinbar höhere PR-AUC in `S02_supp_half` ($0{,}3299$ vs. $0{,}2363$ in S03) ist die klassische statistische Folge der höheren Dropout-Prävalenz bei schwachem Support (mehr positive Events im Testset erhöhen die Baseline-Prävalenz $\pi_0$). Der absolute Lift gegenüber der jeweiligen Basisprävalenz bleibt in allen Szenarien bei herausragenden $6\times$ bis $7\times$.
-> - **Rausch-Dämpfung in S08:** Bei verdoppeltem Rauschen (`S08_noise_double`) sinkt die ROC-AUC der kausalen Prüfungsschrittprognose auf $0{,}8659$ ab. Das Modell fängt kein Scheinsignal ein, sondern bildet den höheren echten Zufall des Prüfungssystems ehrlich ab.
+> - **S08 Semester-Survival:** Unter doppelter Rauscheinwirkung fällt die Zeitschritt-ROC-AUC der Semestermodelle auf $\approx 0{,}76$ und die Studierenden-aggregierte ROC-AUC auf $0{,}5841$ (GRU) bzw. $0{,}5606$ (Transformer). Das belegt, dass fluktuierende Prüfungsnoten das Signal für drohenden Studienabbruch auf Semesterebene verwässern.
+> - **S11 Spitzen-PR-AUC:** Das RCT-Szenario `S11` erzielt im `CausalExamTransformerSurvival` mit $\text{PR-AUC} = 0{,}2063$ den höchsten Wert über alle Szenarien ($12{,}2\times$ Lift über $\pi_0 = 0{,}0169$). Ohne Confounding bei der Support-Nutzung können kausale Verlaufsindikatoren trennschärfer gelernt werden.
 
 ---
 
-### C. Panel-Survival Suite (PyCox Modelle)
+### D. Panel-Survival Suite (PyCox Modelle)
 
 | Szenario | LogisticHazard ROC-AUC | LogisticHazard PR-AUC | CoxTime ROC-AUC | CoxTime PR-AUC | DeepHit C-Index | Competing Risks C-Index |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **S07_noise_half** | **0,7922** | **0,1641** | **0,7985** | **0,1553** | **0,8541** | **0,8278** |
+| **S11_rct_calibrated** | 0,7800 | **0,1747** | 0,7832 | **0,1642** | 0,8382 | 0,8181 |
 | **S02_supp_half** | 0,7795 | 0,1710 | 0,7807 | 0,1574 | 0,8313 | 0,8143 |
 | **S01_baseline** | 0,7669 | 0,1361 | 0,7704 | 0,1287 | 0,8455 | 0,8224 |
 | **S03_supp_double** | 0,7521 | 0,1092 | 0,7545 | 0,1026 | 0,8488 | 0,8268 |
 | **S08_noise_double** | 0,6902 | 0,1029 | 0,6932 | 0,0993 | 0,8101 | 0,7885 |
 
 > [!NOTE]
-> - **C-Index-Stabilität:** `PyTorchDeepHit` hält über alle Szenarien hinweg einen herausragenden Harrell C-Index von **$0{,}81$ bis $0{,}85$**, was die fundamentale Stärke des direkten Konkordanz-Rankings unterstreicht.
-> - **CoxTime:** Zeigt über alle Szenarien hinweg eine konsistent höhere ROC-AUC als die proportionalen Standard-Modelle, da zeitvariierende Support-Kovariaten die Proportionalitätsannahme verletzen.
+> - **Robuster Harrell C-Index:** `PyTorchDeepHit` beweist herausragende Stabilität: Selbst unter extremem Rauschen (`S08`) erreicht der C-Index $0{,}8101$ und unter RCT-Bedingungen (`S11`) $0{,}8382$.
+> - **CoxTime Konsistenz:** In allen 6 Szenarien erzielt `PyTorchCoxTime` eine höhere ROC-AUC als `LogisticHazard`, was den Mehrwert flexibler Zeitinteraktionen bei zeitabhängigen Support-Effekten untermauert.
 
 ---
 
 ## 4. Fazit & Nächste Schritte
 
-1. **Vollständige Validierung der PyTorch-Suite:**
-   Der LXC-Lauf belegt eindrucksvoll, dass die portierten PyTorch- und PyCox-Architekturen nicht nur strukturgleich sind, sondern die historischen Keras-Referenzen in puncto Präzision ($R^2$, RMSE, PR-AUC) und Kalibrierung (Brier Score) messbar übertreffen.
-2. **Robustheit im Dauerbetrieb:**
-   Die automatische DuckDB-On-The-Fly-Aggregation (30s) und die Fehlertoleranz gegenüber Rundungstoleranzen haben sich im Multi-Stunden-Lauf bewährt.
+1. **Vollständige Abdeckung der Rauschachse:**
+   Mit dem Abschluss von `S08_noise_double` ist die Rauschachse ($S07 \to S01 \to S08$) vollständig kartiert. Der empirische Befund bestätigt: Modelleffizienz skaliert streng mit dem Signal-zu-Rausch-Verhältnis des datengenerierenden Prozesses, ohne dass Overfitting oder Artefakte auftreten.
+2. **Erste Einblicke in S11 (RCT / Confounding-Freiheit):**
+   Die ersten beiden Phasen von `S11` zeigen eine exzellente Frühwarngüte ($12{,}2\times$ PR-AUC Lift im Causal Exam Survival und $0{,}7832$ ROC-AUC in CoxTime), was die Hypothese stützt, dass unkonfundierte Interventionsdaten die Vorhersagbarkeit kausaler Übergänge begünstigen.
 3. **Ausblick:**
-   Sobald `S08` abgeschlossen ist und `S11_rct_calibrated` durchläuft, wird die Synopse um die Selektionsbias-Bereinigung ergänzt.
+   Der LXC führt aktuell die Phasen 3 (Autoregressoren) und 4 (Sequentielle Survival-Modelle) für `S11_rct_calibrated` aus. Nach deren Abschluss liegt die gesamte 6-Szenarien-Matrix lückenlos vor.
 
 ---
 
