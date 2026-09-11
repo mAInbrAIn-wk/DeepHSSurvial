@@ -1916,3 +1916,179 @@ Gesamtanzahl Next-Exam Samples: 801,218
 [INFO] PyTorch-Modell torch_autoregressive_next_exam_transformer unter output_LXC/S11_rct_calibrated/universe_A/models/torch_autoregressive_next_exam_transformer.pt gespeichert.
 
 [OK] DualHeadEvaluator: Kombinierte Metriken gespeichert -> output_LXC/S11_rct_calibrated/universe_A/metrics/torch_autoregressive_next_exam_transformer_None_None_metrics.json
+[OK] Modellgewichte gespeichert unter: output_LXC/S11_rct_calibrated/universe_A/models/torch_autoregressive_next_exam_transformer.pt
+
+[2/2] Training PyTorchAutoregressiveNextExamGRU...
+Erstelle Autoregressive Next-Exam Samples für 50000 Studierende ...
+Gesamtanzahl Next-Exam Samples: 801,218
+
+[TORCH TRAIN] Starte Training: torch_autoregressive_next_exam_gru (Device: cpu, Epochen: 15)...
+  Epoche 02/15 | Train-Loss: 0.7712 (Grade: 0.5751, Pass: 0.2451) | Val-Loss: 0.7443
+  Epoche 04/15 | Train-Loss: 0.7559 (Grade: 0.5629, Pass: 0.2413) | Val-Loss: 0.7405
+  Epoche 06/15 | Train-Loss: 0.7491 (Grade: 0.5577, Pass: 0.2393) | Val-Loss: 0.7327
+  Epoche 08/15 | Train-Loss: 0.7438 (Grade: 0.5534, Pass: 0.2381) | Val-Loss: 0.7287
+  Epoche 10/15 | Train-Loss: 0.7403 (Grade: 0.5507, Pass: 0.2370) | Val-Loss: 0.7301
+  Epoche 12/15 | Train-Loss: 0.7367 (Grade: 0.5480, Pass: 0.2359) | Val-Loss: 0.7246
+  Epoche 14/15 | Train-Loss: 0.7338 (Grade: 0.5456, Pass: 0.2352) | Val-Loss: 0.7267
+  Epoche 15/15 | Train-Loss: 0.7326 (Grade: 0.5448, Pass: 0.2348) | Val-Loss: 0.7244
+
+==========================================================================
+   ERGEBNISSE TORCH_AUTOREGRESSIVE_NEXT_EXAM_GRU (TEST-SET)
+==========================================================================
+  • Note (k+1) R2 Score        : 0.7178
+  • Note (k+1) RMSE            : 0.7380
+  • Note (k+1) MAE             : 0.5601
+  • Bestanden (k+1) ROC-AUC    : 0.9399
+  • Bestanden (k+1) PR-AUC     : 0.9851
+  • Bestanden (k+1) Brier Score: 0.0738
+==========================================================================
+[INFO] Metriken gespeichert: output_LXC/S11_rct_calibrated/universe_A/metrics/torch_autoregressive_next_exam_gru_grade_standard_flat_metrics.json
+
+======================================================================
+  RegressionEvaluator -- torch_autoregressive_next_exam_gru_grade [standard/flat]
+======================================================================
+  R2                     : 0.7178
+  RMSE                   : 0.7380
+  MAE                    : 0.5601  (MedianAE=0.4344)
+  Max Error              : 3.7240
+======================================================================
+
+[INFO] Metriken gespeichert: output_LXC/S11_rct_calibrated/universe_A/metrics/torch_autoregressive_next_exam_gru_pass_standard_flat_metrics.json
+
+======================================================================
+  SurvivalEvaluator -- torch_autoregressive_next_exam_gru_pass [standard/flat]
+======================================================================
+  ROC-AUC                : 0.9399
+  PR-AUC (Dropout  y=1)  : 0.9851  (Baseline pi0=0.810)
+  PR-AUC (Non-Drop y=0)  : 0.8040
+  Brier Score            : 0.0738  (BSS=0.521)
+  F1 Score (tau=0.5)     : 0.9368
+  Balanced Accuracy      : 0.7984
+======================================================================
+
+[INFO] PyTorch-Modell torch_autoregressive_next_exam_gru unter output_LXC/S11_rct_calibrated/universe_A/models/torch_autoregressive_next_exam_gru.pt gespeichert.
+
+[OK] DualHeadEvaluator: Kombinierte Metriken gespeichert -> output_LXC/S11_rct_calibrated/universe_A/metrics/torch_autoregressive_next_exam_gru_None_None_metrics.json
+[OK] Modellgewichte gespeichert unter: output_LXC/S11_rct_calibrated/universe_A/models/torch_autoregressive_next_exam_gru.pt
+
+--- [LXC] Phase 4: Sequentielle Survival-Modelle (Semester- & Prüfungsverläufe) ---
+
+[1/3] Training PyTorchSemesterGRU...
+
+[TORCH TRAIN] Starte Training: torch_semester_gru_prev_standard (Device: cpu, Epochen: 20)...
+  Epoche 02/20 | Train-Loss: 0.1613 | Val-Loss: 0.1526
+  Epoche 04/20 | Train-Loss: 0.1571 | Val-Loss: 0.1502
+  Epoche 06/20 | Train-Loss: 0.1553 | Val-Loss: 0.1492
+  Epoche 08/20 | Train-Loss: 0.1534 | Val-Loss: 0.1493
+  Epoche 10/20 | Train-Loss: 0.1521 | Val-Loss: 0.1498
+  Epoche 12/20 | Train-Loss: 0.1503 | Val-Loss: 0.1496
+  Epoche 14/20 | Train-Loss: 0.1493 | Val-Loss: 0.1499
+  Epoche 16/20 | Train-Loss: 0.1474 | Val-Loss: 0.1493
+  [EARLY STOPPING] Geduld (6 Epochen) erschöpft in Epoche 17.
+
+==========================================================================
+   ERGEBNISSE TORCH_SEMESTER_GRU_PREV_STANDARD (TEST-SET)
+==========================================================================
+  • Zeitschritt ROC-AUC        : 0.8299
+  • Zeitschritt PR-AUC (y=1)   : 0.3253
+  • Zeitschritt Brier Score    : 0.0383
+  • Studierenden-Level ROC-AUC : 0.7305
+  • Studierenden-Level PR-AUC  : 0.5305
+==========================================================================
+[INFO] Metriken gespeichert: output_LXC/S11_rct_calibrated/universe_A/metrics/torch_semester_gru_prev_standard_standard_prev_metrics.json
+[INFO] PyTorch-Modell torch_semester_gru_prev_standard unter output_LXC/S11_rct_calibrated/universe_A/models/torch_semester_gru_prev_standard.pt gespeichert.
+
+======================================================================
+  SurvivalEvaluator -- torch_semester_gru_prev_standard [standard/prev]
+======================================================================
+  ROC-AUC                : 0.8299
+  PR-AUC (Dropout  y=1)  : 0.3253  (Baseline pi0=0.048)
+  PR-AUC (Non-Drop y=0)  : 0.9882
+  Brier Score            : 0.0383  (BSS=0.162)
+  F1 Score (tau=0.5)     : 0.2260
+  Balanced Accuracy      : 0.5653
+======================================================================
+
+[OK] Modellgewichte gespeichert unter: output_LXC/S11_rct_calibrated/universe_A/models/torch_semester_gru_prev_standard.pt
+
+[2/3] Training PyTorchSemesterTransformer...
+
+[TORCH TRAIN] Starte Training: torch_semester_transformer_prev_standard (Device: cpu, Epochen: 20)...
+  Epoche 02/20 | Train-Loss: 0.1584 | Val-Loss: 0.1555
+  Epoche 04/20 | Train-Loss: 0.1534 | Val-Loss: 0.1504
+  Epoche 06/20 | Train-Loss: 0.1519 | Val-Loss: 0.1503
+  Epoche 08/20 | Train-Loss: 0.1512 | Val-Loss: 0.1497
+  Epoche 10/20 | Train-Loss: 0.1502 | Val-Loss: 0.1501
+  Epoche 12/20 | Train-Loss: 0.1497 | Val-Loss: 0.1493
+  Epoche 14/20 | Train-Loss: 0.1489 | Val-Loss: 0.1501
+  Epoche 16/20 | Train-Loss: 0.1484 | Val-Loss: 0.1496
+  Epoche 18/20 | Train-Loss: 0.1466 | Val-Loss: 0.1498
+  Epoche 20/20 | Train-Loss: 0.1458 | Val-Loss: 0.1498
+
+==========================================================================
+   ERGEBNISSE TORCH_SEMESTER_TRANSFORMER_PREV_STANDARD (TEST-SET)
+==========================================================================
+  • Zeitschritt ROC-AUC        : 0.8278
+  • Zeitschritt PR-AUC (y=1)   : 0.3219
+  • Zeitschritt Brier Score    : 0.0384
+  • Studierenden-Level ROC-AUC : 0.7277
+  • Studierenden-Level PR-AUC  : 0.5153
+==========================================================================
+[INFO] Metriken gespeichert: output_LXC/S11_rct_calibrated/universe_A/metrics/torch_semester_transformer_prev_standard_standard_prev_metrics.json
+[INFO] PyTorch-Modell torch_semester_transformer_prev_standard unter output_LXC/S11_rct_calibrated/universe_A/models/torch_semester_transformer_prev_standard.pt gespeichert.
+
+======================================================================
+  SurvivalEvaluator -- torch_semester_transformer_prev_standard [standard/prev]
+======================================================================
+  ROC-AUC                : 0.8278
+  PR-AUC (Dropout  y=1)  : 0.3219  (Baseline pi0=0.048)
+  PR-AUC (Non-Drop y=0)  : 0.9881
+  Brier Score            : 0.0384  (BSS=0.159)
+  F1 Score (tau=0.5)     : 0.2214
+  Balanced Accuracy      : 0.5638
+======================================================================
+
+[OK] Modellgewichte gespeichert unter: output_LXC/S11_rct_calibrated/universe_A/models/torch_semester_transformer_prev_standard.pt
+
+[3/3] Training PyTorchDynamicDeepHit...
+
+[TORCH TRAIN] Starte Training: torch_dynamic_deephit_prev_standard (Device: cpu, Epochen: 20)...
+  Epoche 02/20 | Train-Loss: 0.9159 | Val-Loss: 0.5517
+  Epoche 04/20 | Train-Loss: 0.5317 | Val-Loss: 0.3273
+  Epoche 06/20 | Train-Loss: 0.3595 | Val-Loss: 0.2635
+  Epoche 08/20 | Train-Loss: 0.3035 | Val-Loss: 0.3259
+  Epoche 10/20 | Train-Loss: 0.2743 | Val-Loss: 0.2336
+  Epoche 12/20 | Train-Loss: 0.2514 | Val-Loss: 0.1836
+Traceback (most recent call last):
+  File "/home/mluser/projects/DeepHSSurvial/src/run_torch_lxc.py", line 524, in main
+    universes = [d.name for d in sc_path.iterdir() if d.is_dir() and d.name.startswith("universe_")]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mluser/projects/DeepHSSurvial/src/run_torch_lxc.py", line 415, in run_scenario_universe
+    model_type="semester_transformer",
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mluser/projects/DeepHSSurvial/src/deepsupport/models/torch/sequence.py", line 496, in train_torch_sequence_survival_model
+    # Metriken auf Zeitschritt-Ebene
+                       ~~~~~~~^~~~~~~
+  File "/home/mluser/.pyenv/versions/3.12.3/lib/python3.12/site-packages/sklearn/utils/_param_validation.py", line 218, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mluser/.pyenv/versions/3.12.3/lib/python3.12/site-packages/sklearn/metrics/_classification.py", line 3773, in brier_score_loss
+    transformed_labels, y_proba = _validate_binary_probabilistic_prediction(
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mluser/.pyenv/versions/3.12.3/lib/python3.12/site-packages/sklearn/metrics/_classification.py", line 3612, in _validate_binary_probabilistic_prediction
+    raise ValueError(f"y_prob contains values greater than 1: {xp.max(y_prob)}")
+ValueError: y_prob contains values greater than 1: 1.0000001192092896
+  Epoche 14/20 | Train-Loss: 0.1987 | Val-Loss: 0.1997
+  Epoche 16/20 | Train-Loss: 0.1979 | Val-Loss: 0.2170
+  Epoche 18/20 | Train-Loss: 0.1849 | Val-Loss: 0.2525
+  [EARLY STOPPING] Geduld (6 Epochen) erschöpft in Epoche 18.
+
+[LXC ERROR] Fehler während Ausführung von S11_rct_calibrated / universe_A: y_prob contains values greater than 1: 1.0000001192092896
+[LXC ERROR] Fahre mit verbleibenden Szenarien fort...
+
+
+==================================================================================================
+   LXC BATCH RUN COMPLETE: ALL SCENARIOS AND UNIVERSES PROCESSED
+   Ergebnisse archiviert in: output_LXC/lxc_batch_synopsis.json
+==================================================================================================
+
