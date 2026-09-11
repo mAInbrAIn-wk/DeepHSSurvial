@@ -392,6 +392,8 @@ class PyTorchDMLSurvival:
 
         causal_hr_estimates = {}
         causal_hr_se = {}
+        all_h_iso0 = []
+        all_h_iso1 = []
 
         for k, treat_col in enumerate(treatment_cols):
             short_name = treat_col.replace("_supp_count", "").replace("support_glz_", "")
@@ -420,6 +422,9 @@ class PyTorchDMLSurvival:
                 h_iso0 = dml_net(torch.tensor(np.hstack([W_test, A_tilde_iso0]), dtype=torch.float32).to(self.device)).cpu().numpy()
                 h_iso1 = dml_net(torch.tensor(np.hstack([W_test, A_tilde_iso1]), dtype=torch.float32).to(self.device)).cpu().numpy()
 
+            all_h_iso0.append(h_iso0)
+            all_h_iso1.append(h_iso1)
+
             rr_isolated = float(np.mean(h_iso1) / max(np.mean(h_iso0), 1e-7))
             ate_isolated = float(np.mean(h_iso1 - h_iso0))
 
@@ -443,8 +448,8 @@ class PyTorchDMLSurvival:
                 continue
 
             for k in range(len(treatment_cols)):
-                h0_sub = h_iso0[boot_idx]
-                h1_sub = h_iso1[boot_idx]
+                h0_sub = all_h_iso0[k][boot_idx]
+                h1_sub = all_h_iso1[k][boot_idx]
                 rr_b = float(np.mean(h1_sub) / max(np.mean(h0_sub), 1e-7))
                 boot_samples[b, k] = rr_b
 

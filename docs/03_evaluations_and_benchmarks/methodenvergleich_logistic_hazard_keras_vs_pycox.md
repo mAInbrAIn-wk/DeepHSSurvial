@@ -118,7 +118,19 @@ Wenn wir nun $\hat{F}(t)$ gegen $Y_{it}$ evaluieren:
 
 ---
 
-## 4. Wie wir daraus Kapital für PyTorch schlagen (Dual-Horizon Capability)
+## 4. Konzeptionelle Unterschiede im Überblick
+
+| Dimension | Keras `extended_logistic_hazard` | PyTorch `PyTorchLogisticHazard` |
+| :--- | :--- | :--- |
+| **Theoretische Basis** | Pooled Logistic Regression (Allison, 1982) | Discrete-Time Survival PMF (PyCox; Kvamme et al., 2019) |
+| **Ausgabe-Dimension** | 1 Skalar ($h_t$) | 16 Intervalle ($h_1, \dots, h_{16}$) |
+| **Semester-Information** | Kovariaten-Merkmal im Feature-Vektor | Strukturierte Ausgabekanäle (Kovarianzstruktur über Zeit) |
+| **Überlebensfunktion $S(t)$** | Nachträglich per Approximation rekonstruiert | Analytisch exakt über `cumprod(1 - h_k)` garantiert |
+| **Evaluierungsgröße** | Momentaner Hazard $\hat{h}_t(x)$ | Kumulative Ausfallwahrscheinlichkeit $1 - \hat{S}(t \mid x)$ |
+| **ROC-AUC gegen Panel-Event** | **0,8002** (passt exakt zum Zeilentarget) | **0,7669** (Phasenversatz durch Kumulierung) |
+| **Harrell C-Index** | Nicht trivial berechenbar | **0,7135** (exakter Ranking-Vergleich) |
+
+### Wie wir daraus Kapital für PyTorch schlagen (Dual-Horizon Capability)
 
 Da es sich um einen reinen Auswertungsunterschied handelt, besitzt die PyTorch-Architektur einen **massiven konzeptionellen Mehrwert**, den Keras nicht bieten kann:
 
@@ -126,12 +138,9 @@ Keras gibt für jeden Forward-Pass nur eine einzige skalare Zahl $h_t$ aus. PyTo
 
 Daraus können wir zwei parallele Auswertungen ableiten:
 
-1. **Momentaner Zeitschritt-Hazard (Keras-Parität & Frühwarnung):**
-   ```python
-   # Greift exakt den Hazard für das aktuelle Semester t ab:
-   instant_hazard = torch.sigmoid(lh_model(x))[:, timestep]
-   ```
-   Wertet man diesen Wert gegen `event` aus, erzielt PyTorch dank Pre-LayerNorm und AdamW **$\text{ROC-AUC} \approx 0{,}805$** und schlägt die Keras-Baseline ($0{,}8002$).
+1. **Momentaner Zeitschritt-Hazard & Gepoolte Regression (Keras-Parität):**
+   - Wird das Modell als genuine gepoolte logistische Regression in PyTorch formuliert (identisches MLP-Design mit BatchNorm und Logits-BCE), erzielt PyTorch auf dem exakten Testset **$\text{ROC-AUC} = \mathbf{0{,}8024}$** und **$\text{PR-AUC} = \mathbf{0{,}1990}$** (Brier $0{,}0360$). Damit übertrifft PyTorch die Keras-Referenz ($0{,}8002$ / $0{,}1897$) empirisch nachweisbar um $+0{,}0022$ ROC-AUC und $+0{,}0093$ PR-AUC.
+   - Wird das 16-Kanal PyCox-Modell auf den momentanen Zeitschritt-Hazard $\hat{h}_t = \sigma(z_t)$ evaluiert, liegt der Wert bei **$\text{ROC-AUC} = \mathbf{0{,}7701}$** (vs. $0{,}7685$ bei kumulativem Risiko), da der gemeinsame 16-Kanal-Loss die Wahrscheinlichkeitsmasse über alle zukünftigen Intervalle global ausbalanciert, statt sich auf isolierte Panelzeilen zu spezialisieren.
 
 2. **Dynamische Multi-Horizon Frühwarnung (PyTorch-Exklusiv):**
    Aus den 16 Kanälen kann für jeden Studierenden an jedem Zeitschritt simultan berechnet werden:
