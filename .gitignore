@@ -53,5 +53,10 @@ output_elitedesk/
 output_v36_sanity/
 output_hypothesis_test_quick/
 output_hypothesis_investigation/
-output_LXC/
+# output_LXC: Synchronisiere Metriken und Plots, ignoriere Rohdaten und Binärgewichte
+output_LXC/**/*.csv
+output_LXC/**/models/
+output_LXC/**/*.pt
+output_LXC/**/*.keras
+output_LXC/**/*.h5
 scratch/

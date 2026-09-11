@@ -464,7 +464,7 @@ def train_torch_sequence_survival_model(
 
     if isinstance(model, PyTorchDynamicDeepHit):
         # Bei Dynamic DeepHit ist preds_test die PMF f(t) -> kumulatives CIF F(t)
-        cif_test = np.cumsum(preds_test, axis=-1)
+        cif_test = np.clip(np.cumsum(preds_test, axis=-1), 0.0, 1.0)
         # Aggregiertes Studierenden-Risiko = CIF am letzten beobachteten Zeitschritt
         test_student_events = data["test_student_events"]
         lengths = np.sum(test_mask, axis=1).clip(min=1) - 1
@@ -489,6 +489,9 @@ def train_torch_sequence_survival_model(
                 h_i = np.clip(h_test[i, :s_len], 1e-6, 1.0 - 1e-6)
                 surv_probs[i] = np.prod(1.0 - h_i)
         pred_student_risk = 1.0 - surv_probs
+
+    p_flat = np.clip(p_flat, 0.0, 1.0)
+    pred_student_risk = np.clip(pred_student_risk, 0.0, 1.0)
 
     # Metriken auf Zeitschritt-Ebene
     step_auc = float(roc_auc_score(y_flat, p_flat))
