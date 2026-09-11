@@ -210,8 +210,17 @@ class SurvivalEvaluator(_BaseEvaluator):
     Plots: roc_curve, pr_curve (mit π₀-Baseline-Linie), learning_curve
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, label_pos: str = None, label_neg: str = None, **kwargs):
         super().__init__(*args, **kwargs)
+        if label_pos is not None:
+            self.label_pos = str(label_pos)
+            self.label_neg = str(label_neg or f"Non-{label_pos}")
+        elif any(term in self.model_name.lower() for term in ["pass", "bestehen"]):
+            self.label_pos = "Pass"
+            self.label_neg = "Fail"
+        else:
+            self.label_pos = "Dropout"
+            self.label_neg = "Non-Drop"
 
     def evaluate_and_log(
         self,
@@ -300,16 +309,29 @@ class SurvivalEvaluator(_BaseEvaluator):
             except Exception as e:
                 print(f"[WARN] C-Index Berechnung fehlgeschlagen: {e}")
 
+        pi0_pos = float(pr_auc_baseline)
+        pi0_neg = float(1.0 - pr_auc_baseline)
+        lift_pos = float(pr_auc_dropout / max(pi0_pos, 1e-9))
+        lift_neg = float(pr_auc_nondropout / max(pi0_neg, 1e-9))
+
         metrics_dict = {
             "model_name": self.model_name,
             "mode": mode,
             "temporal_type": temporal_type,
             "n_samples": int(len(y_true)),
-            "dropout_prevalence_pi0": float(pr_auc_baseline),
+            "label_class_1": self.label_pos,
+            "label_class_0": self.label_neg,
+            "dropout_prevalence_pi0": pi0_pos,
             "roc_auc": roc_auc,
             "pr_auc_dropout": pr_auc_dropout,
             "pr_auc_nondropout": pr_auc_nondropout,
-            "pr_auc_baseline_pi0": pr_auc_baseline,
+            "pr_auc_baseline_pi0": pi0_pos,
+            "pr_auc_class_1": pr_auc_dropout,
+            "pr_auc_class_0": pr_auc_nondropout,
+            "pr_auc_baseline_class_1": pi0_pos,
+            "pr_auc_baseline_class_0": pi0_neg,
+            "pr_auc_lift_class_1": lift_pos,
+            "pr_auc_lift_class_0": lift_neg,
             "brier_score": brier,
             "brier_skill_score": brier_skill,
             "f1_score": f1,
@@ -359,8 +381,9 @@ class SurvivalEvaluator(_BaseEvaluator):
         _, plots_dir, _ = get_output_dirs(self.base_dir)
         prec, rec, _ = precision_recall_curve(y_true, y_prob)
         plt.figure(figsize=(8, 6))
+        lbl = getattr(self, 'label_pos', 'Dropout')
         plt.plot(rec, prec, color='steelblue', lw=2,
-                 label=f'PR AUC (Dropout y=1) = {pr_auc_val:.4f}')
+                 label=f'PR AUC ({lbl} y=1) = {pr_auc_val:.4f}')
         plt.axhline(baseline, color='red', linestyle='--', lw=1.5,
                     label=f'Baseline π₀ = {baseline:.3f}')
         plt.xlabel('Recall'); plt.ylabel('Precision')
@@ -371,20 +394,34 @@ class SurvivalEvaluator(_BaseEvaluator):
 
     def _print_summary(self, m):
         w = 70
+        lbl_pos = m.get('label_class_1', getattr(self, 'label_pos', 'Dropout'))
+        lbl_neg = m.get('label_class_0', getattr(self, 'label_neg', 'Non-Drop'))
         print(f"\n{'='*w}")
         print(f"  SurvivalEvaluator -- {m['model_name']} [{m['mode']}/{m['temporal_type']}]")
         print(f"{'='*w}")
         roc = m.get('roc_auc')
         print(f"  ROC-AUC                : {roc:.4f}" if roc is not None else "  ROC-AUC                : N/A")
-        pr_d = m.get('pr_auc_dropout')
-        pi0 = m.get('pr_auc_baseline_pi0')
-        if pr_d is not None:
-            pi0_str = f"  (Baseline pi0={pi0:.3f})" if pi0 is not None else ""
-            print(f"  PR-AUC (Dropout  y=1)  : {pr_d:.4f}{pi0_str}")
+        
+        pr_1 = m.get('pr_auc_class_1', m.get('pr_auc_dropout'))
+        pi0_1 = m.get('pr_auc_baseline_class_1', m.get('pr_auc_baseline_pi0'))
+        lift_1 = m.get('pr_auc_lift_class_1')
+        if pr_1 is not None:
+            lift_str = f", Lift: {lift_1:.2f}x" if lift_1 is not None else ""
+            pi0_str = f"  (Baseline pi0={pi0_1:.3f}{lift_str})" if pi0_1 is not None else ""
+            print(f"  PR-AUC ({lbl_pos:<8} y=1)  : {pr_1:.4f}{pi0_str}")
         else:
-            print("  PR-AUC (Dropout  y=1)  : N/A")
-        pr_nd = m.get('pr_auc_nondropout')
-        print(f"  PR-AUC (Non-Drop y=0)  : {pr_nd:.4f}" if pr_nd is not None else "  PR-AUC (Non-Drop y=0)  : N/A")
+            print(f"  PR-AUC ({lbl_pos:<8} y=1)  : N/A")
+            
+        pr_0 = m.get('pr_auc_class_0', m.get('pr_auc_nondropout'))
+        pi0_0 = m.get('pr_auc_baseline_class_0', (1.0 - pi0_1) if pi0_1 is not None else None)
+        lift_0 = m.get('pr_auc_lift_class_0')
+        if pr_0 is not None:
+            lift_str = f", Lift: {lift_0:.2f}x" if lift_0 is not None else ""
+            pi0_str = f"  (Baseline pi0={pi0_0:.3f}{lift_str})" if pi0_0 is not None else ""
+            print(f"  PR-AUC ({lbl_neg:<8} y=0)  : {pr_0:.4f}{pi0_str}")
+        else:
+            print(f"  PR-AUC ({lbl_neg:<8} y=0)  : N/A")
+            
         bss = m.get('brier_skill_score')
         brier = m.get('brier_score')
         brier_str = f"{brier:.4f}" if brier is not None else "N/A"
@@ -854,7 +891,7 @@ class DualHeadEvaluator(_BaseEvaluator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._reg = RegressionEvaluator(self.base_dir, f"{self.model_name}_grade")
-        self._surv = SurvivalEvaluator(self.base_dir, f"{self.model_name}_pass")
+        self._surv = SurvivalEvaluator(self.base_dir, f"{self.model_name}_pass", label_pos="Pass", label_neg="Fail")
 
     def evaluate_and_log(
         self,
@@ -903,6 +940,12 @@ class DualHeadEvaluator(_BaseEvaluator):
         for k, v in surv_metrics.items():
             if k not in ("model_name", "mode", "temporal_type"):
                 combined[f"pass_{k}"] = v
+
+        combined["pass_pr_auc_pass"] = surv_metrics.get("pr_auc_class_1")
+        combined["pass_pr_auc_fail"] = surv_metrics.get("pr_auc_class_0")
+        combined["pass_baseline_pass"] = surv_metrics.get("pr_auc_baseline_class_1")
+        combined["pass_baseline_fail"] = surv_metrics.get("pr_auc_baseline_class_0")
+        combined["pass_lift_fail"] = surv_metrics.get("pr_auc_lift_class_0")
 
         if extra_metrics:
             combined.update(extra_metrics)

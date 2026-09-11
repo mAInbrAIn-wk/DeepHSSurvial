@@ -30,11 +30,13 @@ Die Zwischenergebnisse für die ersten fünf Kernszenarien (**S01 Baseline**, **
 | - *Transformer:* Noten-RMSE | 0,7460 | **0,7324** | **-1,8 %** geringere Fehlerstreuung |
 | - *Transformer:* Noten-MAE | 0,5720 | **0,5568** | Mittlere Abweichung $\approx 0{,}55$ Notenstufen |
 | - *Transformer:* Bestehen ROC-AUC | 0,9411 | **0,9432** | Exzellente Trennschärfe an jedem Prüfungsschritt |
-| - *Transformer:* Bestehen PR-AUC ($y=1$) | 0,9868 | **0,9882** | Nahezu fehlerfreie Bestehensprognose ($\pi_0 = 0{,}836$) |
+| - *Transformer:* Bestehen PR-AUC ($y=1$) | 0,9868 | **0,9882** | Nahezu fehlerfreie Bestehensprognose ($\pi_0 = 0{,}836$, Lift $1{,}18\times$) |
+| - *Transformer:* Nichtbestehen PR-AUC ($y=0$) | n/a | **0,7844** | **Frühwarn-Kernmetrik:** Starker Lift von **$4{,}79\times$** über $\pi_0 = 0{,}164$ |
 | - *Transformer:* Bestehen Brier Score | 0,0766 | **0,0668** | **-12,8 %** besser kalibriert ($\text{BSS} = +51{,}2\,\%$) |
 | - *GRU:* Notenprognose ($R^2$) | 0,5706 | **0,7118** | **+0,1412** ($R^2$-Sprung gegenüber Keras Dual-Head) |
 | - *GRU:* Noten-RMSE | 0,8948 | **0,7331** | **-18,1 % Fehlerreduktion** durch Pre-LayerNorm |
 | - *GRU:* Bestehen ROC-AUC | 0,9367 | **0,9432** | Konsistent stark auf Transformer-Niveau |
+| - *GRU:* Nichtbestehen PR-AUC ($y=0$) | n/a | **0,7857** | **$4{,}80\times$ Lift** über Basisprävalenz $\pi_0 = 0{,}164$ |
 | - *GRU:* Bestehen Brier Score | 0,0766 | **0,0667** | Brier Skill Score $+51{,}3\,\%$ |
 | **B. Sequentielle Semester-Survival Modelle** | | | |
 | - *Semester GRU:* Zeitschritt ROC-AUC | 0,8148 | **0,8197** | **+0,0049** Diskriminierungsgewinn |
@@ -67,20 +69,24 @@ Die Zwischenergebnisse für die ersten fünf Kernszenarien (**S01 Baseline**, **
 
 Die Auswertung über die vorliegenden Szenarien offenbart fundamentale Gesetzmäßigkeiten des datengenerierenden Prozesses (DGP) und validiert die theoretischen Grenzen statistischer Vorhersagbarkeit:
 
-### A. Autoregressive Next-Exam Vorhersage über die Szenarien
+### A. Autoregressive Next-Exam Vorhersage über die Szenarien (Beide Klassen)
 
-| Szenario | Parameter-Fokus | Noten-Regr. $R^2$ | Noten-RMSE | Pass ROC-AUC | Pass PR-AUC | Pass Brier Score |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **S07_noise_half** | Halbierter Störterm ($\sigma = 0{,}09$) | **0,8762** | **0,4587** | **0,9808** | **0,9967** | **0,0383** |
-| **S03_supp_double** | Doppelte Support-Wirkung ($m = 10{,}0$) | **0,7206** | **0,7083** | **0,9476** | **0,9914** | **0,0575** |
-| **S01_baseline** | Referenz ($m = 5{,}0, \sigma = 0{,}18$) | 0,7124 | 0,7324 | 0,9432 | 0,9882 | 0,0668 |
-| **S02_supp_half** | Halbierte Support-Wirkung ($m = 2{,}5$) | 0,7037 | 0,7478 | 0,9367 | 0,9840 | 0,0762 |
-| **S08_noise_double** | Verdoppelter Störterm ($\sigma = 0{,}36$) | 0,3871 | 1,1602 | 0,8383 | 0,9519 | 0,1152 |
+| Szenario | Parameter-Fokus | Noten $R^2$ | Noten RMSE | Pass ROC-AUC | Pass PR-AUC ($y=1$) | Fail PR-AUC ($y=0$) | Fail Lift über $\pi_0$ | Pass Brier |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **S07_noise_half** | Halbierter Störterm ($\sigma = 0{,}09$) | **0,8762** | **0,4587** | **0,9808** | **0,9967** | **0,9040** | **$6{,}20\times$** ($\pi_0 = 0{,}146$) | **0,0383** |
+| **S03_supp_double** | Doppelte Support-Wirkung ($m = 10{,}0$) | **0,7206** | **0,7083** | **0,9476** | **0,9914** | **0,7622** | **$5{,}74\times$** ($\pi_0 = 0{,}133$) | **0,0575** |
+| **S01_baseline** | Referenz ($m = 5{,}0, \sigma = 0{,}18$) | 0,7124 | 0,7324 | 0,9432 | 0,9882 | **0,7844** | **$4{,}79\times$** ($\pi_0 = 0{,}164$) | 0,0668 |
+| **S02_supp_half** | Halbierte Support-Wirkung ($m = 2{,}5$) | 0,7037 | 0,7478 | 0,9367 | 0,9840 | **0,7968** | **$4{,}15\times$** ($\pi_0 = 0{,}192$) | 0,0762 |
+| **S08_noise_double** | Verdoppelter Störterm ($\sigma = 0{,}36$) | 0,3871 | 1,1602 | 0,8383 | 0,9519 | **0,5915** | **$3{,}01\times$** ($\pi_0 = 0{,}197$) | 0,1152 |
 
-> [!NOTE]
-> - **Rausch-Einfluss (Vollständige Rauschachse S07 -> S01 -> S08):** Bei verdoppeltem Rauschen (`S08`) sinkt das Bestimmtheitsmaß der nächsten Klausurnote drastisch auf **$R^2 = 0{,}3871$** (RMSE steigt auf **$1{,}1602$** Notenstufen). Bei halbiertem Rauschen (`S07`) steigt es hingegen auf **$R^2 = 0{,}8762$** (RMSE $0{,}4587$). Die Modelle spiegeln die theoretische Grenze der Vorhersagbarkeit exakt wider: Hohes Rauschen im Benotungsprozess stellt reine aleatorische Unsicherheit dar, die kein Modell überwinden kann.
-> - **GRU-Äquivalenz:** Die Werte für das `PyTorchAutoregressiveNextExamGRU` sind nahezu deckungsgleich: S07 $R^2 = 0{,}8742$ (RMSE $0{,}4624$), S01 $R^2 = 0{,}7118$ (RMSE $0{,}7331$), S08 $R^2 = 0{,}3874$ (RMSE $1{,}1599$).
-> - **Wirkungs-Monotonie:** Mit steigender Support-Wirkung ($S02 \to S01 \to S03$) steigt $R^2$ von $0{,}7037$ auf $0{,}7206$ und der Brier Score der Bestehensprognose sinkt von $0{,}0762$ auf $0{,}0575$, da effektiver Support Noten stabilisiert und Ausreißer verringert.
+> [!IMPORTANT]
+> **Methodische Klarstellung zur PR-AUC bei Klassen-Ungleichgewicht (Majority vs. Minority):**
+> 1. **Warum ist der absolute PR-AUC-Wert auf der Mehrheitsklasse ($y=1$, Bestehen) höher?**
+>    In einer Precision-Recall-Kurve entspricht die Baseline eines uninformierten Zufalls-Klassifikators exakt der **Basisprävalenz $\pi_0$**. Da an deutschen Hochschulen rund $80\,\%$ bis $85\,\%$ aller Klausuren bestanden werden, startet die Baseline für die Mehrheitsklasse bereits bei $\pi_0 \approx 0{,}836$. Ein Modellwert von $\text{PR-AUC} = 0{,}9882$ ist zwar hoch, entspricht jedoch einem relativen **Lift von $1{,}18\times$** ($+18\,\%$).
+> 2. **Warum ist die Minderheitsklasse ($y=0$, Nichtbestehen / Durchfallen) die entscheidende Frühwarnmetrik?**
+>    Für ein studentisches Frühwarn- und Interventionssystem ist die Minderheitsklasse (Nichtbestehen) das kritische Zielereignis. Die Basisprävalenz beträgt hier lediglich $\pi_0 \approx 13\,\%$ bis $20\,\%$. Ein Modellwert von **$\text{PR-AUC} = 0{,}7844$** (in S01) bzw. **$0{,}9040$** (in S07) bedeutet einen herausragenden relativen **Lift von $4{,}79\times$ bis $6{,}20\times$** gegenüber dem Zufall!
+> 3. **Behebung der Ausweisung im Logger:**
+>    Der `SurvivalEvaluator` hat in früheren Textausgaben die Klassen generisch als `"Dropout y=1"` und `"Non-Drop y=0"` deklariert. Dies wurde in `metrics_logger.py` nun vollständig entkoppelt: Für Pass-Klassifikatoren werden nun dynamisch `Pass (y=1)` und `Fail (y=0)` samt ihrer individuellen Baselines und Lifts ausgewiesen.
 
 ---
 
