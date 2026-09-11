@@ -34,6 +34,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any
 import numpy as np
 import pandas as pd
+from sklearn.metrics import roc_auc_score, average_precision_score, brier_score_loss
 import torch
 
 from deepsupport.models.torch.data_loaders import (
@@ -159,10 +160,19 @@ def run_scenario_universe(
         with torch.no_grad():
             X_test_t = torch.tensor(X_test, dtype=torch.float32, device=trainer_lh.device)
             lh_model.to(trainer_lh.device)
-            risk_lh = lh_model.predict_risk(X_test_t, step_test.to(trainer_lh.device)).cpu().numpy()
+            step_dev = step_test.to(trainer_lh.device)
+            risk_lh = lh_model.predict_risk(X_test_t, step_dev).cpu().numpy()
+            instant_h_lh = lh_model.predict_step_hazard(X_test_t, step_dev).cpu().numpy()
+
+        extra_lh = {
+            "instant_hazard_roc_auc": float(roc_auc_score(e_test, instant_h_lh)),
+            "instant_hazard_pr_auc_dropout": float(average_precision_score(e_test, instant_h_lh)),
+            "instant_hazard_brier": float(brier_score_loss(e_test, instant_h_lh)),
+        }
+        print(f"    -> PyTorch LogisticHazard Paritaet: Instant-Hazard ROC-AUC = {extra_lh['instant_hazard_roc_auc']:.4f} (vs. Keras 0.8002)")
 
         ev_lh = SurvivalEvaluator(base_dir=scenario_out, model_name="torch_logistic_hazard")
-        m_lh = ev_lh.evaluate_and_log(e_test, risk_lh, t_stop=t_test, mode=mode_surv, temporal_type=temporal, fit_time_s=t_fit_lh)
+        m_lh = ev_lh.evaluate_and_log(e_test, risk_lh, t_stop=t_test, mode=mode_surv, temporal_type=temporal, fit_time_s=t_fit_lh, extra_metrics=extra_lh)
         results["models"]["torch_logistic_hazard"] = m_lh
 
         # 1.2 DeepHit (Single Event)
