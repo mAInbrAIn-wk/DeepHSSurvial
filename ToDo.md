@@ -1,6 +1,6 @@
 ---
 created: 2026-09-02
-last_updated: 2026-09-09
+last_updated: 2026-09-11
 status: aktiv
 tags: [todo, roadmap, tasks, v5-roadmap, deep-transformer, pytorch]
 ---
@@ -33,6 +33,15 @@ tags: [todo, roadmap, tasks, v5-roadmap, deep-transformer, pytorch]
 - [x] **Re-Run Kausale Mediation auf V4-Daten:** 4-Stufen-Prüfplan der Imai/Pearl-Mediationsanalyse (Selektions-Audit $d=-0{,}945$, Realistische Mediation $OR=1{,}195$, Oracle-Entzauberung $OR \le 0{,}999$; [`kausale_mediationsanalyse_v42.md`](docs/04_causal_and_simulation/kausale_mediationsanalyse_v42.md)).
 - [ ] **Submodul DeepLearning README prüfen:** Review und Bereinigung historischer Pfad- und Leakage-Hinweise.
 - [ ] **MoE / Stacking Router:** Optionales Ensembling kontrafaktischer Universen.
+
+---
+
+## 📦 Infrastruktur, Containerisierung & Deployment
+
+- [ ] **Docker-Kapselung & Proxmox-Deployment:**
+  - Erstellung eines reproduzierbaren `Dockerfile` basierend auf `requirements.txt` und Python 3.12 (Debian Slim mit PyTorch CPU/CUDA).
+  - `docker-compose.yml` mit standardisierten Volume-Mounts für `data_v4_grid/` und `src/output_lxc_causal/`.
+  - Proxmox VE Architektur-Check: Betrieb von Docker im Debian LXC Container (`features: nesting=1,keyctl=1`) zur Kapselung aller C++- und Systemabhängigkeiten.
 
 ---
 

@@ -97,6 +97,15 @@ class PyTorchLogisticHazard(nn.Module):
         surv = torch.cumprod(1.0 - hazards + 1e-7, dim=1)
         return surv
 
+    def predict_step_hazard(self, x: torch.Tensor, timestep: torch.Tensor) -> torch.Tensor:
+        """
+        Gibt den momentanen Hazard h_t(x) für den Zeitschritt timestep zurück.
+        Ermöglicht den direkten paritätischen Vergleich mit der gepoolten Keras-Regression.
+        """
+        hazards = self.predict_hazard(x)
+        ts = torch.clamp(timestep, 0, self.num_durations - 1)
+        return hazards.gather(1, ts.unsqueeze(1)).squeeze(1)
+
     def predict_risk(self, x: torch.Tensor, timestep: Optional[torch.Tensor] = None) -> torch.Tensor:
         """
         Gibt das relative Ausfallrisiko zurück (z. B. für ROC-AUC und C-Index).

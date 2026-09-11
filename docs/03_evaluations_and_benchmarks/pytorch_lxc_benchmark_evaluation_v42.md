@@ -53,7 +53,7 @@ Die Ergebnisse für alle sechs Kernszenarien (**S01 Baseline**, **S02 Support Ha
 | - *Causal Exam Survival:* Schritt PR-AUC ($y=1$) | 0,1615 | **0,1776** | **+0,0161** (**$10{,}4\times$ Lift** über $\pi_0 = 0{,}0171$) |
 | - *Causal Exam Survival:* Brier Score | 0,0155 | **0,0151** | Brier Skill Score $\text{BSS} = +9{,}3\,\%$ |
 | **D. Panel-Survival Suite (Semester-Ebene)** | | | |
-| - *LogisticHazard:* ROC-AUC / PR-AUC ($y=1$) | **0,8002** / **0,1897** | 0,7669 / 0,1361 | Gepooltes Einzel-Hazard vs. 16-Kanal PyCox PMF (siehe Analyse 2.1) |
+| - *LogisticHazard:* ROC-AUC / PR-AUC ($y=1$) | **0,8002** / **0,1897** | 0,7669\*\*\* / 0,1361 | Gepooltes Einzel-Hazard vs. 16-Kanal PyCox PMF (siehe Analyse 2.1) |
 | - *LogisticHazard:* PR-AUC Nicht-Dropout ($y=0$) | **0,9884** | 0,9850 | Hohe Spezifität auf der Mehrheitsklasse |
 | - *CoxTime (Non-Proportional Hazards):* ROC-AUC | n/a\*\* | **0,7704** | Zeitabhängiges Kovariaten-Netzwerk $g(x, t)$ |
 | - *DeepHit (Single Event):* Harrell C-Index | n/a\*\* | **0,8455** | Direkte Optimierung paarweiser Konkordanz |
@@ -61,6 +61,7 @@ Die Ergebnisse für alle sechs Kernszenarien (**S01 Baseline**, **S02 Support Ha
 
 \* *Hinweis zur n/a-Klassifizierung bei Keras-Autoregressoren:* Die ursprünglichen Keras-Skripte riefen Scikit-Learns `average_precision_score(y_true, y_pred)` ohne Invertierung auf, wodurch standardmäßig ausschließlich die positive Klasse ($y=1$, Bestehen) protokolliert wurde. Die explizite Erfassung beider Klassen ($y=1$ und $y=0$) wurde erst im Zuge des aktuellen Evaluator-Audits systematisch in die Suite integriert. Im Retrain mit dem neuen `DualHeadEvaluator` erzielt der Keras-Transformer auf der Minderheitsklasse $\text{PR-AUC}(y=0) = 0{,}7621$ (vs. PyTorch $0{,}7844$) und das Keras-GRU $\text{PR-AUC}(y=0) = 0{,}6812$ (vs. PyTorch $0{,}7857$).  
 \*\* *Hinweis zu CoxTime & DeepHit Competing Risks:* Diese fortgeschrittenen Architekturen existierten im Keras-Stack nicht und wurden erst im Rahmen der PyTorch & PyCox Modeling Suite neu implementiert.
+\*\*\* *Wichtiger Methodenhinweis zum LogisticHazard-Vergleich:* Hier liegt ein Methodenunterschied der Zielgröße vor: Keras evaluiert den *momentanen Einzelzeitschritt-Hazard* $h_t$ gegen Zeilentarget $Y_{it}$ ($0{,}8002$). PyTorch evaluierte das *kumulative Ausfallrisiko* $1 - S(t)$ gegen $Y_{it}$ ($0{,}7669$), was zu einem Phasenversatz-Abzug führt. Wird PyTorch auf den momentanen Hazard $h_t$ evaluiert, erzielt es $\approx \mathbf{0{,}805}$ (ausführliche Herleitung in [`methodenvergleich_logistic_hazard_keras_vs_pycox.md`](methodenvergleich_logistic_hazard_keras_vs_pycox.md)).
 
 ---
 
