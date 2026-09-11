@@ -438,7 +438,12 @@ def main():
     parser = argparse.ArgumentParser(description="DeepSupport PyTorch LXC Runner")
     parser.add_argument("--data_root", type=str, default="data_v4_grid", help="Wurzelverzeichnis der Daten")
     parser.add_argument("--output_dir", type=str, default="output_LXC", help="Ausgabeverzeichnis")
-    parser.add_argument("--scenarios", type=str, default="S01_baseline,S02_supp_half,S03_supp_double,S07_noise_half,S08_noise_double,S11_rct_uptake", help="Komma-separierte Liste der Szenarien (z. B. S01_baseline,S02_supp_half,S03_supp_double,S07_noise_half,S08_noise_double,S11_rct_uptake) oder 'all'")
+    parser.add_argument(
+        "--scenarios",
+        type=str,
+        default="S01_baseline,S02_supp_half,S03_supp_double,S07_noise_half,S08_noise_double,S11_rct_calibrated",
+        help="Komma-separierte Liste der Szenarien oder 'all'"
+    )
     parser.add_argument("--universes", type=str, default="universe_A", help="Komma-separierte Liste der Universen (z. B. universe_A) oder 'all'")
     parser.add_argument("--mode_surv", type=str, default="standard", help="Feature-Modus für Survival")
     parser.add_argument("--mode_reg", type=str, default="gradeblind", help="Feature-Modus für GPA-Regression")
@@ -492,8 +497,16 @@ def main():
     for sc in scenarios:
         sc_path = data_root / sc
         if not sc_path.exists():
-            print(f"[LXC WARN] Szenario {sc} nicht gefunden unter {sc_path}. Überspringe.")
-            continue
+            # Robustes Prefix-Matching (z. B. S11_rct_uptake -> S11_rct_calibrated, S09 -> S09_cost_zero)
+            prefix = sc.split("_")[0]
+            candidates = [d for d in data_root.iterdir() if d.is_dir() and d.name.startswith(prefix)]
+            if candidates:
+                sc_path = candidates[0]
+                print(f"[LXC MATCH] Szenario '{sc}' aufgelöst zu '{sc_path.name}'.")
+                sc = sc_path.name
+            else:
+                print(f"[LXC WARN] Szenario {sc} nicht gefunden unter {sc_path}. Überspringe.")
+                continue
 
         if args.universes.lower() == "all":
             universes = [d.name for d in sc_path.iterdir() if d.is_dir() and d.name.startswith("universe_")]
@@ -507,29 +520,35 @@ def main():
                 print(f"[LXC WARN] Universum {un} in {sc} nicht gefunden unter {un_path}. Überspringe.")
                 continue
 
-            run_res = run_scenario_universe(
-                data_dir=un_path,
-                output_dir=output_dir,
-                scenario_name=sc,
-                universe_name=un,
-                mode_surv=args.mode_surv,
-                mode_reg=args.mode_reg,
-                temporal=args.temporal,
-                batch_size=args.batch_size,
-                epochs_lh=epochs_lh,
-                epochs_dh=epochs_dh,
-                epochs_cox=epochs_cox,
-                epochs_ct=epochs_ct,
-                epochs_dh_cr=epochs_dh_cr,
-                epochs_trans=epochs_trans,
-                epochs_ar=epochs_ar,
-                epochs_seq=epochs_seq,
-                include_ar=args.include_ar,
-                include_seq=args.include_seq,
-                skip_trans=args.skip_trans,
-                skip_surv=args.skip_surv,
-            )
-            all_runs.append(run_res)
+            try:
+                run_res = run_scenario_universe(
+                    data_dir=un_path,
+                    output_dir=output_dir,
+                    scenario_name=sc,
+                    universe_name=un,
+                    mode_surv=args.mode_surv,
+                    mode_reg=args.mode_reg,
+                    temporal=args.temporal,
+                    batch_size=args.batch_size,
+                    epochs_lh=epochs_lh,
+                    epochs_dh=epochs_dh,
+                    epochs_cox=epochs_cox,
+                    epochs_ct=epochs_ct,
+                    epochs_dh_cr=epochs_dh_cr,
+                    epochs_trans=epochs_trans,
+                    epochs_ar=epochs_ar,
+                    epochs_seq=epochs_seq,
+                    include_ar=args.include_ar,
+                    include_seq=args.include_seq,
+                    skip_trans=args.skip_trans,
+                    skip_surv=args.skip_surv,
+                )
+                all_runs.append(run_res)
+            except Exception as exc:
+                print(f"\n[LXC ERROR] Fehler während Ausführung von {sc} / {un}: {exc}")
+                import traceback
+                traceback.print_exc()
+                print(f"[LXC ERROR] Fahre mit verbleibenden Szenarien fort...\n")
 
     # Synopse über alle Läufe speichern
     synopsis_path = output_dir / "lxc_batch_synopsis.json"

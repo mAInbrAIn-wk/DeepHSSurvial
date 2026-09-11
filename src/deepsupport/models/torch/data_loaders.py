@@ -161,6 +161,13 @@ def prepare_panel_dataloaders(
     test_panel = panel_df[panel_df["studierenden_id"].isin(test_ids)].copy()
 
     # Preprocessing Pipeline ausschließlich auf Train-Panel fitten
+    # Sicherstellen, dass alle numerischen und Treatment-Spalten als float32 vorliegen,
+    # um Typ-Inkompatibilitäten beim SimpleImputer mit int64-Spalten zu vermeiden
+    for col in num_cols + treatment_cols:
+        train_panel[col] = pd.to_numeric(train_panel[col], errors="coerce").astype(np.float32)
+        val_panel[col] = pd.to_numeric(val_panel[col], errors="coerce").astype(np.float32)
+        test_panel[col] = pd.to_numeric(test_panel[col], errors="coerce").astype(np.float32)
+
     transformers = []
     if num_cols:
         transformers.append((
@@ -184,7 +191,7 @@ def prepare_panel_dataloaders(
         transformers.append((
             "treat",
             Pipeline([
-                ("imputer", SimpleImputer(strategy="constant", fill_value=0.0)),
+                ("imputer", SimpleImputer(strategy="constant", fill_value=np.float32(0.0))),
                 ("scaler", StandardScaler()),
             ]),
             treatment_cols,
