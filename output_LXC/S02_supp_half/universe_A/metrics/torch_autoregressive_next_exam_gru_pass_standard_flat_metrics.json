@@ -1,0 +1,16 @@
+{
+    "model_name": "torch_autoregressive_next_exam_gru_pass",
+    "mode": "standard",
+    "temporal_type": "flat",
+    "n_samples": 120723.0,
+    "dropout_prevalence_pi0": 0.8080564737319946,
+    "roc_auc": 0.9368920714137668,
+    "pr_auc_dropout": 0.9841074411129874,
+    "pr_auc_nondropout": 0.7976600466861539,
+    "pr_auc_baseline_pi0": 0.8080564737319946,
+    "brier_score": 0.075972780585289,
+    "brier_skill_score": 0.5101728666131724,
+    "f1_score": 0.9342475048485186,
+    "balanced_accuracy": 0.807042493052579,
+    "c_index": null
+}

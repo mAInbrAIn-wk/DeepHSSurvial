@@ -1,0 +1,16 @@
+{
+    "model_name": "torch_autoregressive_next_exam_transformer_pass",
+    "mode": "standard",
+    "temporal_type": "flat",
+    "n_samples": 118295.0,
+    "dropout_prevalence_pi0": 0.8542372584342957,
+    "roc_auc": 0.9807725451098497,
+    "pr_auc_dropout": 0.9966934950296849,
+    "pr_auc_nondropout": 0.9040097735766817,
+    "pr_auc_baseline_pi0": 0.8542372584342957,
+    "brier_score": 0.038260288536548615,
+    "brier_skill_score": 0.6927278472493441,
+    "f1_score": 0.9686970445648383,
+    "balanced_accuracy": 0.8739528762074142,
+    "c_index": null
+}

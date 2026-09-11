@@ -1,0 +1,21 @@
+{
+    "model_name": "torch_causal_exam_transformer_survival",
+    "mode": "gradeblind",
+    "temporal_type": "prev",
+    "n_samples": 127955.0,
+    "dropout_prevalence_pi0": 0.019030127674341202,
+    "roc_auc": 0.9017004170249299,
+    "pr_auc_dropout": 0.19977627187025973,
+    "pr_auc_nondropout": 0.9978269068289983,
+    "pr_auc_baseline_pi0": 0.019030127674341202,
+    "brier_score": 0.016715222969651222,
+    "brier_skill_score": 0.10460471593959775,
+    "f1_score": 0.05196850393700787,
+    "balanced_accuracy": 0.5133970076678145,
+    "c_index": null,
+    "training_time_s": 476.66355299949646,
+    "student_roc_auc": 0.7580600092218616,
+    "student_pr_auc": 0.6394804232777429,
+    "n_test_exam_steps": 127955.0,
+    "step_prevalence_pi0": 0.019030127674341202
+}

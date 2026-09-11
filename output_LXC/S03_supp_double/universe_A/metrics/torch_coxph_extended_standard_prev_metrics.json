@@ -1,0 +1,17 @@
+{
+    "model_name": "torch_coxph_extended",
+    "mode": "standard",
+    "temporal_type": "prev",
+    "n_samples": 52216.0,
+    "dropout_prevalence_pi0": 0.0351041816174984,
+    "roc_auc": 0.6452966999461702,
+    "pr_auc_dropout": 0.07384544338172436,
+    "pr_auc_nondropout": 0.9736539142003267,
+    "pr_auc_baseline_pi0": 0.0351041816174984,
+    "brier_score": 0.03423148766160011,
+    "brier_skill_score": -0.010616760328443053,
+    "f1_score": 0.0,
+    "balanced_accuracy": 0.49998015203540874,
+    "c_index": 0.44408942667562346,
+    "training_time_s": 200.99598002433777
+}

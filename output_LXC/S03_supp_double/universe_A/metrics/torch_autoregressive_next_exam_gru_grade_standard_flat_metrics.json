@@ -1,0 +1,13 @@
+{
+    "model_name": "torch_autoregressive_next_exam_gru_grade",
+    "mode": "standard",
+    "temporal_type": "flat",
+    "n_samples": 120429.0,
+    "r2_score": 0.7234209179878235,
+    "adj_r2": null,
+    "rmse": 0.704689658557098,
+    "mae": 0.5220261216163635,
+    "median_ae": 0.3943328857421875,
+    "explained_variance": 0.7236649990081787,
+    "max_error": 3.754988193511963
+}

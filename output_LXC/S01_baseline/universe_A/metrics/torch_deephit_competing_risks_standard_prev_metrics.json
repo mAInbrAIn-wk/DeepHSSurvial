@@ -1,0 +1,19 @@
+{
+    "model_name": "torch_deephit_competing_risks",
+    "mode": "standard",
+    "temporal_type": "prev",
+    "n_samples": 51921.0,
+    "dropout_prevalence_pi0": 0.040966082364320755,
+    "roc_auc": 0.741073925088525,
+    "pr_auc_dropout": 0.09899236380344818,
+    "pr_auc_nondropout": 0.9841994605300877,
+    "pr_auc_baseline_pi0": 0.040966082364320755,
+    "brier_score": 0.04244392365217209,
+    "brier_skill_score": -0.0803317104701653,
+    "f1_score": 0.0,
+    "balanced_accuracy": 0.4999799172591075,
+    "c_index": 0.8223655652630117,
+    "training_time_s": 220.94616889953613,
+    "grad_roc_auc": 0.9977516296765571,
+    "grad_pr_auc": 0.9811631673746123
+}

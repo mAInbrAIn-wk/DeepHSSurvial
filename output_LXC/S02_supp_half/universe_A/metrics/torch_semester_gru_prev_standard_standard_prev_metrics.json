@@ -1,0 +1,22 @@
+{
+    "model_name": "torch_semester_gru_prev_standard",
+    "mode": "standard",
+    "temporal_type": "prev",
+    "n_samples": 51479.0,
+    "dropout_prevalence_pi0": 0.047631073743104935,
+    "roc_auc": 0.8249934009461977,
+    "pr_auc_dropout": 0.3298627102751179,
+    "pr_auc_nondropout": 0.9878515898091067,
+    "pr_auc_baseline_pi0": 0.047631073743104935,
+    "brier_score": 0.03776818886399269,
+    "brier_skill_score": 0.16741118857968296,
+    "f1_score": 0.22969187675070027,
+    "balanced_accuracy": 0.5661090930652422,
+    "c_index": null,
+    "Step_ROC_AUC": 0.8249934009461977,
+    "Step_PR_AUC": 0.3298627102751179,
+    "Step_Brier_Score": 0.03776818886399269,
+    "Student_ROC_AUC": 0.7343796454525948,
+    "Student_PR_AUC": 0.5258032842435021,
+    "temporal": "prev"
+}

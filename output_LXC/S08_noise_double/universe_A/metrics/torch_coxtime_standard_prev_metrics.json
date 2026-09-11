@@ -1,0 +1,17 @@
+{
+    "model_name": "torch_coxtime",
+    "mode": "standard",
+    "temporal_type": "prev",
+    "n_samples": 51717.0,
+    "dropout_prevalence_pi0": 0.04745054990053177,
+    "roc_auc": 0.6931590800808151,
+    "pr_auc_dropout": 0.09931909062749261,
+    "pr_auc_nondropout": 0.9763605410084322,
+    "pr_auc_baseline_pi0": 0.04745054990053177,
+    "brier_score": 0.044485222548246384,
+    "brier_skill_score": 0.015791781720644993,
+    "f1_score": 0.005668016194331984,
+    "balanced_accuracy": 0.5013348964221624,
+    "c_index": 0.6804523063777055,
+    "training_time_s": 420.95692229270935
+}

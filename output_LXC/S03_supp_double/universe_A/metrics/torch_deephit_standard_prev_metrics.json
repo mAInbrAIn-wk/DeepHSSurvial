@@ -1,0 +1,17 @@
+{
+    "model_name": "torch_deephit",
+    "mode": "standard",
+    "temporal_type": "prev",
+    "n_samples": 52216.0,
+    "dropout_prevalence_pi0": 0.0351041816174984,
+    "roc_auc": 0.7053086126230521,
+    "pr_auc_dropout": 0.07473248474193375,
+    "pr_auc_nondropout": 0.9838773968922306,
+    "pr_auc_baseline_pi0": 0.0351041816174984,
+    "brier_score": null,
+    "brier_skill_score": null,
+    "f1_score": 0.005396654074473826,
+    "balanced_accuracy": 0.5012150246081735,
+    "c_index": 0.8487732450691768,
+    "training_time_s": 173.90833735466003
+}
