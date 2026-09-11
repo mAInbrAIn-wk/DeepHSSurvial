@@ -458,10 +458,15 @@ def train_autoregressive_dual_head_model(
     mae = float(mean_absolute_error(y_te_grade, preds_grade))
     r2 = float(r2_score(y_te_grade, preds_grade))
 
-    # Metriken Pass
+    # Metriken Pass & Fail (beide Klassen)
     auc_pass = float(roc_auc_score(y_te_pass, preds_pass))
     pr_pass = float(average_precision_score(y_te_pass, preds_pass))
+    pr_fail = float(average_precision_score(1.0 - y_te_pass, 1.0 - preds_pass))
     brier_pass = float(brier_score_loss(y_te_pass, preds_pass))
+    pi0_pass = float(np.mean(y_te_pass))
+    pi0_fail = float(1.0 - pi0_pass)
+    lift_pass = float(pr_pass / max(pi0_pass, 1e-9))
+    lift_fail = float(pr_fail / max(pi0_fail, 1e-9))
 
     print("\n" + "=" * 74)
     print(f"   ERGEBNISSE {model_name.upper()} (TEST-SET)")
@@ -470,7 +475,8 @@ def train_autoregressive_dual_head_model(
     print(f"  • Note (k+1) RMSE            : {rmse:.4f}")
     print(f"  • Note (k+1) MAE             : {mae:.4f}")
     print(f"  • Bestanden (k+1) ROC-AUC    : {auc_pass:.4f}")
-    print(f"  • Bestanden (k+1) PR-AUC     : {pr_pass:.4f}")
+    print(f"  • Pass (y=1) PR-AUC          : {pr_pass:.4f} (Baseline pi0={pi0_pass:.3f}, Lift: {lift_pass:.2f}x)")
+    print(f"  • Fail (y=0) PR-AUC          : {pr_fail:.4f} (Baseline pi0={pi0_fail:.3f}, Lift: {lift_fail:.2f}x)")
     print(f"  • Bestanden (k+1) Brier Score: {brier_pass:.4f}")
     print("=" * 74)
 
@@ -481,6 +487,11 @@ def train_autoregressive_dual_head_model(
         "Next_Exam_Grade_MAE": mae,
         "Next_Exam_Pass_ROC_AUC": auc_pass,
         "Next_Exam_Pass_PR_AUC": pr_pass,
+        "Next_Exam_Fail_PR_AUC": pr_fail,
+        "Next_Exam_Pass_pi0": pi0_pass,
+        "Next_Exam_Fail_pi0": pi0_fail,
+        "Next_Exam_Pass_Lift": lift_pass,
+        "Next_Exam_Fail_Lift": lift_fail,
         "Next_Exam_Pass_Brier_Score": brier_pass,
     }
 
