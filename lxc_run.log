@@ -1758,3 +1758,161 @@ Starte Datenaggregation (Backend: duckdb) ...
   SurvivalEvaluator -- torch_logistic_hazard [standard/prev]
 ======================================================================
   ROC-AUC                : 0.7800
+  PR-AUC (Dropout  y=1)  : 0.1747  (Baseline pi0=0.047)
+  PR-AUC (Non-Drop y=0)  : 0.9840
+  Brier Score            : 0.0417  (BSS=0.067)
+  F1 Score (tau=0.5)     : 0.0360
+  Balanced Accuracy      : 0.5088
+  Harrell C-Index        : 0.7216
+  Training Time          : 203.23s
+======================================================================
+
+[2/5] Training PyTorchDeepHit (Single Event)...
+[INFO] Metriken gespeichert: output_LXC/S11_rct_calibrated/universe_A/metrics/torch_deephit_standard_prev_metrics.json
+
+======================================================================
+  SurvivalEvaluator -- torch_deephit [standard/prev]
+======================================================================
+  ROC-AUC                : 0.7267
+  PR-AUC (Dropout  y=1)  : 0.1119  (Baseline pi0=0.047)
+  PR-AUC (Non-Drop y=0)  : 0.9808
+  Brier Score            : N/A
+  F1 Score (tau=0.5)     : 0.0123
+  Balanced Accuracy      : 0.5030
+  Harrell C-Index        : 0.8382
+  Training Time          : 208.94s
+======================================================================
+
+[3/5] Training PyTorchCoxPH (Extended DeepSurv mit Breslow)...
+[INFO] Metriken gespeichert: output_LXC/S11_rct_calibrated/universe_A/metrics/torch_coxph_extended_standard_prev_metrics.json
+
+======================================================================
+  SurvivalEvaluator -- torch_coxph_extended [standard/prev]
+======================================================================
+  ROC-AUC                : 0.6983
+  PR-AUC (Dropout  y=1)  : 0.1278  (Baseline pi0=0.047)
+  PR-AUC (Non-Drop y=0)  : 0.9709
+  Brier Score            : 0.0447  (BSS=-0.001)
+  F1 Score (tau=0.5)     : 0.0017
+  Balanced Accuracy      : 0.5004
+  Harrell C-Index        : 0.4779
+  Training Time          : 194.49s
+======================================================================
+
+[4/5] Training PyTorchCoxTime (Non-Proportional Hazards)...
+[INFO] Metriken gespeichert: output_LXC/S11_rct_calibrated/universe_A/metrics/torch_coxtime_standard_prev_metrics.json
+
+======================================================================
+  SurvivalEvaluator -- torch_coxtime [standard/prev]
+======================================================================
+  ROC-AUC                : 0.7832
+  PR-AUC (Dropout  y=1)  : 0.1642  (Baseline pi0=0.047)
+  PR-AUC (Non-Drop y=0)  : 0.9849
+  Brier Score            : 0.0421  (BSS=0.058)
+  F1 Score (tau=0.5)     : 0.0280
+  Balanced Accuracy      : 0.5067
+  Harrell C-Index        : 0.7402
+  Training Time          : 409.88s
+======================================================================
+
+[5/5] Training PyTorchDeepHitCompetingRisks (Multi-Event)...
+[INFO] Metriken gespeichert: output_LXC/S11_rct_calibrated/universe_A/metrics/torch_deephit_competing_risks_standard_prev_metrics.json
+
+======================================================================
+  SurvivalEvaluator -- torch_deephit_competing_risks [standard/prev]
+======================================================================
+  ROC-AUC                : 0.7544
+  PR-AUC (Dropout  y=1)  : 0.1201  (Baseline pi0=0.047)
+  PR-AUC (Non-Drop y=0)  : 0.9832
+  Brier Score            : 0.0468  (BSS=-0.049)
+  F1 Score (tau=0.5)     : 0.0008
+  Balanced Accuracy      : 0.5001
+  Harrell C-Index        : 0.8181
+  Training Time          : 219.41s
+======================================================================
+
+
+--- [LXC] Phase 2: Transformer Suite (Gradeblind Regressor & Causal Survival) ---
+
+[1/2] Training PyTorchExamTransformerRegressor (Gradeblind)...
+[INFO] Metriken gespeichert: output_LXC/S11_rct_calibrated/universe_A/metrics/torch_exam_transformer_regressor_gradeblind_prev_metrics.json
+
+======================================================================
+  RegressionEvaluator -- torch_exam_transformer_regressor [gradeblind/prev]
+======================================================================
+  R2                     : 0.8178
+  RMSE                   : 0.2728
+  MAE                    : 0.2148  (MedianAE=0.1762)
+  Max Error              : 1.1429
+  Training Time          : 279.34s
+======================================================================
+
+[2/2] Training PyTorchCausalExamTransformerSurvival...
+[INFO] Metriken gespeichert: output_LXC/S11_rct_calibrated/universe_A/metrics/torch_causal_exam_transformer_survival_gradeblind_prev_metrics.json
+
+======================================================================
+  SurvivalEvaluator -- torch_causal_exam_transformer_survival [gradeblind/prev]
+======================================================================
+  ROC-AUC                : 0.8963
+  PR-AUC (Dropout  y=1)  : 0.2063  (Baseline pi0=0.019)
+  PR-AUC (Non-Drop y=0)  : 0.9976
+  Brier Score            : 0.0166  (BSS=0.112)
+  F1 Score (tau=0.5)     : 0.0721
+  Balanced Accuracy      : 0.5190
+  Training Time          : 469.83s
+======================================================================
+
+
+--- [LXC] Phase 3: Hybride Autoregressoren (Dual-Head Multi-Task) ---
+
+[1/2] Training PyTorchAutoregressiveNextExamTransformer...
+Erstelle Autoregressive Next-Exam Samples für 50000 Studierende ...
+Gesamtanzahl Next-Exam Samples: 801,218
+
+[TORCH TRAIN] Starte Training: torch_autoregressive_next_exam_transformer (Device: cpu, Epochen: 15)...
+  Epoche 02/15 | Train-Loss: 0.7733 (Grade: 0.5768, Pass: 0.2457) | Val-Loss: 0.7484
+  Epoche 04/15 | Train-Loss: 0.7598 (Grade: 0.5662, Pass: 0.2421) | Val-Loss: 0.7462
+  Epoche 06/15 | Train-Loss: 0.7525 (Grade: 0.5603, Pass: 0.2402) | Val-Loss: 0.7459
+  Epoche 08/15 | Train-Loss: 0.7484 (Grade: 0.5571, Pass: 0.2391) | Val-Loss: 0.7400
+  Epoche 10/15 | Train-Loss: 0.7446 (Grade: 0.5542, Pass: 0.2379) | Val-Loss: 0.7364
+  Epoche 12/15 | Train-Loss: 0.7355 (Grade: 0.5470, Pass: 0.2355) | Val-Loss: 0.7245
+  Epoche 14/15 | Train-Loss: 0.7331 (Grade: 0.5452, Pass: 0.2349) | Val-Loss: 0.7238
+  Epoche 15/15 | Train-Loss: 0.7324 (Grade: 0.5447, Pass: 0.2347) | Val-Loss: 0.7234
+
+==========================================================================
+   ERGEBNISSE TORCH_AUTOREGRESSIVE_NEXT_EXAM_TRANSFORMER (TEST-SET)
+==========================================================================
+  • Note (k+1) R2 Score        : 0.7183
+  • Note (k+1) RMSE            : 0.7374
+  • Note (k+1) MAE             : 0.5549
+  • Bestanden (k+1) ROC-AUC    : 0.9401
+  • Bestanden (k+1) PR-AUC     : 0.9852
+  • Bestanden (k+1) Brier Score: 0.0738
+==========================================================================
+[INFO] Metriken gespeichert: output_LXC/S11_rct_calibrated/universe_A/metrics/torch_autoregressive_next_exam_transformer_grade_standard_flat_metrics.json
+
+======================================================================
+  RegressionEvaluator -- torch_autoregressive_next_exam_transformer_grade [standard/flat]
+======================================================================
+  R2                     : 0.7183
+  RMSE                   : 0.7374
+  MAE                    : 0.5549  (MedianAE=0.4312)
+  Max Error              : 3.6948
+======================================================================
+
+[INFO] Metriken gespeichert: output_LXC/S11_rct_calibrated/universe_A/metrics/torch_autoregressive_next_exam_transformer_pass_standard_flat_metrics.json
+
+======================================================================
+  SurvivalEvaluator -- torch_autoregressive_next_exam_transformer_pass [standard/flat]
+======================================================================
+  ROC-AUC                : 0.9401
+  PR-AUC (Dropout  y=1)  : 0.9852  (Baseline pi0=0.810)
+  PR-AUC (Non-Drop y=0)  : 0.8041
+  Brier Score            : 0.0738  (BSS=0.521)
+  F1 Score (tau=0.5)     : 0.9362
+  Balanced Accuracy      : 0.8036
+======================================================================
+
+[INFO] PyTorch-Modell torch_autoregressive_next_exam_transformer unter output_LXC/S11_rct_calibrated/universe_A/models/torch_autoregressive_next_exam_transformer.pt gespeichert.
+
+[OK] DualHeadEvaluator: Kombinierte Metriken gespeichert -> output_LXC/S11_rct_calibrated/universe_A/metrics/torch_autoregressive_next_exam_transformer_None_None_metrics.json
