@@ -1,0 +1,257 @@
+nohup: ignoring input
+
+########################################################################################
+   DEEPSUPPORT PYTORCH CAUSAL LXC BATCH RUNNER
+   CPU-Kerne: 8 | PyTorch-Threads: 7
+   Rechendevice: cpu
+   Szenarien (6): ['S01_baseline', 'S02_supp_half', 'S03_supp_double', 'S07_noise_half', 'S08_noise_double', 'S11_rct_calibrated']
+########################################################################################
+
+========================================================================================
+>>> [LXC CAUSAL EXECUTION] Szenario: S01_baseline | Universum: universe_A
+    Pfad: data_v4_grid/S01_baseline/universe_A
+    Modus: standard | Temporal: prev
+========================================================================================
+[GROUND TRUTH] A-B Kontrast: True ARR = +7.95 pp | True RR = 0.7858 | NNT = 12.6
+
+>>> [SCHRITT 1/3] PyTorch Double Machine Learning (DML) ...
+
+==============================================================================
+   PYTORCH DOUBLE MACHINE LEARNING (DML) SURVIVAL ESTIMATION
+   Modus: standard | Temporal: prev | Device: cpu
+==============================================================================
+Panel: 345133 Zeilen | 50000 Studierende
+Confounder (13): ['hzb_note', 'hzb_typ_ord', 'stg_BWL', 'stg_Maschinenbau', 'stg_Psychologie', 'stg_Soziale_Arbeit', 'migrationshintergrund', 'erstakademiker', 'erwerbstaetigkeit_std', 'fails_prev', 'delta_cp_prev', 'cp_rueckstand', 'gpa_prev']
+Treatments (3): ['fach_supp_count', 'uebf_supp_count', 'psych_supp_count']
+
+[Stufe 1] 5-Fold Cross-Fitting der Nuisance-Modelle auf Trainingskohorte ...
+
+[Stufe 2a] Analytischer Robinson DML ATE-Schätzer (Neyman-Orthogonal) ...
+  • FACH          : ATE = +0.00278 | Asym-SE = 0.00134 | 95% CI: [+0.00016, +0.00541]
+  • UEBF          : ATE = +0.00038 | Asym-SE = 0.00073 | 95% CI: [-0.00105, +0.00182]
+  • PSYCH         : ATE = +0.00008 | Asym-SE = 0.00065 | 95% CI: [-0.00120, +0.00136]
+
+[Stufe 2b] Trainiere Neuronales DML-Hazard-Netzwerk auf [W, A_tilde] ...
+
+[Stufe 3] Kausale Counterfactual-Inferenz auf Testkohorte ...
+  • FACH          : HR = 1.0001 | Isolated RR = 1.0001 | ATE = +0.0000
+  • UEBF          : HR = 0.9226 | Isolated RR = 0.9226 | ATE = -0.0033
+  • PSYCH         : HR = 0.9538 | Isolated RR = 0.9538 | ATE = -0.0020
+
+[Stufe 3b] Berechne 100-Fold Student-Cluster Bootstrap für empirische CIs ...
+[INFO] Metriken gespeichert: output_LXC_causal/S01_baseline/universe_A/metrics/torch_dml_orthogonal_survival_standard_prev_metrics.json
+
+======================================================================
+  CausalEvaluator -- torch_dml_orthogonal_survival [standard/prev]
+======================================================================
+  hr_fach                            : HR=1.0001  (RR-Senkung: -0.0%)  Boot-95%-CI=[0.952, 0.955]
+  hr_uebf                            : HR=0.9226  (RR-Senkung: 7.7%)  Boot-95%-CI=[0.952, 0.955]
+  hr_psych                           : HR=0.9538  (RR-Senkung: 4.6%)  Boot-95%-CI=[0.952, 0.955]
+  Training Time                      : 839.40s
+======================================================================
+
+[INFO] PyTorch DML Modell gespeichert: output_LXC_causal/S01_baseline/universe_A/models
+
+>>> [SCHRITT 2/3] PyTorch Marginal Structural Models (MSM) ...
+
+==============================================================================
+   PYTORCH MARGINAL STRUCTURAL MODELS (MSM / IPTW)
+   Modus: standard | Temporal: prev | Device: cpu
+==============================================================================
+
+--- Berechne MSM für Maßnahme: FACHLICH (support_glz_fachlich) ---
+  • IPTW-Diagnostik: Mean = 1.0003 (Ideal=1.0) | Std = 0.1340 | Range = [0.572, 1.566]
+  • Kausale Hazard Ratio: HR = 0.8313 | 95% CI: [0.7771, 0.8894] | Risikoreduktion: +16.87%
+
+--- Berechne MSM für Maßnahme: UEBERFACHLICH (support_glz_ueberfachlich) ---
+  • IPTW-Diagnostik: Mean = 0.9925 (Ideal=1.0) | Std = 0.1966 | Range = [0.464, 1.934]
+  • Kausale Hazard Ratio: HR = 0.9176 | 95% CI: [0.8524, 0.9879] | Risikoreduktion: +8.24%
+
+--- Berechne MSM für Maßnahme: PSYCHOSOZIAL (support_glz_psychosozial) ---
+  • IPTW-Diagnostik: Mean = 1.0021 (Ideal=1.0) | Std = 0.0753 | Range = [0.742, 1.312]
+  • Kausale Hazard Ratio: HR = 0.7303 | 95% CI: [0.6713, 0.7945] | Risikoreduktion: +26.97%
+
+--- Berechne MSM für Maßnahme: ALL_SUPPORT (total_support_active) ---
+  • IPTW-Diagnostik: Mean = 0.9971 (Ideal=1.0) | Std = 0.1985 | Range = [0.489, 1.796]
+  • Kausale Hazard Ratio: HR = 0.8002 | 95% CI: [0.7645, 0.8376] | Risikoreduktion: +19.98%
+[INFO] Metriken gespeichert: output_LXC_causal/S01_baseline/universe_A/metrics/torch_marginal_structural_model_standard_prev_metrics.json
+
+======================================================================
+  CausalEvaluator -- torch_marginal_structural_model [standard/prev]
+======================================================================
+  hr_fachlich                        : HR=0.8313  (RR-Senkung: 16.9%)  Asym-95%-CI=[0.777, 0.889]
+  hr_ueberfachlich                   : HR=0.9176  (RR-Senkung: 8.2%)  Asym-95%-CI=[0.852, 0.988]
+  hr_psychosozial                    : HR=0.7303  (RR-Senkung: 27.0%)  Asym-95%-CI=[0.671, 0.795]
+  hr_all_support                     : HR=0.8002  (RR-Senkung: 20.0%)  Asym-95%-CI=[0.764, 0.838]
+  Training Time                      : 537.81s
+======================================================================
+
+
+>>> [SCHRITT 3/3] PyTorch G-Computation / Counterfactual Simulation ...
+
+==============================================================================
+   PYTORCH G-COMPUTATION & COUNTERFACTUAL COHORT SIMULATION
+   Modus: standard | Temporal: prev | Device: cpu
+==============================================================================
+
+[Schritt 1] Trainiere Übergangshazard-Modell h(t | X, A) ...
+
+[Schritt 2] Simuliere kontrafaktische Kohorten unter do(A=0) und do(A=1) ...
+
+==============================================================================
+   G-COMPUTATION ESTIMATION RESULTS (TEST-SET)
+==============================================================================
+  • Kontrafaktisches Risiko do(A=0) [No Support]  : 21.58 %
+  • Kontrafaktisches Risiko do(A=1) [Full Support]: 16.99 %
+  • Kausale Absolute Risk Reduction (ARR)         : +4.59 pp
+  • Kausales Relative Risk (RR)                   : 0.7873 (Risikoreduktion: 21.27%)
+  • Number Needed to Treat (NNT)                  : 21.8 Studierende
+==============================================================================
+
+[Schritt 3] 100-Fold Student-Cluster Bootstrap für ARR / RR Konfidenzintervalle ...
+  • 95% Bootstrap CI (Relative Risk RR): [0.7848, 0.7910]
+  • 95% Bootstrap CI (ARR):             [+4.48 pp, +4.72 pp]
+[INFO] Metriken gespeichert: output_LXC_causal/S01_baseline/universe_A/metrics/torch_gcomputation_simulation_standard_prev_metrics.json
+
+======================================================================
+  CausalEvaluator -- torch_gcomputation_simulation [standard/prev]
+======================================================================
+  gcomputation_rr_full_support       : HR=0.7873  (RR-Senkung: 21.3%)  Boot-95%-CI=[0.785, 0.791]
+  gcomputation_arr_full_support      : HR=0.0459  (RR-Senkung: 95.4%)  Asym-95%-CI=[0.046, 0.046]
+  Training Time                      : 125.23s
+======================================================================
+
+
+========================================================================================
+>>> [LXC CAUSAL EXECUTION] Szenario: S02_supp_half | Universum: universe_A
+    Pfad: data_v4_grid/S02_supp_half/universe_A
+    Modus: standard | Temporal: prev
+========================================================================================
+[GROUND TRUTH] A-B Kontrast: True ARR = +4.41 pp | True RR = 0.8812 | NNT = 22.7
+
+>>> [SCHRITT 1/3] PyTorch Double Machine Learning (DML) ...
+
+==============================================================================
+   PYTORCH DOUBLE MACHINE LEARNING (DML) SURVIVAL ESTIMATION
+   Modus: standard | Temporal: prev | Device: cpu
+==============================================================================
+Panel: 342626 Zeilen | 50000 Studierende
+Confounder (13): ['hzb_note', 'hzb_typ_ord', 'stg_BWL', 'stg_Maschinenbau', 'stg_Psychologie', 'stg_Soziale_Arbeit', 'migrationshintergrund', 'erstakademiker', 'erwerbstaetigkeit_std', 'fails_prev', 'delta_cp_prev', 'cp_rueckstand', 'gpa_prev']
+Treatments (3): ['fach_supp_count', 'uebf_supp_count', 'psych_supp_count']
+
+[Stufe 1] 5-Fold Cross-Fitting der Nuisance-Modelle auf Trainingskohorte ...
+
+[Stufe 2a] Analytischer Robinson DML ATE-Schätzer (Neyman-Orthogonal) ...
+  • FACH          : ATE = +0.00552 | Asym-SE = 0.00143 | 95% CI: [+0.00272, +0.00831]
+  • UEBF          : ATE = +0.00217 | Asym-SE = 0.00073 | 95% CI: [+0.00074, +0.00360]
+  • PSYCH         : ATE = +0.00128 | Asym-SE = 0.00068 | 95% CI: [-0.00006, +0.00263]
+
+[Stufe 2b] Trainiere Neuronales DML-Hazard-Netzwerk auf [W, A_tilde] ...
+
+[Stufe 3] Kausale Counterfactual-Inferenz auf Testkohorte ...
+  • FACH          : HR = 0.9954 | Isolated RR = 0.9954 | ATE = -0.0002
+  • UEBF          : HR = 0.9144 | Isolated RR = 0.9144 | ATE = -0.0039
+  • PSYCH         : HR = 0.9911 | Isolated RR = 0.9911 | ATE = -0.0004
+
+[Stufe 3b] Berechne 100-Fold Student-Cluster Bootstrap für empirische CIs ...
+[INFO] Metriken gespeichert: output_LXC_causal/S02_supp_half/universe_A/metrics/torch_dml_orthogonal_survival_standard_prev_metrics.json
+
+======================================================================
+  CausalEvaluator -- torch_dml_orthogonal_survival [standard/prev]
+======================================================================
+  hr_fach                            : HR=0.9954  (RR-Senkung: 0.5%)  Boot-95%-CI=[0.990, 0.992]
+  hr_uebf                            : HR=0.9144  (RR-Senkung: 8.6%)  Boot-95%-CI=[0.990, 0.992]
+  hr_psych                           : HR=0.9911  (RR-Senkung: 0.9%)  Boot-95%-CI=[0.990, 0.992]
+  Training Time                      : 866.79s
+======================================================================
+
+[INFO] PyTorch DML Modell gespeichert: output_LXC_causal/S02_supp_half/universe_A/models
+
+>>> [SCHRITT 2/3] PyTorch Marginal Structural Models (MSM) ...
+
+==============================================================================
+   PYTORCH MARGINAL STRUCTURAL MODELS (MSM / IPTW)
+   Modus: standard | Temporal: prev | Device: cpu
+==============================================================================
+
+--- Berechne MSM für Maßnahme: FACHLICH (support_glz_fachlich) ---
+  • IPTW-Diagnostik: Mean = 0.9981 (Ideal=1.0) | Std = 0.1290 | Range = [0.568, 1.528]
+  • Kausale Hazard Ratio: HR = 0.9064 | 95% CI: [0.8540, 0.9620] | Risikoreduktion: +9.36%
+
+--- Berechne MSM für Maßnahme: UEBERFACHLICH (support_glz_ueberfachlich) ---
+  • IPTW-Diagnostik: Mean = 0.9949 (Ideal=1.0) | Std = 0.1870 | Range = [0.460, 1.825]
+  • Kausale Hazard Ratio: HR = 0.9598 | 95% CI: [0.9012, 1.0222] | Risikoreduktion: +4.02%
+
+--- Berechne MSM für Maßnahme: PSYCHOSOZIAL (support_glz_psychosozial) ---
+  • IPTW-Diagnostik: Mean = 1.0024 (Ideal=1.0) | Std = 0.0794 | Range = [0.741, 1.338]
+  • Kausale Hazard Ratio: HR = 0.7541 | 95% CI: [0.7010, 0.8112] | Risikoreduktion: +24.59%
+
+--- Berechne MSM für Maßnahme: ALL_SUPPORT (total_support_active) ---
+  • IPTW-Diagnostik: Mean = 0.9988 (Ideal=1.0) | Std = 0.1923 | Range = [0.469, 1.750]
+  • Kausale Hazard Ratio: HR = 0.8476 | 95% CI: [0.8138, 0.8829] | Risikoreduktion: +15.24%
+[INFO] Metriken gespeichert: output_LXC_causal/S02_supp_half/universe_A/metrics/torch_marginal_structural_model_standard_prev_metrics.json
+
+======================================================================
+  CausalEvaluator -- torch_marginal_structural_model [standard/prev]
+======================================================================
+  hr_fachlich                        : HR=0.9064  (RR-Senkung: 9.4%)  Asym-95%-CI=[0.854, 0.962]
+  hr_ueberfachlich                   : HR=0.9598  (RR-Senkung: 4.0%)  Asym-95%-CI=[0.901, 1.022]
+  hr_psychosozial                    : HR=0.7541  (RR-Senkung: 24.6%)  Asym-95%-CI=[0.701, 0.811]
+  hr_all_support                     : HR=0.8476  (RR-Senkung: 15.2%)  Asym-95%-CI=[0.814, 0.883]
+  Training Time                      : 532.92s
+======================================================================
+
+
+>>> [SCHRITT 3/3] PyTorch G-Computation / Counterfactual Simulation ...
+
+==============================================================================
+   PYTORCH G-COMPUTATION & COUNTERFACTUAL COHORT SIMULATION
+   Modus: standard | Temporal: prev | Device: cpu
+==============================================================================
+
+[Schritt 1] Trainiere Übergangshazard-Modell h(t | X, A) ...
+
+[Schritt 2] Simuliere kontrafaktische Kohorten unter do(A=0) und do(A=1) ...
+
+==============================================================================
+   G-COMPUTATION ESTIMATION RESULTS (TEST-SET)
+==============================================================================
+  • Kontrafaktisches Risiko do(A=0) [No Support]  : 22.26 %
+  • Kontrafaktisches Risiko do(A=1) [Full Support]: 18.51 %
+  • Kausale Absolute Risk Reduction (ARR)         : +3.75 pp
+  • Kausales Relative Risk (RR)                   : 0.8317 (Risikoreduktion: 16.83%)
+  • Number Needed to Treat (NNT)                  : 26.7 Studierende
+==============================================================================
+
+[Schritt 3] 100-Fold Student-Cluster Bootstrap für ARR / RR Konfidenzintervalle ...
+  • 95% Bootstrap CI (Relative Risk RR): [0.8291, 0.8353]
+  • 95% Bootstrap CI (ARR):             [+3.64 pp, +3.85 pp]
+[INFO] Metriken gespeichert: output_LXC_causal/S02_supp_half/universe_A/metrics/torch_gcomputation_simulation_standard_prev_metrics.json
+
+======================================================================
+  CausalEvaluator -- torch_gcomputation_simulation [standard/prev]
+======================================================================
+  gcomputation_rr_full_support       : HR=0.8317  (RR-Senkung: 16.8%)  Boot-95%-CI=[0.829, 0.835]
+  gcomputation_arr_full_support      : HR=0.0375  (RR-Senkung: 96.3%)  Asym-95%-CI=[0.037, 0.037]
+  Training Time                      : 124.99s
+======================================================================
+
+
+========================================================================================
+>>> [LXC CAUSAL EXECUTION] Szenario: S03_supp_double | Universum: universe_A
+    Pfad: data_v4_grid/S03_supp_double/universe_A
+    Modus: standard | Temporal: prev
+========================================================================================
+[GROUND TRUTH] A-B Kontrast: True ARR = +11.79 pp | True RR = 0.6822 | NNT = 8.5
+
+>>> [SCHRITT 1/3] PyTorch Double Machine Learning (DML) ...
+
+==============================================================================
+   PYTORCH DOUBLE MACHINE LEARNING (DML) SURVIVAL ESTIMATION
+   Modus: standard | Temporal: prev | Device: cpu
+==============================================================================
+Panel: 347323 Zeilen | 50000 Studierende
+Confounder (13): ['hzb_note', 'hzb_typ_ord', 'stg_BWL', 'stg_Maschinenbau', 'stg_Psychologie', 'stg_Soziale_Arbeit', 'migrationshintergrund', 'erstakademiker', 'erwerbstaetigkeit_std', 'fails_prev', 'delta_cp_prev', 'cp_rueckstand', 'gpa_prev']
+Treatments (3): ['fach_supp_count', 'uebf_supp_count', 'psych_supp_count']
+
+[Stufe 1] 5-Fold Cross-Fitting der Nuisance-Modelle auf Trainingskohorte ...
