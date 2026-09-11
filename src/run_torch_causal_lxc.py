@@ -108,7 +108,10 @@ def run_causal_scenario(
     print(f"    Modus: {mode} | Temporal: {temporal}")
     print("=" * 88)
 
-    out_scen = output_dir / scenario_name / universe_name
+    if mode != "standard":
+        out_scen = output_dir / scenario_name / universe_name / mode
+    else:
+        out_scen = output_dir / scenario_name / universe_name
     out_scen.mkdir(parents=True, exist_ok=True)
 
     results: Dict[str, Any] = {
@@ -210,26 +213,48 @@ def build_summary_markdown(all_results: List[Dict[str, Any]], out_file: Path):
         "",
         "## 2. Cross-Szenario Methoden-Vergleich & Ground Truth Validierung",
         "",
-        "| Szenario | Ground Truth ARR | G-Comp ARR | G-Comp RR (95% CI) | MSM HR (All Support) | DML ATE (Fachlich) |",
-        "| :--- | :---: | :---: | :---: | :---: | :---: |",
+        "| Szenario | Modus | Ground Truth ARR | GT RR | G-Comp ARR | G-Comp RR (95% Boot CI) | MSM HR All (95% CI) | MSM HR Fach | MSM HR Uebf | MSM HR Psych | DML HR Fach |",
+        "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |",
     ]
 
     for res in all_results:
         scen = res["scenario"]
+        mode = res.get("mode", "standard")
         gt = res.get("ground_truth", {})
         gt_arr = f"{gt['true_arr_pp']:+.2f} pp" if "true_arr_pp" in gt else "n/a"
+        gt_rr = f"{gt['true_rr']:.4f}" if "true_rr" in gt else "n/a"
 
         gcomp = res.get("gcomputation", {})
         gcomp_arr = f"{gcomp.get('causal_arr_pp', 0.0):+.2f} pp" if "causal_arr_pp" in gcomp else "n/a"
-        gcomp_rr = f"{gcomp.get('hr_estimates', {}).get('gcomputation_rr_full_support', 0.0):.4f}" if "hr_estimates" in gcomp else "n/a"
+        gc_rr_val = gcomp.get("gcomputation_rr_full_support", None)
+        gc_ci_lo = gcomp.get("ci_lower_95_boot_gcomputation_rr_full_support", None)
+        gc_ci_hi = gcomp.get("ci_upper_95_boot_gcomputation_rr_full_support", None)
+        if gc_rr_val is not None and gc_ci_lo is not None and gc_ci_hi is not None:
+            gcomp_rr = f"{gc_rr_val:.4f} [{gc_ci_lo:.4f}, {gc_ci_hi:.4f}]"
+        elif gc_rr_val is not None:
+            gcomp_rr = f"{gc_rr_val:.4f}"
+        else:
+            gcomp_rr = "n/a"
 
         msm = res.get("msm", {})
-        msm_hr = f"{msm.get('hr_estimates', {}).get('hr_all_support', 0.0):.4f}" if "hr_estimates" in msm else "n/a"
+        msm_hr_all = msm.get("hr_all_support", None)
+        msm_ci_lo = msm.get("ci_lower_95_asym_hr_all_support", None)
+        msm_ci_hi = msm.get("ci_upper_95_asym_hr_all_support", None)
+        if msm_hr_all is not None and msm_ci_lo is not None and msm_ci_hi is not None:
+            msm_hr_str = f"{msm_hr_all:.4f} [{msm_ci_lo:.4f}, {msm_ci_hi:.4f}]"
+        elif msm_hr_all is not None:
+            msm_hr_str = f"{msm_hr_all:.4f}"
+        else:
+            msm_hr_str = "n/a"
+
+        msm_fach = f"{msm['hr_fachlich']:.4f}" if "hr_fachlich" in msm else "n/a"
+        msm_uebf = f"{msm['hr_ueberfachlich']:.4f}" if "hr_ueberfachlich" in msm else "n/a"
+        msm_psych = f"{msm['hr_psychosozial']:.4f}" if "hr_psychosozial" in msm else "n/a"
 
         dml = res.get("dml", {})
-        dml_ate = f"{dml.get('dml_ate_fach', 0.0):+.4f}" if "dml_ate_fach" in dml else "n/a"
+        dml_fach = f"{dml['hr_fach']:.4f}" if "hr_fach" in dml else "n/a"
 
-        lines.append(f"| **{scen}** | {gt_arr} | **{gcomp_arr}** | {gcomp_rr} | {msm_hr} | {dml_ate} |")
+        lines.append(f"| **{scen}** | `{mode}` | {gt_arr} | {gt_rr} | **{gcomp_arr}** | {gcomp_rr} | {msm_hr_str} | {msm_fach} | {msm_uebf} | {msm_psych} | {dml_fach} |")
 
     lines.extend([
         "",
@@ -273,7 +298,8 @@ def main():
         "S11_rct_calibrated",
     ], help="Liste der auszuführenden Szenarien")
     parser.add_argument("--universe", type=str, default="universe_A", help="Universum (Default: universe_A)")
-    parser.add_argument("--mode", type=str, default="standard", help="Feature-Modus (standard, gradeblind, blind, oracle)")
+    parser.add_argument("--mode", type=str, default="standard", help="Einzelner Feature-Modus")
+    parser.add_argument("--modes", nargs="+", default=None, help="Liste von Feature-Modi (z.B. standard inside_view realistic gradeblind_oracle blind)")
     parser.add_argument("--temporal", type=str, default="prev", help="Temporaler Modus (prev oder cum)")
     parser.add_argument("--n_folds", type=int, default=5, help="Anzahl DML Cross-Fitting Folds")
     parser.add_argument("--epochs_nuisance", type=int, default=15, help="Epochen für DML Nuisance-Modelle")
@@ -291,11 +317,14 @@ def main():
     torch_threads = max(1, cpu_cores - 1)
     torch.set_num_threads(torch_threads)
 
+    modes = args.modes if args.modes else [args.mode]
+
     print("\n" + "#" * 88)
     print("   DEEPSUPPORT PYTORCH CAUSAL LXC BATCH RUNNER")
     print(f"   CPU-Kerne: {cpu_cores} | PyTorch-Threads: {torch_threads}")
     print(f"   Rechendevice: {args.device or ('cuda' if torch.cuda.is_available() else 'cpu')}")
     print(f"   Szenarien ({len(args.scenarios)}): {args.scenarios}")
+    print(f"   Modi ({len(modes)}): {modes}")
     print("#" * 88)
 
     data_grid_dir = Path(args.data_grid_dir)
@@ -311,34 +340,52 @@ def main():
             print(f"[WARN] Szenario-Pfad existiert nicht: {scen_path} -- wird übersprungen.")
             continue
 
-        res = run_causal_scenario(
-            data_dir=scen_path,
-            output_dir=output_dir,
-            data_grid_dir=data_grid_dir,
-            scenario_name=scen,
-            universe_name=args.universe,
-            mode=args.mode,
-            temporal=args.temporal,
-            n_folds=args.n_folds,
-            epochs_nuisance=args.epochs_nuisance,
-            epochs_dml=args.epochs_dml,
-            epochs_gcomp=args.epochs_gcomp,
-            skip_dml=args.skip_dml,
-            skip_msm=args.skip_msm,
-            skip_gcomp=args.skip_gcomp,
-            device=args.device,
-            seed=args.seed,
-        )
-        all_results.append(res)
+        for m in modes:
+            res = run_causal_scenario(
+                data_dir=scen_path,
+                output_dir=output_dir,
+                data_grid_dir=data_grid_dir,
+                scenario_name=scen,
+                universe_name=args.universe,
+                mode=m,
+                temporal=args.temporal,
+                n_folds=args.n_folds,
+                epochs_nuisance=args.epochs_nuisance,
+                epochs_dml=args.epochs_dml,
+                epochs_gcomp=args.epochs_gcomp,
+                skip_dml=args.skip_dml,
+                skip_msm=args.skip_msm,
+                skip_gcomp=args.skip_gcomp,
+                device=args.device,
+                seed=args.seed,
+            )
+            all_results.append(res)
 
-    # Gesamtergebnisse speichern
+    # Zusammenführung mit bestehender Gesamt-JSON
     summary_json = output_dir / "causal_benchmark_summary.json"
+    existing_results = []
+    if summary_json.exists():
+        try:
+            with open(summary_json, "r", encoding="utf-8") as f:
+                existing_results = json.load(f)
+        except Exception:
+            existing_results = []
+
+    merged_dict = {}
+    for r in existing_results:
+        key = (r.get("scenario"), r.get("universe"), r.get("mode", "standard"), r.get("temporal", "prev"))
+        merged_dict[key] = r
+    for r in all_results:
+        key = (r.get("scenario"), r.get("universe"), r.get("mode", "standard"), r.get("temporal", "prev"))
+        merged_dict[key] = r
+
+    final_results = list(merged_dict.values())
     with open(summary_json, "w", encoding="utf-8") as f:
-        json.dump(all_results, f, indent=4, ensure_ascii=False)
+        json.dump(final_results, f, indent=4, ensure_ascii=False)
     print(f"\n[INFO] Gesamt-JSON gespeichert: {summary_json}")
 
     summary_md = output_dir / "causal_benchmark_summary.md"
-    build_summary_markdown(all_results, summary_md)
+    build_summary_markdown(final_results, summary_md)
 
     total_time = time.time() - t_start_total
     print("\n" + "#" * 88)

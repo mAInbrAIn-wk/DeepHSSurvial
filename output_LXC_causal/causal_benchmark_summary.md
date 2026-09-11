@@ -17,14 +17,14 @@ Erstmals werden drei voneinander unabhängige kausale Schätzmethoden (DML, MSM 
 
 ## 2. Cross-Szenario Methoden-Vergleich & Ground Truth Validierung
 
-| Szenario | Ground Truth ARR | G-Comp ARR | G-Comp RR (95% CI) | MSM HR (All Support) | DML ATE (Fachlich) |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **S01_baseline** | +7.95 pp | **+4.59 pp** | n/a | n/a | +0.0028 |
-| **S02_supp_half** | +4.41 pp | **+3.75 pp** | n/a | n/a | +0.0055 |
-| **S03_supp_double** | +11.79 pp | **+4.26 pp** | n/a | n/a | +0.0009 |
-| **S07_noise_half** | +6.33 pp | **+3.97 pp** | n/a | n/a | +0.0034 |
-| **S08_noise_double** | +7.88 pp | **+4.37 pp** | n/a | n/a | +0.0014 |
-| **S11_rct_calibrated** | +4.45 pp | **+6.16 pp** | n/a | n/a | -0.0009 |
+| Szenario | Modus | Ground Truth ARR | GT RR | G-Comp ARR | G-Comp RR (95% Boot CI) | MSM HR All (95% CI) | MSM HR Fach | MSM HR Uebf | MSM HR Psych | DML HR Fach |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **S01_baseline** | `standard` | +7.95 pp | 0.7858 | **+4.59 pp** | 0.7873 [0.7848, 0.7910] | 0.8002 [0.7645, 0.8376] | 0.8313 | 0.9176 | 0.7303 | 1.0001 |
+| **S02_supp_half** | `standard` | +4.41 pp | 0.8812 | **+3.75 pp** | 0.8317 [0.8291, 0.8353] | 0.8476 [0.8138, 0.8829] | 0.9064 | 0.9598 | 0.7541 | 0.9954 |
+| **S03_supp_double** | `standard` | +11.79 pp | 0.6822 | **+4.26 pp** | 0.7998 [0.7969, 0.8032] | 0.7626 [0.7241, 0.8031] | 0.7371 | 0.8289 | 0.7037 | 0.9241 |
+| **S07_noise_half** | `standard` | +6.33 pp | 0.8083 | **+3.97 pp** | 0.7787 [0.7745, 0.7830] | 0.8070 [0.7685, 0.8475] | 0.8260 | 0.9251 | 0.7221 | 0.9932 |
+| **S08_noise_double** | `standard` | +7.88 pp | 0.8080 | **+4.37 pp** | 0.8191 [0.8170, 0.8227] | 0.7797 [0.7484, 0.8123] | 0.7777 | 0.8783 | 0.7478 | 0.9579 |
+| **S11_rct_calibrated** | `standard` | +4.45 pp | 0.8800 | **+6.16 pp** | 0.7335 [0.7293, 0.7383] | 0.6776 [0.6489, 0.7076] | 0.6745 | 0.6837 | 0.6815 | 0.9317 |
 
 ---
 
