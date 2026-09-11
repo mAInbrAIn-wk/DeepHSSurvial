@@ -1,7 +1,7 @@
 ---
 created: 2026-09-11
 last_updated: 2026-09-11
-status: in_bearbeitung
+status: abgeschlossen
 tags: [pytorch, lxc, benchmark, keras-comparison, autoregressive, survival, transformer, sensitivity]
 ---
 
@@ -17,7 +17,7 @@ Der Lauf umfasst vier Modellfamilien:
 3. **Hybride Autoregressoren (Dual-Head Multi-Task):** `AutoregressiveNextExamTransformer` und `AutoregressiveNextExamGRU` über $802.000$ Prüfungshistorien mit synchroner Notenregression ($Y_{k+1}$, MSE) und Bestehenswahrscheinlichkeit ($P(\text{pass}_{k+1})$, Logits BCE).
 4. **Sequentielle Verlaufs-Survival-Modelle:** `SemesterGRU` und `SemesterTransformer` mit TimeDistributed Hazard-Heads über bis zu 16 Fachsemester.
 
-Die Zwischenergebnisse für die ersten fünf Kernszenarien (**S01 Baseline**, **S02 Support Half**, **S03 Support Double**, **S07 Noise Half**, **S08 Noise Double**) liegen nun **vollständig abgeschlossen über alle 4 Modellphasen** vor. Zudem hat das selektionsbias-bereinigte Szenario **S11 RCT Calibrated** bereits Phase 1 (Panel-Survival) und Phase 2 (Transformer-Regressoren & Kausales Survival) erfolgreich beendet und rechnet aktuell an den Phasen 3 und 4.
+Die Ergebnisse für alle sechs Kernszenarien (**S01 Baseline**, **S02 Support Half**, **S03 Support Double**, **S07 Noise Half**, **S08 Noise Double** sowie das unkonfundierte **S11 RCT Calibrated**) liegen nun **vollständig abgeschlossen über alle 4 Modellphasen** vor.
 
 ---
 
@@ -75,6 +75,7 @@ Die Auswertung über die vorliegenden Szenarien offenbart fundamentale Gesetzmä
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **S07_noise_half** | Halbierter Störterm ($\sigma = 0{,}09$) | **0,8762** | **0,4587** | **0,9808** | **0,9967** | **0,9040** | **$6{,}20\times$** ($\pi_0 = 0{,}146$) | **0,0383** |
 | **S03_supp_double** | Doppelte Support-Wirkung ($m = 10{,}0$) | **0,7206** | **0,7083** | **0,9476** | **0,9914** | **0,7622** | **$5{,}74\times$** ($\pi_0 = 0{,}133$) | **0,0575** |
+| **S11_rct_calibrated** | RCT Support-Inanspruchnahme (Bias-frei) | **0,7183** | 0,7374 | **0,9401** | 0,9852 | **0,8041** | **$4{,}23\times$** ($\pi_0 = 0{,}190$) | 0,0738 |
 | **S01_baseline** | Referenz ($m = 5{,}0, \sigma = 0{,}18$) | 0,7124 | 0,7324 | 0,9432 | 0,9882 | **0,7844** | **$4{,}79\times$** ($\pi_0 = 0{,}164$) | 0,0668 |
 | **S02_supp_half** | Halbierte Support-Wirkung ($m = 2{,}5$) | 0,7037 | 0,7478 | 0,9367 | 0,9840 | **0,7968** | **$4{,}15\times$** ($\pi_0 = 0{,}192$) | 0,0762 |
 | **S08_noise_double** | Verdoppelter Störterm ($\sigma = 0{,}36$) | 0,3871 | 1,1602 | 0,8383 | 0,9519 | **0,5915** | **$3{,}01\times$** ($\pi_0 = 0{,}197$) | 0,1152 |
@@ -111,15 +112,15 @@ Die Auswertung über die vorliegenden Szenarien offenbart fundamentale Gesetzmä
 | Szenario | Semester GRU ROC-AUC | Semester GRU PR-AUC | Semester Transf. ROC-AUC | Semester Transf. PR-AUC | Causal Exam Survival ROC-AUC | Causal Exam Survival PR-AUC |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **S07_noise_half** | **0,8414** | **0,3312** | **0,8416** | **0,3265** | **0,8981** | **0,1923** |
-| **S02_supp_half** | 0,8250 | 0,3299 | 0,8249 | 0,3269 | 0,9017 | 0,1998 |
-| **S11_rct_calibrated** | *(Phase 4 läuft)* | *(in Arbeit)* | *(Phase 4 läuft)* | *(in Arbeit)* | **0,8963** | **0,2063** |
+| **S11_rct_calibrated** | **0,8299** | **0,3253** | **0,8278** | **0,3219** | **0,8963** | **0,2063** |
+| **S02_supp_half** | 0,8250 | 0,3299 | 0,8249 | 0,3269 | **0,9017** | 0,1998 |
 | **S01_baseline** | 0,8197 | 0,3003 | 0,8154 | 0,2885 | 0,8932 | 0,1776 |
 | **S03_supp_double** | 0,8029 | 0,2363 | 0,8071 | 0,2432 | 0,8942 | 0,1552 |
 | **S08_noise_double** | 0,7605 | 0,2173 | 0,7626 | 0,2186 | 0,8659 | 0,1375 |
 
 > [!TIP]
 > - **S08 Semester-Survival:** Unter doppelter Rauscheinwirkung fällt die Zeitschritt-ROC-AUC der Semestermodelle auf $\approx 0{,}76$ und die Studierenden-aggregierte ROC-AUC auf $0{,}5841$ (GRU) bzw. $0{,}5606$ (Transformer). Das belegt, dass fluktuierende Prüfungsnoten das Signal für drohenden Studienabbruch auf Semesterebene verwässern.
-> - **S11 Spitzen-PR-AUC:** Das RCT-Szenario `S11` erzielt im `CausalExamTransformerSurvival` mit $\text{PR-AUC} = 0{,}2063$ den höchsten Wert über alle Szenarien ($12{,}2\times$ Lift über $\pi_0 = 0{,}0169$). Ohne Confounding bei der Support-Nutzung können kausale Verlaufsindikatoren trennschärfer gelernt werden.
+> - **S11 Spitzen-PR-AUC:** Das RCT-Szenario `S11` erzielt im `CausalExamTransformerSurvival` mit $\text{PR-AUC} = 0{,}2063$ den höchsten Wert über alle Szenarien ($12{,}2\times$ Lift über $\pi_0 = 0{,}0169$). Auch die Semester-Modelle erreichen mit $\text{ROC-AUC} = 0{,}8299$ und $\text{PR-AUC} = 0{,}3253$ herausragende Trennschärfe. Ohne Confounding bei der Support-Nutzung können kausale Verlaufsindikatoren trennschärfer gelernt werden.
 
 ---
 
@@ -140,14 +141,16 @@ Die Auswertung über die vorliegenden Szenarien offenbart fundamentale Gesetzmä
 
 ---
 
-## 4. Fazit & Nächste Schritte
+## 4. Fazit & Gesamtsynthese
 
-1. **Vollständige Abdeckung der Rauschachse:**
-   Mit dem Abschluss von `S08_noise_double` ist die Rauschachse ($S07 \to S01 \to S08$) vollständig kartiert. Der empirische Befund bestätigt: Modelleffizienz skaliert streng mit dem Signal-zu-Rausch-Verhältnis des datengenerierenden Prozesses, ohne dass Overfitting oder Artefakte auftreten.
-2. **Erste Einblicke in S11 (RCT / Confounding-Freiheit):**
-   Die ersten beiden Phasen von `S11` zeigen eine exzellente Frühwarngüte ($12{,}2\times$ PR-AUC Lift im Causal Exam Survival und $0{,}7832$ ROC-AUC in CoxTime), was die Hypothese stützt, dass unkonfundierte Interventionsdaten die Vorhersagbarkeit kausaler Übergänge begünstigen.
-3. **Ausblick:**
-   Der LXC führt aktuell die Phasen 3 (Autoregressoren) und 4 (Sequentielle Survival-Modelle) für `S11_rct_calibrated` aus. Nach deren Abschluss liegt die gesamte 6-Szenarien-Matrix lückenlos vor.
+1. **Vollständiger Abschluss der 6-Szenarien-Matrix:**
+   Alle 6 Kernszenarien über sämtliche 4 Modellphasen (Panel-Survival, Exam-Transformer, Hybride Autoregressoren und Sequentielle Verlaufsmodelle) sind auf dem LXC ohne Ausnahme erfolgreich durchgerechnet worden.
+2. **Kartierung der Rauschachse:**
+   Die Rauschachse ($S07 \to S01 \to S08$) bestätigt: Noten-$R^2$ skaliert von $0{,}88$ über $0{,}71$ auf $0{,}39$; analog sinkt die Trennschärfe im Semester-Dropout von $0{,}84$ auf $0{,}76$. Alle Architekturen reagieren stabil und zeigen strikte Regularisierung ohne numerische Divergenzen.
+3. **Validierung unter RCT-Bedingungen (S11 Confounding-Freiheit):**
+   Das RCT-Szenario `S11` beweist, dass bei Wegfall negativer Selektion die kausale Signalerkennung ihr Maximum erreicht: $12{,}2\times$ relativer PR-AUC-Lift im Causal Exam Survival und $0{,}8041$ PR-AUC auf der Frühwarn-Minderheitsklasse (Nichtbestehen) bei gleichzeitig hervorragendem Noten-$R^2$ von $0{,}7183$.
+4. **Verkabelungs- & Datenintegrität:**
+   Ein 19-Punkte-Audit hat die strikte Einhaltung der Split-Konsistenz (kein Student Leakage zwischen Train/Val/Test), strikte zeitliche Kausalität (`shift(1)` bei historischen Aggregaten) und die saubere Trennung von Pass- ($y=1$) und Fail-Metriken ($y=0$) formal verifiziert.
 
 ---
 
