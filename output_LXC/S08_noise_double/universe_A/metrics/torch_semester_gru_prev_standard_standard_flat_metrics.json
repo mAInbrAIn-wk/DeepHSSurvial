@@ -1,0 +1,9 @@
+{
+    "Step_ROC_AUC": 0.7605083824165679,
+    "Step_PR_AUC": 0.21734352552742658,
+    "Step_Brier_Score": 0.041562993079423904,
+    "Student_ROC_AUC": 0.584117242094559,
+    "Student_PR_AUC": 0.3807746521502394,
+    "temporal": "prev",
+    "mode": "standard"
+}

@@ -1,0 +1,17 @@
+{
+    "model_name": "torch_logistic_hazard",
+    "mode": "standard",
+    "temporal_type": "prev",
+    "n_samples": 51234.0,
+    "dropout_prevalence_pi0": 0.046863410621881485,
+    "roc_auc": 0.7799505088499012,
+    "pr_auc_dropout": 0.17471211523240307,
+    "pr_auc_nondropout": 0.9839937279260588,
+    "pr_auc_baseline_pi0": 0.046863410621881485,
+    "brier_score": 0.04169473052024841,
+    "brier_skill_score": 0.0665476850828417,
+    "f1_score": 0.03595685177786656,
+    "balanced_accuracy": 0.50878747364572,
+    "c_index": 0.7216403188320358,
+    "training_time_s": 203.2288224697113
+}
