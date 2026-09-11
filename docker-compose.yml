@@ -1,0 +1,24 @@
+services:
+  deepsupport:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: deepsupport:latest
+    container_name: deepsupport_app
+    working_dir: /app
+    environment:
+      - PYTHONPATH=src
+      - TF_ENABLE_ONEDNN_OPTS=0
+      - OMP_NUM_THREADS=7
+      - MKL_NUM_THREADS=7
+    volumes:
+      # Bind-Mount des Projektverzeichnisses: Code und Daten bleiben auf dem Host
+      - .:/app
+    shm_size: '2gb'
+    deploy:
+      resources:
+        limits:
+          cpus: '7.0'
+    stdin_open: true
+    tty: true
+    command: /bin/bash

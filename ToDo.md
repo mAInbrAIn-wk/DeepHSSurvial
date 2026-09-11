@@ -38,10 +38,10 @@ tags: [todo, roadmap, tasks, v5-roadmap, deep-transformer, pytorch]
 
 ## 📦 Infrastruktur, Containerisierung & Deployment
 
-- [ ] **Docker-Kapselung & Proxmox-Deployment:**
-  - Erstellung eines reproduzierbaren `Dockerfile` basierend auf `requirements.txt` und Python 3.12 (Debian Slim mit PyTorch CPU/CUDA).
-  - `docker-compose.yml` mit standardisierten Volume-Mounts für `data_v4_grid/` und `src/output_lxc_causal/`.
-  - Proxmox VE Architektur-Check: Betrieb von Docker im Debian LXC Container (`features: nesting=1,keyctl=1`) zur Kapselung aller C++- und Systemabhängigkeiten.
+- [x] **Docker-Kapselung & Proxmox-Deployment:**
+  - `Dockerfile` auf Basis von `python:3.12-slim` mit C++ Build-Tools, OpenMP und PyTorch CPU Wheels erstellt.
+  - `docker-compose.yml` und schlanke `.dockerignore` (Ausschluss der 25+ GB Daten aus Build-Kontext) konfiguriert.
+  - Vollständiger Deployment-Leitfaden für Proxmox VE (`features: nesting=1,keyctl=1`) in [`docs/06_misc/docker_proxmox_deployment_guide.md`](docs/06_misc/docker_proxmox_deployment_guide.md) dokumentiert.
 
 ---
 
