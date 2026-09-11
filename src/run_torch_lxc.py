@@ -41,12 +41,25 @@ from deepsupport.models.torch.transformer import (
     PyTorchExamTransformerRegressor,
     PyTorchCausalExamTransformerSurvival,
 )
+from deepsupport.models.torch.autoregressive import (
+    PyTorchAutoregressiveNextExamGRU,
+    PyTorchAutoregressiveNextExamTransformer,
+    train_autoregressive_dual_head_model,
+)
+from deepsupport.models.torch.sequence import (
+    PyTorchSemesterGRU,
+    PyTorchSemesterTransformer,
+    PyTorchExamGRU,
+    PyTorchDynamicDeepHit,
+    train_torch_sequence_survival_model,
+)
 from deepsupport.models.torch.trainer import (
     ModelTrainer,
 )
 from deepsupport.evaluation.metrics_logger import (
     SurvivalEvaluator,
     RegressionEvaluator,
+    DualHeadEvaluator,
     save_metrics,
 )
 
@@ -66,6 +79,10 @@ def run_scenario_universe(
     epochs_ct: int = 20,
     epochs_dh_cr: int = 20,
     epochs_trans: int = 15,
+    epochs_ar: int = 15,
+    epochs_seq: int = 20,
+    include_ar: bool = False,
+    include_seq: bool = False,
     seed: int = 42,
     skip_trans: bool = False,
     skip_surv: bool = False,
@@ -74,6 +91,10 @@ def run_scenario_universe(
     print(f">>> [LXC EXECUTION] Szenario: {scenario_name} | Universum: {universe_name}")
     print(f"    Pfad: {data_dir}")
     print(f"    Survival-Mode: {mode_surv} | Regressor-Mode: {mode_reg} | Temporal: {temporal}")
+    if include_ar:
+        print("    [Option] Inklusive Hybride Autoregressoren (Dual-Head Multi-Task)")
+    if include_seq:
+        print("    [Option] Inklusive Sequentielle Survival-Modelle (Semester- & Prüfungsverläufe)")
     print("=" * 88)
 
     scenario_out = output_dir / scenario_name / universe_name
@@ -336,6 +357,73 @@ def run_scenario_universe(
         )
         results["models"]["torch_causal_exam_transformer_survival"] = m_sv
 
+    # 3. Phase 3: Hybride Autoregressoren (Dual-Head Multi-Task)
+    if include_ar:
+        print("\n--- [LXC] Phase 3: Hybride Autoregressoren (Dual-Head Multi-Task) ---")
+        print("\n[1/2] Training PyTorchAutoregressiveNextExamTransformer...")
+        res_ar_trans = train_autoregressive_dual_head_model(
+            model_type="transformer",
+            data_dir=data_dir,
+            output_dir=scenario_out,
+            epochs=epochs_ar,
+            batch_size=512,
+            seed=seed,
+        )
+        results["models"]["torch_autoregressive_next_exam_transformer"] = res_ar_trans["metrics"]
+
+        print("\n[2/2] Training PyTorchAutoregressiveNextExamGRU...")
+        res_ar_gru = train_autoregressive_dual_head_model(
+            model_type="gru",
+            data_dir=data_dir,
+            output_dir=scenario_out,
+            epochs=epochs_ar,
+            batch_size=512,
+            seed=seed,
+        )
+        results["models"]["torch_autoregressive_next_exam_gru"] = res_ar_gru["metrics"]
+
+    # 4. Phase 4: Sequentielle Survival-Modelle (Semester- & Prüfungsverläufe)
+    if include_seq:
+        print("\n--- [LXC] Phase 4: Sequentielle Survival-Modelle (Semester- & Prüfungsverläufe) ---")
+        print("\n[1/3] Training PyTorchSemesterGRU...")
+        res_sem_gru = train_torch_sequence_survival_model(
+            model_type="semester_gru",
+            data_dir=data_dir,
+            output_dir=scenario_out,
+            mode=mode_surv,
+            temporal=temporal,
+            epochs=epochs_seq,
+            batch_size=256,
+            seed=seed,
+        )
+        results["models"]["torch_semester_gru"] = res_sem_gru["metrics"]
+
+        print("\n[2/3] Training PyTorchSemesterTransformer...")
+        res_sem_trans = train_torch_sequence_survival_model(
+            model_type="semester_transformer",
+            data_dir=data_dir,
+            output_dir=scenario_out,
+            mode=mode_surv,
+            temporal=temporal,
+            epochs=epochs_seq,
+            batch_size=256,
+            seed=seed,
+        )
+        results["models"]["torch_semester_transformer"] = res_sem_trans["metrics"]
+
+        print("\n[3/3] Training PyTorchDynamicDeepHit...")
+        res_ddh = train_torch_sequence_survival_model(
+            model_type="dynamic_deephit",
+            data_dir=data_dir,
+            output_dir=scenario_out,
+            mode=mode_surv,
+            temporal=temporal,
+            epochs=epochs_seq,
+            batch_size=256,
+            seed=seed,
+        )
+        results["models"]["torch_dynamic_deephit"] = res_ddh["metrics"]
+
     # Speichern des Ergebnis-JSON für dieses Universum
     res_path = scenario_out / "metrics" / f"lxc_results_{scenario_name}_{universe_name}.json"
     res_path.parent.mkdir(parents=True, exist_ok=True)
@@ -360,6 +448,10 @@ def main():
     parser.add_argument("--dry_run", action="store_true", help="Schneller Probelauf mit 2 Epochen")
     parser.add_argument("--skip_trans", action="store_true", help="Transformer überspringen")
     parser.add_argument("--skip_surv", action="store_true", help="Survival überspringen")
+    parser.add_argument("--include_ar", action="store_true", help="Hybride Autoregressoren (Dual-Head) trainieren")
+    parser.add_argument("--include_seq", action="store_true", help="Sequentielle Survival-Modelle (Semester/Exam) trainieren")
+    parser.add_argument("--epochs_ar", type=int, default=15, help="Epochen für Autoregressoren")
+    parser.add_argument("--epochs_seq", type=int, default=20, help="Epochen für Sequenz-Survival")
 
     args = parser.parse_args()
 
@@ -382,6 +474,8 @@ def main():
     epochs_ct = 2 if args.dry_run else 20
     epochs_dh_cr = 2 if args.dry_run else 20
     epochs_trans = 2 if args.dry_run else 15
+    epochs_ar = 2 if args.dry_run else args.epochs_ar
+    epochs_seq = 2 if args.dry_run else args.epochs_seq
 
     data_root = Path(args.data_root)
     output_dir = Path(args.output_dir)
@@ -428,6 +522,10 @@ def main():
                 epochs_ct=epochs_ct,
                 epochs_dh_cr=epochs_dh_cr,
                 epochs_trans=epochs_trans,
+                epochs_ar=epochs_ar,
+                epochs_seq=epochs_seq,
+                include_ar=args.include_ar,
+                include_seq=args.include_seq,
                 skip_trans=args.skip_trans,
                 skip_surv=args.skip_surv,
             )

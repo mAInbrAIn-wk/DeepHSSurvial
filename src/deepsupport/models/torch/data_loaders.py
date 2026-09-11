@@ -544,3 +544,212 @@ def prepare_causal_survival_dataloaders(
         "scaler": scaler,
         "n_students_test": len(test_ids),
     }
+
+
+def prepare_next_exam_dual_head_dataloaders(
+    data_dir: Union[str, Path] = Path("data_v4_grid/S01_baseline/universe_A"),
+    max_history_len: int = 30,
+    batch_size: int = 256,
+    max_samples: Optional[int] = None,
+    seed: int = 42,
+) -> Dict[str, Any]:
+    """
+    Bereitet Daten für autoregressive Next-Exam Dual-Head Multi-Task Modelle vor:
+    - Eingabe 1: Prüfungshistorie 1..k (N, max_history_len, 12)
+    - Eingabe 2: Nächster Prüfungskontext k+1 + Demographie (N, 14)
+    - Target 1: Note k+1 (Regression)
+    - Target 2: Bestanden k+1 (Klassifikation)
+    - 3-Way Group-Consistent Split auf Student-ID-Ebene (70/15/15)
+    - Skalierung via StandardScaler strikt auf Train-Tokens
+    """
+    data_path = Path(data_dir)
+    from deepsupport.models.autoregressive_gru import prepare_next_exam_dataset
+
+    X_hist, X_ctx, y_grade, y_pass, student_ids = prepare_next_exam_dataset(
+        data_path, max_history_len=max_history_len
+    )
+
+    if max_samples is not None and max_samples < len(X_hist):
+        rng = np.random.default_rng(seed)
+        sample_idx = rng.choice(len(X_hist), size=max_samples, replace=False)
+        X_hist = X_hist[sample_idx]
+        X_ctx = X_ctx[sample_idx]
+        y_grade = y_grade[sample_idx]
+        y_pass = y_pass[sample_idx]
+        student_ids = student_ids[sample_idx]
+
+    # 3-Way Group-Consistent Split auf Student IDs
+    unique_students = np.unique(student_ids)
+    tr_students, temp_students = train_test_split(unique_students, test_size=0.30, random_state=seed)
+    va_students, te_students = train_test_split(temp_students, test_size=0.50, random_state=seed)
+
+    tr_idx = np.where(np.isin(student_ids, tr_students))[0]
+    va_idx = np.where(np.isin(student_ids, va_students))[0]
+    te_idx = np.where(np.isin(student_ids, te_students))[0]
+
+    # Preprocessing: StandardScaler auf unpadded Train-Tokens und Context
+    vm_tr = (X_hist[tr_idx, :, 0] != fb.PADDING_VALUE)
+    scaler_seq = StandardScaler()
+    scaler_seq.fit(X_hist[tr_idx][vm_tr])
+
+    scaler_ctx = StandardScaler()
+    scaler_ctx.fit(X_ctx[tr_idx])
+
+    def _transform_seq(arr: np.ndarray) -> np.ndarray:
+        out = arr.copy()
+        vm = (arr[:, :, 0] != fb.PADDING_VALUE)
+        if np.any(vm):
+            out[vm] = scaler_seq.transform(arr[vm])
+        return out.astype(np.float32)
+
+    X_hist_tr = _transform_seq(X_hist[tr_idx])
+    X_hist_va = _transform_seq(X_hist[va_idx])
+    X_hist_te = _transform_seq(X_hist[te_idx])
+
+    X_ctx_tr = scaler_ctx.transform(X_ctx[tr_idx]).astype(np.float32)
+    X_ctx_va = scaler_ctx.transform(X_ctx[va_idx]).astype(np.float32)
+    X_ctx_te = scaler_ctx.transform(X_ctx[te_idx]).astype(np.float32)
+
+    y_grade_tr = y_grade[tr_idx].astype(np.float32)
+    y_grade_va = y_grade[va_idx].astype(np.float32)
+    y_grade_te = y_grade[te_idx].astype(np.float32)
+
+    y_pass_tr = y_pass[tr_idx].astype(np.float32)
+    y_pass_va = y_pass[va_idx].astype(np.float32)
+    y_pass_te = y_pass[te_idx].astype(np.float32)
+
+    train_ds = StudySequenceDataset(
+        X_hist_tr,
+        context=X_ctx_tr,
+        targets_note=y_grade_tr,
+        targets_pass=y_pass_tr,
+        student_ids=student_ids[tr_idx],
+    )
+    val_ds = StudySequenceDataset(
+        X_hist_va,
+        context=X_ctx_va,
+        targets_note=y_grade_va,
+        targets_pass=y_pass_va,
+        student_ids=student_ids[va_idx],
+    )
+    test_ds = StudySequenceDataset(
+        X_hist_te,
+        context=X_ctx_te,
+        targets_note=y_grade_te,
+        targets_pass=y_pass_te,
+        student_ids=student_ids[te_idx],
+    )
+
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False)
+    test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False)
+
+    return {
+        "train_loader": train_loader,
+        "val_loader": val_loader,
+        "test_loader": test_loader,
+        "X_hist_test": X_hist_te,
+        "X_ctx_test": X_ctx_te,
+        "y_grade_test": y_grade_te,
+        "y_pass_test": y_pass_te,
+        "student_ids_test": student_ids[te_idx],
+        "seq_features": X_hist.shape[2],
+        "context_features": X_ctx.shape[1],
+        "scaler_seq": scaler_seq,
+        "scaler_ctx": scaler_ctx,
+        "n_samples_test": len(te_idx),
+    }
+
+
+def prepare_sequence_survival_dataloaders(
+    data_dir: Union[str, Path] = Path("data_v4_grid/S01_baseline/universe_A"),
+    sequence_type: str = "semester",
+    max_len: int = 16,
+    mode: str = "standard",
+    temporal: str = "prev",
+    batch_size: int = 256,
+    seed: int = 42,
+    max_samples: Optional[int] = None,
+) -> Dict[str, Any]:
+    """
+    Bereitet Daten für sequentielle Survival-Modelle (Semester- oder Prüfungssequenzen) vor:
+    - 3D-Tensor (N, max_len, feature_dim) mit Zeitschritt-Target y_seq (N, max_len, 1)
+    - 3-Way Stratified Split auf Student-Ebene
+    - Skalierung via StandardScaler auf aktiven Train-Tokens
+    - Optionales Subsampling via max_samples für schnelle Integrationstests
+    """
+    data_path = Path(data_dir)
+    if sequence_type == "semester":
+        studis, X_seq, y_seq, studi_events, feat_names, _ = fb.build_semester_sequence_tensor(
+            data_path, max_semesters=max_len, mode=mode, temporal=temporal
+        )
+    elif sequence_type == "exam":
+        studis, X_seq, y_seq, studi_events, feat_names, _ = fb.build_exam_sequence_tensor(
+            data_path, max_exams=max_len, mode=mode, temporal=temporal, target_type="dropout"
+        )
+    else:
+        raise ValueError(f"Unbekannter sequence_type: {sequence_type}. Erwartet: 'semester' oder 'exam'.")
+
+    n_samples = len(studis)
+    if max_samples is not None and max_samples < n_samples:
+        rng = np.random.default_rng(seed)
+        sub_idx = rng.choice(n_samples, size=max_samples, replace=False)
+        studis = studis[sub_idx]
+        X_seq = X_seq[sub_idx]
+        y_seq = y_seq[sub_idx]
+        studi_events = studi_events[sub_idx]
+        n_samples = len(studis)
+
+    idx = np.arange(n_samples)
+    train_idx, temp_idx = train_test_split(idx, test_size=0.30, random_state=seed, stratify=studi_events)
+    val_idx, test_idx = train_test_split(temp_idx, test_size=0.50, random_state=seed, stratify=studi_events[temp_idx])
+
+    X_train, y_train = X_seq[train_idx].copy(), y_seq[train_idx].copy()
+    X_val, y_val = X_seq[val_idx].copy(), y_seq[val_idx].copy()
+    X_test, y_test = X_seq[test_idx].copy(), y_seq[test_idx].copy()
+
+    # Preprocessing: StandardScaler auf unpadded Train-Tokens
+    vm_tr = (X_train[:, :, 0] != fb.PADDING_VALUE)
+    scaler = StandardScaler()
+    scaler.fit(X_train[vm_tr])
+
+    def _transform(arr: np.ndarray) -> np.ndarray:
+        out = arr.copy()
+        vm = (arr[:, :, 0] != fb.PADDING_VALUE)
+        if np.any(vm):
+            out[vm] = scaler.transform(arr[vm])
+        return out.astype(np.float32)
+
+    X_train_norm = _transform(X_train)
+    X_val_norm = _transform(X_val)
+    X_test_norm = _transform(X_test)
+
+    # y_seq: Squeeze last dimension falls nötig -> (N, S)
+    if y_train.ndim == 3 and y_train.shape[2] == 1:
+        y_train = y_train.squeeze(-1)
+        y_val = y_val.squeeze(-1)
+        y_test = y_test.squeeze(-1)
+
+    train_ds = StudySequenceDataset(X_train_norm, targets=y_train, student_ids=studis[train_idx])
+    val_ds = StudySequenceDataset(X_val_norm, targets=y_val, student_ids=studis[val_idx])
+    test_ds = StudySequenceDataset(X_test_norm, targets=y_test, student_ids=studis[test_idx])
+
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False)
+    test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False)
+
+    return {
+        "train_loader": train_loader,
+        "val_loader": val_loader,
+        "test_loader": test_loader,
+        "X_test": X_test_norm,
+        "y_test": y_test,
+        "test_mask": (X_test_norm[:, :, 0] != fb.PADDING_VALUE),
+        "test_student_events": (studi_events[test_idx] == 1).astype(int),
+        "feat_names": feat_names,
+        "feature_dim": X_seq.shape[2],
+        "max_len": max_len,
+        "scaler": scaler,
+        "n_students_test": len(test_idx),
+    }
+

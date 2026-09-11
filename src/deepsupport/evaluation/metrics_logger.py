@@ -104,11 +104,17 @@ def plot_learning_curve(history_dict, model_name: str, base_dir: Path, metric_na
     print(f"[INFO] Lernkurve für {model_name} in {plots_dir} gespeichert.")
 
 def save_keras_model(model, model_name: str, base_dir: Path):
-    """Speichert ein trainiertes Keras-Modell (.keras Format)."""
+    """Speichert ein trainiertes Keras- (.keras) oder PyTorch-Modell (.pt)."""
     _, _, models_dir = get_output_dirs(base_dir)
-    model_path = models_dir / f"{model_name}.keras"
-    model.save(model_path)
-    print(f"[INFO] Modell {model_name} unter {model_path} gespeichert.")
+    if hasattr(model, 'save'):
+        model_path = models_dir / f"{model_name}.keras"
+        model.save(model_path)
+        print(f"[INFO] Modell {model_name} unter {model_path} gespeichert.")
+    elif hasattr(model, 'state_dict'):
+        import torch
+        model_path = models_dir / f"{model_name}.pt"
+        torch.save(model.state_dict(), model_path)
+        print(f"[INFO] PyTorch-Modell {model_name} unter {model_path} gespeichert.")
 
 def plot_parity_plot(y_true, y_pred, model_name: str, base_dir: Path):
     """Plottet und speichert einen Parity-Plot für Regressionsmodelle."""

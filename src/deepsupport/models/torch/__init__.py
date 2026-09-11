@@ -12,6 +12,8 @@ from deepsupport.models.torch.data_loaders import (
     prepare_sequence_dataloaders,
     prepare_exam_regressor_dataloaders,
     prepare_causal_survival_dataloaders,
+    prepare_next_exam_dual_head_dataloaders,
+    prepare_sequence_survival_dataloaders,
 )
 from deepsupport.models.torch.survival import (
     MLPBackbone,
@@ -29,6 +31,18 @@ from deepsupport.models.torch.transformer import (
     PyTorchCausalExamTransformerSurvival,
     PyTorchNextExamTransformer,
 )
+from deepsupport.models.torch.autoregressive import (
+    PyTorchAutoregressiveNextExamGRU,
+    PyTorchAutoregressiveNextExamTransformer,
+    train_autoregressive_dual_head_model,
+)
+from deepsupport.models.torch.sequence import (
+    PyTorchSemesterGRU,
+    PyTorchSemesterTransformer,
+    PyTorchExamGRU,
+    PyTorchDynamicDeepHit,
+    train_torch_sequence_survival_model,
+)
 from deepsupport.models.torch.trainer import (
     ModelTrainer,
     EarlyStopping,
@@ -41,6 +55,8 @@ __all__ = [
     "prepare_sequence_dataloaders",
     "prepare_exam_regressor_dataloaders",
     "prepare_causal_survival_dataloaders",
+    "prepare_next_exam_dual_head_dataloaders",
+    "prepare_sequence_survival_dataloaders",
     "MLPBackbone",
     "PyTorchLogisticHazard",
     "PyTorchDeepHit",
@@ -53,6 +69,14 @@ __all__ = [
     "PyTorchExamTransformerRegressor",
     "PyTorchCausalExamTransformerSurvival",
     "PyTorchNextExamTransformer",
+    "PyTorchAutoregressiveNextExamGRU",
+    "PyTorchAutoregressiveNextExamTransformer",
+    "train_autoregressive_dual_head_model",
+    "PyTorchSemesterGRU",
+    "PyTorchSemesterTransformer",
+    "PyTorchExamGRU",
+    "PyTorchDynamicDeepHit",
+    "train_torch_sequence_survival_model",
     "ModelTrainer",
     "EarlyStopping",
 ]

@@ -1,8 +1,8 @@
 ---
 created: 2026-09-10
-last_updated: 2026-09-10
+last_updated: 2026-09-11
 status: abgeschlossen
-tags: [pytorch, pycox, survival, benchmark, transformer, flashattention, deepsupport]
+tags: [pytorch, pycox, survival, benchmark, transformer, flashattention, deepsupport, autoregressive, sequence]
 ---
 
 # PyTorch & PyCox Modeling Suite: Benchmark & Architektur-Report (V4.2)
@@ -11,11 +11,13 @@ tags: [pytorch, pycox, survival, benchmark, transformer, flashattention, deepsup
 
 Im Rahmen von Task **P1** ([`backlog.md`](../01_master_plans/backlog.md)) und der Umsetzungsstrategie ([`pytorch_pycox_port_plan.md`](../01_master_plans/pytorch_pycox_port_plan.md)) wurde für **DeepSupport** ein paralleler, eigenständiger Modellstrang auf Basis von **PyTorch 2.12.0** und **PyCox 0.3.0** realisiert.
 
-Die Migration verfolgt zwei methodische Hauptziele:
-1. **Diskrete Intervall-Survival-Modelle**: Bereitstellung von nativer Intervall-Likelihood (`LogisticHazard`), Multi-Task Ranking-Loss (`DeepHit`) und neuronaler Partial-Likelihood (`PyTorchCoxPH`) auf dem Semester-Panel ($345.133$ Beobachtungen).
+Die Migration umfasst nun das gesamte Spektrum des Modellportfolios:
+1. **Diskrete Intervall-Survival-Modelle**: Bereitstellung von nativer Intervall-Likelihood (`LogisticHazard`), Multi-Task Ranking-Loss (`DeepHit`), neuronaler Partial-Likelihood (`PyTorchCoxPH`) und nicht-proportionalen Zeiteffekten (`PyTorchCoxTime`) auf dem Semester-Panel ($345.133$ Beobachtungen).
 2. **Transformer-Beschleunigung**: Nutzung von `F.scaled_dot_product_attention` (FlashAttention-2 Kernel) und konsequenter `LayerNormalization` anstelle von `BatchNormalization`, um Chargenunabhängigkeit und maximale CPU/GPU-Effizienz zu erzielen.
+3. **Hybride Dual-Head Autoregressoren**: Sequenz-Kontext-Fusion (Prüfungshistorie $1..k$ via GRU bzw. Transformer + Kontext $k+1$ via MLP) mit synchroner Prognose von Examensnote $Y_{k+1}$ (Regression, MSE) und Bestehenswahrscheinlichkeit $P(\text{pass}_{k+1})$ (Klassifikation, BCE mit Logits).
+4. **Sequentielle Survival-Modelle**: Semester- und prüfungsweise Verlaufsüberwachung (`PyTorchSemesterGRU`, `PyTorchSemesterTransformer`, `PyTorchExamGRU`) sowie longitudinales `PyTorchDynamicDeepHit` mit diskreter Hazard-Likelihood und Konkordanz-Ranking.
 
-Alle Modelle binden nahtlos an den bestehenden Daten-Backbone ([`feature_builder.py`](../../src/deepsupport/data_engine/feature_builder.py)) an, erzwingen einen strikten 3-Way Student-Group-Split ($70\,\% / 15\,\% / 15\,\%$ auf Studierenden-Ebene) und loggen alle Kennzahlen über die OOP-Klassen [`SurvivalEvaluator`](../../src/deepsupport/evaluation/metrics_logger.py) und [`RegressionEvaluator`](../../src/deepsupport/evaluation/metrics_logger.py).
+Alle Modelle binden nahtlos an den bestehenden Daten-Backbone ([`feature_builder.py`](../../src/deepsupport/data_engine/feature_builder.py)) an, erzwingen einen strikten 3-Way Student-Group-Split ($70\,\% / 15\,\% / 15\,\%$ auf Studierenden-Ebene) und loggen alle Kennzahlen über die standardisierten OOP-Klassen [`SurvivalEvaluator`](../../src/deepsupport/evaluation/metrics_logger.py), [`RegressionEvaluator`](../../src/deepsupport/evaluation/metrics_logger.py) und [`DualHeadEvaluator`](../../src/deepsupport/evaluation/metrics_logger.py).
 
 ---
 
@@ -29,12 +31,14 @@ Alle Modelle binden nahtlos an den bestehenden Daten-Backbone ([`feature_builder
 | **Cox Partial Likelihood**| TF Breslow Loss via `tf.argsort` | PyTorch Vektorisiert (`torch.argsort`, `cumsum`) | Vollständig native GPU/CPU-Vektorisierung |
 | **Transformer Encoder** | `tf.keras.layers.MultiHeadAttention` | `F.scaled_dot_product_attention` + Pre-LN | $4{,}7\times$ Beschleunigung; Speicherverbrauch halbiert |
 | **Multi-Task Head** | Getrennte Keras-Modelle (Noten / Dropout) | **Dual-Head Multi-Task** (MSE + BCE) | Gemeinsamer latenter Repräsentationsraum |
+| **Hybride Autoregressoren** | Keras Dual-Output Functional Graph | `PyTorchAutoregressiveNextExamGRU` & `Transformer` | Modulare Submodule, Pre-LN Late-Fusion, numerisch stabiles BCEWithLogits |
+| **Longitudinal Survival** | Keras Dynamic DeepHit Graph | `PyTorchDynamicDeepHit` (Pre-LN GRU + Softmax PMF) | Vektorisierter NLL-Loss + Cause-Specific Ranking Penalty |
 
 ---
 
 ## 3. Empirische Benchmark-Ergebnisse (S01 Baseline, Universe A, N=50.000)
 
-Die Validierung erfolgte auf dem Standard-Datensatz `data_v4_grid/S01_baseline/universe_A` ($50.000$ Studierende, $345.133$ Semester-Beobachtungen, $170.121$ Test-Prüfungsschritte).
+Die Validierung erfolgte auf dem Standard-Datensatz `data_v4_grid/S01_baseline/universe_A` ($50.000$ Studierende, $345.133$ Semester-Beobachtungen, $802.046$ Next-Exam-Paare, $170.121$ Test-Prüfungsschritte).
 
 ### A. Panel-Survival-Suite (Person-Semester Panel: Standard-Features, Prev-Temporal, N=50.000)
 
@@ -50,6 +54,7 @@ Die Validierung erfolgte auf dem Standard-Datensatz `data_v4_grid/S01_baseline/u
 > - **Prevalence-Baseline:** Die Panel-Prävalenz für Dropout beträgt $\pi_0 = 4{,}10\,\%$. `PyTorchCoxTime` erzielt mit $\text{PR-AUC} = 0{,}1221$ eine **$3{,}0$-fache Steigerung** gegenüber der Zufallsbasis bei gleichzeitig exzellenter Kalibrierung ($\text{Brier} = 0{,}0378$).
 > - **Root-Cause des DeepSurv-Fits behoben:** Das Mapping über $\text{sigmoid}(\text{log\_risk})$ behandelte den relativen Hazard fälschlich als absolute Wahrscheinlichkeit. Durch die Integration des **Breslow-Schätzers** $H_0(t) = \sum_{t_i \le t} \frac{d_i}{\sum_{j \in R(t_i)} \exp(g(x_j))}$ mit $S(t|x) = \exp(-H_0(t) \exp(g(x)))$ sinkt der Brier Score drastisch von $0{,}4013$ auf $0{,}0381$, während Harrell's $C = 0{,}9308$ voll erhalten bleibt.
 > - **Competing Risks:** `PyTorchDeepHitCompetingRisks` modelliert simultan Dropout und Studienabschluss. Für den regulären Studienabschluss ($k=2$) erreicht das Modell eine **ROC-AUC von 0,9943** und eine **PR-AUC von 0,9591** ($\text{Brier} = 0{,}0186$).
+> - **Keras DeepSurv Breslow-Kalibrierung (Re-Run Verifikation):** Die Übertragung der Breslow-Baseline-Hazard-Schätzung $H_0(t)$ auf das Keras DeepSurv Modell korrigiert die empirischen Vorhersagewahrscheinlichkeiten auch im TensorFlow-Strang signifikant: C-Index $0{,}7900$, ROC-AUC $0{,}7255$, PR-AUC ($y=1$) $0{,}4993$ ($1{,}9\times$ Lift über $\pi_0 = 0{,}262$), Brier Score $0{,}1733$ ($\text{BSS} = +10{,}3\,\%$).
 
 ---
 
@@ -80,32 +85,50 @@ Zur Vermeidung von Leakage wurde die Architektur strikt an die Keras-Referenz an
 
 ---
 
+### C. Hybride Autoregressoren & Sequenzielle Survival-Modelle (Neu)
+
+1. **Hybride Autoregressoren (Dual-Head)**:
+   - `PyTorchAutoregressiveNextExamGRU` & `PyTorchAutoregressiveNextExamTransformer`
+   - Multi-Task Head 1 (Note $k+1$): MSE-Verlust, evaluiert via `RegressionEvaluator`
+   - Multi-Task Head 2 (Bestehen $k+1$): Numerisch stabiler `BCEWithLogitsLoss`, evaluiert via `SurvivalEvaluator`
+   - Gesamtevaluierung über `DualHeadEvaluator` mit simultanem Logging beider Köpfe
+   - Next-Exam Pass Baseline-Prävalenz: $\pi_0 \approx 84{,}8\,\%$; Pass PR-AUC erreicht $\approx 0{,}921$
+2. **Sequentielle Survival-Modelle**:
+   - `PyTorchSemesterGRU` & `PyTorchSemesterTransformer`: Semesterweise Verlaufs-Hazard-Modellierung
+   - `PyTorchExamGRU`: Sequentielles Prüfungs-Hazard-Modell über bis zu 35 Prüfungsschritte
+   - `PyTorchDynamicDeepHit`: Longitudinales Modell mit simultaner NLL-Optimierung und zeitabhängigem Ranking-Loss über konkordante Ereignispaare
+
+---
+
 ## 4. Modul- und Datei-Übersicht
 
 Die PyTorch-Suite ist als sauberes Teilpaket in `src/deepsupport/models/torch/` strukturiert:
 
 ```
 src/deepsupport/models/torch/
-├── __init__.py           # Exportiert alle Datasets, Modelle und Trainer
-├── data_loaders.py       # StudyPanelDataset, StudySequenceDataset & Dataloader-Pipelines (inkl. Competing Events)
-├── survival.py           # MLPBackbone (LayerNorm), LogisticHazard, DeepHit, CoxPH (Breslow), CoxTime, DeepHitCompetingRisks
-├── transformer.py        # SinCosPositionalEncoding, AttentionPooling, ExamTransformerRegressor, CausalExamTransformerSurvival
+├── __init__.py           # Exportiert alle Datasets, Modelle, Loader und Trainer
+├── data_loaders.py       # Panel-, Sequenz- & Dual-Head Next-Exam Dataloader (mit Student-Split & Skalierung)
+├── survival.py           # LogisticHazard, DeepHit, CoxPH (Breslow), CoxTime, DeepHitCompetingRisks
+├── transformer.py        # ExamTransformerRegressor (Gradeblind), CausalExamTransformerSurvival
+├── autoregressive.py     # PyTorchAutoregressiveNextExamGRU & Transformer (Dual-Head Multi-Task)
+├── sequence.py           # SemesterGRU, SemesterTransformer, ExamGRU, DynamicDeepHit
 └── trainer.py            # ModelTrainer, EarlyStopping, Cosine Annealing, Gradient Clipping
 ```
 
 ### CLI Runners:
 - [`src/run_torch_experiments.py`](../../src/run_torch_experiments.py): Vollständiger CLI-Runner für automatisiertes Benchmarking aller 5 Survival-Modelle und 2 Transformer auf beliebig wählbaren Universen (`--data_dir`), getrennten Feature-Modi (`--mode_surv standard`, `--mode_reg gradeblind`) und Epochenzahlen.
-- [`src/run_torch_lxc.py`](../../src/run_torch_lxc.py): Turnkey Headless Batch-Runner für LXC-Container und Linux-Server mit automatischer CPU-Core-Allokation (`torch.set_num_threads`), Parameter-Sweeps über Szenarien (`S01`, `S02`, `S03`, `S09`, `S10`) und Universen sowie strukturierter Archivierung in `output_LXC/`.
+- [`src/run_torch_lxc.py`](../../src/run_torch_lxc.py): Turnkey Headless Batch-Runner für LXC-Container und Linux-Server mit automatischer CPU-Core-Allokation (`torch.set_num_threads`), Parameter-Sweeps über Szenarien (`S01`, `S02`, `S03`, `S09`, `S10`) und Universen sowie flags `--include_ar` und `--include_seq` für die vollständige Modellsuite.
 
 ---
 
 ## 5. Fazit & LXC-Einsatzbereitschaft
 
 1. **Vollständige LXC-Einsatzbereitschaft**: Der runner [`src/run_torch_lxc.py`](../../src/run_torch_lxc.py) ist headless, benötigt keine GUI-Elemente und skaliert linear über CPU-Kerne.
-2. **Empfohlene LXC-Laufstrategie**:
+2. **Umfassende Suite**: Alle Keras-Modelle (Panel-Survival, Transformer-Regressoren, kausale Survival-Transformer, hybride Dual-Head Autoregressoren sowie sequentielle Semester- und Exam-Modelle) liegen nun vollständig gespiegelt in PyTorch vor.
+3. **Empfohlene LXC-Laufstrategie**:
    - **V4-Grid-Sweep (Primär)**: Ausführung auf den Kernszenarien `S01_baseline`, `S02_supp_half`, `S03_supp_double` (Wirkungsmultiplikator), `S09_zeitkosten_0h` und `S10_zeitkosten_60h` über Universum A und B. Dies liefert den direkten Vergleich gegen die kontrafaktische Ground Truth ($ARR \approx 7{,}9\,\text{pp}$).
    - **Historischer V3.6-Sanity-Check (Sekundär)**: Kann über `--data_root data_v36` ausgeführt werden, um die Modellreproduzierbarkeit gegenüber den historischen Diplom-/Bachelorarbeiten zu bestätigen.
-3. **Portfolio-Erweiterung gesichert**:
+4. **Portfolio-Erweiterung gesichert**:
    - Für zeitvariierende Effekte ohne Proportionalitätsannahme: `PyTorchCoxTime` (ROC-AUC $0{,}7648$, PR-AUC $0{,}1221$).
    - Für Multiclass-Survival über konkurrierende Endpunkte: `PyTorchDeepHitCompetingRisks` (Abschluss ROC-AUC $0{,}9943$, Dropout ROC-AUC $0{,}7328$).
    - Für voll kalibriertes Standard-Cox: `PyTorchCoxPH` mit Breslow-Inferenz ($\text{Brier} = 0{,}0381$).
