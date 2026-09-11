@@ -18,6 +18,18 @@ import os
 import time
 import json
 import argparse
+
+# Ungepuffertes Logging erzwingen (damit 'nohup ... > log' Zeilen sofort flusht)
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(line_buffering=True)
+    except Exception:
+        pass
+if hasattr(sys.stderr, "reconfigure"):
+    try:
+        sys.stderr.reconfigure(line_buffering=True)
+    except Exception:
+        pass
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 import numpy as np
