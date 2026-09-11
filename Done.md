@@ -25,6 +25,21 @@ tags: [done, changelog, meilensteine]
   - Student-Leakage über alle 5 Pipelines formal widerlegt ($\text{Overlap} = 0$).
   - Strikte Einhaltung der Gradeblind-Policy und zeitlichen Kausalität (`shift(1)`) verifiziert.
   - Dynamische Entkopplung von `Pass (y=1)` (Mehrheit) und `Fail (y=0)` (Frühwarn-Minderheit) im `SurvivalEvaluator`.
+- [x] **Methodenvergleich LogisticHazard Keras vs. PyCox (`methodenvergleich_logistic_hazard_keras_vs_pycox.md`):**
+  - Mathematische Herleitung der Diskrepanz: Gepoolte logistische Regression (momentaner Hazard $h_t$) vs. diskrete 16-Kanal PyCox Intervall-PMF ($1 - S(t)$).
+  - Beweis des Phasenversatzes (Phase-Lead Bias bei Evaluation von $F(t)$ gegen Einzelzeilen-Target $Y_{it}$).
+- [x] **Empirische RCT-Kausalanalyse S11 vs. S01 (`empirische_rct_kausalanalyse_s11_vs_s01.md`):**
+  - Vollständige quantitative Analyse auf $N=50.000$ Datensätzen: Aufhebung der Indikationsselektion ($r = +0{,}1189 \to -0{,}0538$).
+  - Mathematische Erklärung des prädiktiven Signalgewinns (stärkere Merkmals-Monotonie, kein Cherry-Picking).
+- [x] **Ablationsplan Keras vs. PyTorch Architekturhypothesen (`ablationsplan_keras_vs_pytorch_architekturhypothesen.md`):**
+  - Strukturiertes $2^4$-Ablationsdesign zu Recurrent State Decay, Pre-LN, Logits-Loss und AdamW.
+- [x] **PyTorch Causal Suite (`src/deepsupport/causal/`):**
+  - `PyTorchDMLSurvival`: 5-Fold Student-Cluster Cross-Fitting, Robinson-Schätzer, neuronales Stufe-2 Hazard-Netzwerk, Student-Bootstrap.
+  - `PyTorchMSM`: Stabilisierte IPTW-Gewichte, Perzentil-Trimming, gewichtete BCE-Hazard-Regression mit Huber-White Cluster-Sandwich Standardfehlern.
+  - `PyTorchGComputation`: Vektorisierte Monte-Carlo G-Formel Kontrafaktik-Simulation unter $\text{do}(A=0)$ vs $\text{do}(A=1)$ mit ARR, RR, NNT und Ground-Truth-Validierung gegen Universum B.
+- [x] **LXC Causal Batch-Runner (`src/run_torch_causal_lxc.py`):**
+  - Headless Turnkey Batch-Runner zur vollautomatisierten Kausalanalyse über alle Szenarien auf dem Debian ThinkCentre LXC Node.
+  - Lokaler Smoke-Test fehlerfrei bestanden.
 
 ## 2026-09-10: Deep Transformer Modernisierung & Kausale Mediation V4.2
 - [x] **Deep Transformer Modernisierung (`src/deep_transformer_regression.py`):**
