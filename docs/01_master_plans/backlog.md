@@ -1,11 +1,11 @@
 ---
 created: 2026-08-23
-last_updated: 2026-09-09
+last_updated: 2026-09-11
 status: aktiv
 tags: [backlog, master-plan, roadmap, deep-transformer, pytorch, v5]
 ---
 
-# DeepSupport Backlog & Forschungs-Roadmap (Stand: 09. September 2026 / V4.2.5)
+# DeepSupport Backlog & Forschungs-Roadmap (Stand: 11. September 2026 / V4.2.5)
 
 Dieses Dokument buendelt alle aktiven, geplanten und zurueckgestellten Vorhaben des DeepSupport-Projekts. Es dient als strategische Steuerungsbasis fuer Modellentwicklungen, biostatistische Kausalanlaysen und die anstehende DGP-Version 5.
 
@@ -26,7 +26,7 @@ Dieses Dokument buendelt alle aktiven, geplanten und zurueckgestellten Vorhaben 
 
 | # | Thema | Referenz | Status | Geplante Umsetzung |
 |:--|:------|:---------|:-------|:-------------------|
-| **P1** | **PyTorch / PyCox Fork** | `docs/03_evaluations_and_benchmarks/pytorch_pycox_benchmark_v42.md` | Abgeschlossen (2026-09-11) | Parallele Modell-Suite in PyTorch 2.x & PyCox erweitert: `LogisticHazard` ($AUC=0{,}7628$), `DeepHit` ($C=0{,}8407$), `PyTorchCoxPH` (Breslow-kalibriert: $\text{Brier}=0{,}0381, C=0{,}9308$), `PyTorchCoxTime` ($AUC=0{,}7648, \text{PR-AUC}=0{,}1221$), `DeepHitCompetingRisks` (Abschluss $AUC=0{,}9943$, Dropout $AUC=0{,}7328$), `ExamTransformerRegressor` (Gradeblind $R^2=0{,}8143$), `CausalExamSurvival` (Step-AUC $= 0{,}8981$, PR-AUC $= 0{,}1861$), plus schlüsselfertiger LXC-Runner `src/run_torch_lxc.py`. |
+| **P1** | **PyTorch / PyCox Fork & LXC Benchmark** | `docs/03_evaluations_and_benchmarks/pytorch_lxc_benchmark_evaluation_v42.md` | Abgeschlossen (2026-09-11) | Parallele Modell-Suite in PyTorch 2.x & PyCox portiert und über 6 Kernszenarien (S01, S02, S03, S07, S08, S11) auf LXC vollständig durchgerechnet: Panel-Survival (CoxTime, DeepHit), Transformer-Regressoren, Hybride Autoregressoren (Dual-Head, Pass & Fail PR-AUC) und Sequentielle Verlaufs-Survival-Modelle (Semester GRU & Transformer). 19-Punkte-Audit zur Datenintegrität verifiziert. |
 | **P2** | **Re-Run Kausale Mediation auf V4-Daten** | `docs/04_causal_and_simulation/kausale_mediationsanalyse_v42.md` | Abgeschlossen (2026-09-10) | 4-Stufen-Prüfplan vollständig durchgeführt: Selektions-Audit ($d = -0{,}945$), Realistische Mediation ($OR = 1{,}195$), Oracle-Entzauberung ($OR \le 0{,}999$). |
 | **P3** | **Submodul-Review `DeepLearning/README.md`** | `ToDo.md` | Offen | Bereinigung veralteter Pfad- und Leakage-Hinweise im Submodul. |
 
