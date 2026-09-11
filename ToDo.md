@@ -27,11 +27,11 @@ tags: [todo, roadmap, tasks, v5-roadmap, deep-transformer, pytorch]
 ## 🔬 Kausalinferenz & Nächste Iteration
 
 - [x] **PyTorch / PyCox Fork & LXC Benchmark:** Aufbau der parallelen PyTorch-Suite (`LogisticHazard`, `DeepHit`, `CoxPH` Breslow, `CoxTime`, `DeepHitCompetingRisks`, `ExamTransformerRegressor`, `CausalExamSurvival`, hybride Autoregressoren `NextExamGRU` / `Transformer`, sequentielle Semester-Survival GRU/Transformer) und vollständiger LXC-Lauf über 6 Szenarien ([`pytorch_lxc_benchmark_evaluation_v42.md`](docs/03_evaluations_and_benchmarks/pytorch_lxc_benchmark_evaluation_v42.md)).
-- [x] **PyTorch Causal Suite (DML, MSM, G-Computation):** Native Implementierung in `src/deepsupport/causal/` mit 5-Fold Cross-Fitting, stabilisierten IPTW-Gewichten, cluster-robusten Standardfehlern, kontrafaktischer Pfadsimulation und Ground-Truth-Validierung gegen Universum B.
-- [ ] **LXC Causal Nachtlauf:** Ausführung von `src/run_torch_causal_lxc.py` auf dem Debian ThinkCentre Node über 6 Szenarien (S01, S02, S03, S07, S08, S11) mit direkter Ground-Truth-Validierung.
+- [x] **LXC Causal 6-Szenarien-Basislauf:** Vollständige Ausführung von `src/run_torch_causal_lxc.py` auf dem Debian ThinkCentre Node über 6 Szenarien (S01, S02, S03, S07, S08, S11) mit direkter Ground-Truth-Validierung und Auswertungsbericht ([`pytorch_lxc_causal_benchmark_evaluation_v42.md`](docs/03_evaluations_and_benchmarks/pytorch_lxc_causal_benchmark_evaluation_v42.md)).
+- [ ] **LXC Causal Multi-Mode Nachtlauf (Aktiv auf Server):** Ausführung über 4 Repräsentationsmodi (`inside_view`, `realistic`, `gradeblind_oracle`, `blind`) über 6 Szenarien.
 - [ ] **Ablationsstudie Keras vs. PyTorch (Optional nach Kausal-Lauf):** Empirische Prüfung des $2^4$-Plans ([`ablationsplan_keras_vs_pytorch_architekturhypothesen.md`](docs/01_master_plans/ablationsplan_keras_vs_pytorch_architekturhypothesen.md)).
 - [x] **Re-Run Kausale Mediation auf V4-Daten:** 4-Stufen-Prüfplan der Imai/Pearl-Mediationsanalyse (Selektions-Audit $d=-0{,}945$, Realistische Mediation $OR=1{,}195$, Oracle-Entzauberung $OR \le 0{,}999$; [`kausale_mediationsanalyse_v42.md`](docs/04_causal_and_simulation/kausale_mediationsanalyse_v42.md)).
-- [ ] **Submodul DeepLearning README prüfen:** Review und Bereinigung historischer Pfad- und Leakage-Hinweise.
+- [x] **Submodul DeepLearning README geprüft:** GitHub-Link auf `DeepHSSurvial` korrigiert, historische Effekte ($HR \approx 0{,}37$) kontextualisiert und Emojis bereinigt.
 - [ ] **MoE / Stacking Router:** Optionales Ensembling kontrafaktischer Universen.
 
 ---
