@@ -1,11 +1,41 @@
 ---
 created: 2026-09-02
-last_updated: 2026-09-09
+last_updated: 2026-09-11
 status: abgeschlossen
 tags: [done, changelog, meilensteine]
 ---
 
 # ✅ Abgeschlossene Aufgaben
+
+## 2026-09-11: PyTorch & PyCox Modeling Suite, LXC Multiscenario Benchmark & Pipeline Audit
+- [x] **PyTorch 2.x & PyCox Modeling Suite (`src/deepsupport/models/torch/`):**
+  - Vollständige Portierung von 4 Modellfamilien:
+    1. Panel-Survival: `LogisticHazard`, `DeepHit` (Single Event), `CoxPH` (Extended DeepSurv mit Breslow-Kalibrierung), `CoxTime` (Nicht-proportionale Hazards), `DeepHitCompetingRisks` (Multivariate PMF über Dropout vs. Abschluss).
+    2. Transformer Suite: `ExamTransformerRegressor` (Gradeblind Standard auf Absolventen), `CausalExamTransformerSurvival` (schrittweise Hazard-Prognose).
+    3. Hybride Autoregressoren (Dual-Head Multi-Task): `NextExamGRU` und `NextExamTransformer` über 802.000 Prüfungshistorien mit Noten-MSE und Logits-BCE.
+    4. Sequentielle Verlaufsmodelle: `SemesterGRU` und `SemesterTransformer` mit TimeDistributed Hazard-Heads.
+  - Pre-LayerNorm (`norm_first=True`), FlashAttention-2 und numerisch stabiler Logits-Loss etabliert.
+- [x] **Headless Turnkey LXC-Runner (`src/run_torch_lxc.py`):**
+  - Automatisierte Multi-Thread-Allokation (7 Threads auf 8 vCPUs) auf dem Debian-LXC-Cluster-Node.
+  - Multi-Szenario Batch-Lauf über 6 Kernszenarien (`S01`, `S02`, `S03`, `S07`, `S08`, `S11`) fehlerfrei abgeschlossen.
+- [x] **Benchmark-Report & Keras-Vergleich (`pytorch_lxc_benchmark_evaluation_v42.md`):**
+  - Vollständige Gegenüberstellung aller Metriken gegen die Keras-Baselines.
+  - Auswertung der Rauschachse ($S07 \to S01 \to S08$) und der Confounding-Freiheit unter RCT ($S11$).
+- [x] **19-Punkte Verkabelungs- & Datenintegritäts-Audit (`scratch/audit_full_pipeline_wiring.py`):**
+  - Student-Leakage über alle 5 Pipelines formal widerlegt ($\text{Overlap} = 0$).
+  - Strikte Einhaltung der Gradeblind-Policy und zeitlichen Kausalität (`shift(1)`) verifiziert.
+  - Dynamische Entkopplung von `Pass (y=1)` (Mehrheit) und `Fail (y=0)` (Frühwarn-Minderheit) im `SurvivalEvaluator`.
+
+## 2026-09-10: Deep Transformer Modernisierung & Kausale Mediation V4.2
+- [x] **Deep Transformer Modernisierung (`src/deep_transformer_regression.py`):**
+  - Schlanker $d=64$, 4 Heads, 2 Blocks Backbone mit `SinCosPositionalEncoding`, AttentionPooling und L2-Regularisierung.
+  - Gradeblind $R^2 = 0{,}7850$, Standard $R^2 = 0{,}9885$, Survival Step ROC-AUC $= 0{,}8890$.
+- [x] **Sideproject A (Regularisierungs-Benchmark):**
+  - 9-Run-Benchmark (7.85h): Hybrid-Regularisierung konvergiert 3x schneller als unregularisiert (26.8m vs 77.2m). Overfitting auf $N=50.000$ vollständig beseitigt.
+- [x] **Sideproject B (Focal Loss Grid):**
+  - Vergleich von BCE vs. Focal Loss; Bestätigung, dass BCE saubere Wahrscheinlichkeitskalibrierung für Brier Scores liefert.
+- [x] **Re-Run Kausale Mediation auf V4-Daten (`kausale_mediationsanalyse_v42.md`):**
+  - 4-Stufen-Prüfplan durchgeführt: Selektions-Audit ($d = -0{,}945$), Realistische Mediation ($OR = 1{,}195$), Oracle-Entzauberung ($OR \le 0{,}999$).
 
 ## 2026-09-09: DGP-Audit, 11-Tabellen ERD, Survival-Grundlagen & Backlog-Neustrukturierung
 - [x] **Relationales 11-Tabellen Mermaid ERD (`datenarchitektur_und_eda_v4.md`):**

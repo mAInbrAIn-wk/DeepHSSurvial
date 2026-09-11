@@ -16,16 +16,18 @@ tags: [todo, roadmap, tasks, v5-roadmap, deep-transformer, pytorch]
 - [x] **Neues ERD (Entity Relationship Diagram):** Vollständiges 11-Tabellen Mermaid-ERD in [`datenarchitektur_und_eda_v4.md`](docs/04_causal_and_simulation/datenarchitektur_und_eda_v4.md).
 - [x] **Interaktive EDA & Visualisierungen:** Sunburst I & II Re-Run auf V4-Daten, 6 Publikationsgrafiken in [`visuelle_datenexploration_v4.md`](docs/04_causal_and_simulation/visuelle_datenexploration_v4.md).
 - [x] **Methodische Grundlagen Survival-Analyse:** Zensierungsmathematik, Greenwood-Herleitung und Competing Risks in [`grundlagen_survival_analyse_und_zensierung.md`](docs/04_causal_and_simulation/grundlagen_survival_analyse_und_zensierung.md).
-- [ ] **Deep Transformer Modernisierung:** Überarbeitung von `src/deep_transformer_regression.py` ($d=64$, 4 Heads, `SinCosPositionalEncoding`, L2-Regularisierung, Anbindung an OOP-Evaluatoren).
-- [ ] **Sideproject A (Regularisierungs-Benchmark):** Systematischer Vergleich L2 vs. Dropout vs. ElasticNet.
-- [ ] **Sideproject B (Focal Loss Grid):** Asymmetrischer Loss zur Optimierung der seltenen Dropout-Events.
-- [ ] **Nachtlauf S01 Baseline (Fast + Heavy Suite):** Integrationstest aller modernisierten Modelle auf Universum A.
+- [x] **Deep Transformer Modernisierung:** Überarbeitung von `src/deep_transformer_regression.py` ($d=64$, 4 Heads, `SinCosPositionalEncoding`, L2-Regularisierung, Anbindung an OOP-Evaluatoren).
+- [x] **Sideproject A (Regularisierungs-Benchmark):** Systematischer Vergleich L2 vs. Dropout vs. ElasticNet (Hybrid konvergiert 3x schneller, Overfitting beseitigt).
+- [x] **Sideproject B (Focal Loss Grid):** Asymmetrischer Loss im Vergleich zu BCE (BCE liefert saubere Brier-Kalibrierung).
+- [x] **Nachtlauf S01 Baseline (Fast + Heavy Suite):** Integrationstest aller modernisierten Modelle auf Universum A.
+- [ ] **Gradeblind Oracle Exploration:** Theoretische Obergrenze der GPA-Vorhersage rein aus latenten DGP-Ressourcen ohne Noten.
 
 ---
 
-## 🔬 Kausalinferenz & Nächste Iteration (Morgen)
-- [ ] **PyTorch / PyCox Fork:** Aufbau eines eigenständigen parallelen PyTorch-Stacks (`LogisticHazard`, `DeepHit`, PyTorch Sequence Transformer mit Treatment-Effekt-Köpfen; [`pytorch_pycox_port_plan.md`](docs/01_master_plans/pytorch_pycox_port_plan.md)).
-- [ ] **Re-Run Kausale Mediation auf V4-Daten:** Aktualisierung der Imai/Pearl-Mediationsanalyse (ACME/ADE für alle 3 Supportarten) auf Basis der finalen V4-Daten (`04_Kausale_Vergleichsanalyse.md`).
+## 🔬 Kausalinferenz & Nächste Iteration
+
+- [x] **PyTorch / PyCox Fork & LXC Benchmark:** Aufbau der parallelen PyTorch-Suite (`LogisticHazard`, `DeepHit`, `CoxPH` Breslow, `CoxTime`, `DeepHitCompetingRisks`, `ExamTransformerRegressor`, `CausalExamSurvival`, hybride Autoregressoren `NextExamGRU` / `Transformer`, sequentielle Semester-Survival GRU/Transformer) und vollständiger LXC-Lauf über 6 Szenarien ([`pytorch_lxc_benchmark_evaluation_v42.md`](docs/03_evaluations_and_benchmarks/pytorch_lxc_benchmark_evaluation_v42.md)).
+- [x] **Re-Run Kausale Mediation auf V4-Daten:** 4-Stufen-Prüfplan der Imai/Pearl-Mediationsanalyse (Selektions-Audit $d=-0{,}945$, Realistische Mediation $OR=1{,}195$, Oracle-Entzauberung $OR \le 0{,}999$; [`kausale_mediationsanalyse_v42.md`](docs/04_causal_and_simulation/kausale_mediationsanalyse_v42.md)).
 - [ ] **Submodul DeepLearning README prüfen:** Review und Bereinigung historischer Pfad- und Leakage-Hinweise.
 - [ ] **MoE / Stacking Router:** Optionales Ensembling kontrafaktischer Universen.
 

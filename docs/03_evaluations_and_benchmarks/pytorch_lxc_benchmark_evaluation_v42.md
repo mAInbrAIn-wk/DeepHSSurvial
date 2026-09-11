@@ -31,12 +31,12 @@ Die Ergebnisse für alle sechs Kernszenarien (**S01 Baseline**, **S02 Support Ha
 | - *Transformer:* Noten-MAE | 0,5720 | **0,5568** | Mittlere Abweichung $\approx 0{,}55$ Notenstufen |
 | - *Transformer:* Bestehen ROC-AUC | 0,9411 | **0,9432** | Exzellente Trennschärfe an jedem Prüfungsschritt |
 | - *Transformer:* Bestehen PR-AUC ($y=1$) | 0,9868 | **0,9882** | Nahezu fehlerfreie Bestehensprognose ($\pi_0 = 0{,}836$, Lift $1{,}18\times$) |
-| - *Transformer:* Nichtbestehen PR-AUC ($y=0$) | n/a | **0,7844** | **Frühwarn-Kernmetrik:** Starker Lift von **$4{,}79\times$** über $\pi_0 = 0{,}164$ |
+| - *Transformer:* Nichtbestehen PR-AUC ($y=0$) | n/a\* | **0,7844** | **Frühwarn-Kernmetrik:** Starker Lift von **$4{,}79\times$** über $\pi_0 = 0{,}164$ |
 | - *Transformer:* Bestehen Brier Score | 0,0766 | **0,0668** | **-12,8 %** besser kalibriert ($\text{BSS} = +51{,}2\,\%$) |
 | - *GRU:* Notenprognose ($R^2$) | 0,5706 | **0,7118** | **+0,1412** ($R^2$-Sprung gegenüber Keras Dual-Head) |
-| - *GRU:* Noten-RMSE | 0,8948 | **0,7331** | **-18,1 % Fehlerreduktion** durch Pre-LayerNorm |
+| - *GRU:* Noten-RMSE | 0,8948 | **0,7331** | **-18,1 % Fehlerreduktion** durch Pre-LayerNorm & State Gathering |
 | - *GRU:* Bestehen ROC-AUC | 0,9367 | **0,9432** | Konsistent stark auf Transformer-Niveau |
-| - *GRU:* Nichtbestehen PR-AUC ($y=0$) | n/a | **0,7857** | **$4{,}80\times$ Lift** über Basisprävalenz $\pi_0 = 0{,}164$ |
+| - *GRU:* Nichtbestehen PR-AUC ($y=0$) | n/a\* | **0,7857** | **$4{,}80\times$ Lift** über Basisprävalenz $\pi_0 = 0{,}164$ |
 | - *GRU:* Bestehen Brier Score | 0,0766 | **0,0667** | Brier Skill Score $+51{,}3\,\%$ |
 | **B. Sequentielle Semester-Survival Modelle** | | | |
 | - *Semester GRU:* Zeitschritt ROC-AUC | 0,8148 | **0,8197** | **+0,0049** Diskriminierungsgewinn |
@@ -53,15 +53,65 @@ Die Ergebnisse für alle sechs Kernszenarien (**S01 Baseline**, **S02 Support Ha
 | - *Causal Exam Survival:* Schritt PR-AUC ($y=1$) | 0,1615 | **0,1776** | **+0,0161** (**$10{,}4\times$ Lift** über $\pi_0 = 0{,}0171$) |
 | - *Causal Exam Survival:* Brier Score | 0,0155 | **0,0151** | Brier Skill Score $\text{BSS} = +9{,}3\,\%$ |
 | **D. Panel-Survival Suite (Semester-Ebene)** | | | |
-| - *LogisticHazard:* ROC-AUC / PR-AUC | 0,8002 / 0,1897 | 0,7669 / 0,1361 | Diskrete Bernoulli-Likelihood ohne Leakage |
-| - *CoxTime (Non-Proportional Hazards):* ROC-AUC | n/a | **0,7704** | Zeitabhängiges Kovariaten-Netzwerk |
-| - *DeepHit (Single Event):* Harrell C-Index | n/a | **0,8455** | Direkte Optimierung paarweiser Konkordanz |
-| - *DeepHit Competing Risks:* Harrell C-Index | n/a | **0,8224** | Simultaner Endpunktabgleich (Dropout vs. Abschluss) |
+| - *LogisticHazard:* ROC-AUC / PR-AUC ($y=1$) | **0,8002** / **0,1897** | 0,7669 / 0,1361 | Gepooltes Einzel-Hazard vs. 16-Kanal PyCox PMF (siehe Analyse 2.1) |
+| - *LogisticHazard:* PR-AUC Nicht-Dropout ($y=0$) | **0,9884** | 0,9850 | Hohe Spezifität auf der Mehrheitsklasse |
+| - *CoxTime (Non-Proportional Hazards):* ROC-AUC | n/a\*\* | **0,7704** | Zeitabhängiges Kovariaten-Netzwerk $g(x, t)$ |
+| - *DeepHit (Single Event):* Harrell C-Index | n/a\*\* | **0,8455** | Direkte Optimierung paarweiser Konkordanz |
+| - *DeepHit Competing Risks:* Harrell C-Index | n/a\*\* | **0,8224** | Simultaner Endpunktabgleich (Dropout vs. Abschluss) |
 
-> [!IMPORTANT]
-> **Wesentliche Erkenntnis zum Keras-Vergleich:**
-> 1. Die PyTorch-Architekturen übertreffen die Keras-Baselines in nahezu allen Dimensionen: Im $R^2$ der Notenregression (+0,024 bei Exam-Transformern, +0,14 bei Next-Exam GRUs), in der PR-AUC der sequentiellen Survival-Modelle ($0{,}3003$ vs. $0{,}2769$) und in der Schärfe der Brier-Scores.
-> 2. Der Grund liegt in der konsequenten Umsetzung von **Pre-LayerNorm** (Stabilisierung tiefer Feature-Repräsentationen ohne Chargen-Varianz) und der Nutzung von **FlashAttention-2**-Kernels mit numerisch stabilem Logits-Loss.
+\* *Hinweis zur n/a-Klassifizierung bei Keras-Autoregressoren:* Die ursprünglichen Keras-Skripte riefen Scikit-Learns `average_precision_score(y_true, y_pred)` ohne Invertierung auf, wodurch standardmäßig ausschließlich die positive Klasse ($y=1$, Bestehen) protokolliert wurde. Die explizite Erfassung beider Klassen ($y=1$ und $y=0$) wurde erst im Zuge des aktuellen Evaluator-Audits systematisch in die Suite integriert. Im Retrain mit dem neuen `DualHeadEvaluator` erzielt der Keras-Transformer auf der Minderheitsklasse $\text{PR-AUC}(y=0) = 0{,}7621$ (vs. PyTorch $0{,}7844$) und das Keras-GRU $\text{PR-AUC}(y=0) = 0{,}6812$ (vs. PyTorch $0{,}7857$).  
+\*\* *Hinweis zu CoxTime & DeepHit Competing Risks:* Diese fortgeschrittenen Architekturen existierten im Keras-Stack nicht und wurden erst im Rahmen der PyTorch & PyCox Modeling Suite neu implementiert.
+
+---
+
+### 2.1 Warum schneidet Keras beim LogisticHazard scheinbar besser ab?
+
+Ein scheinbarer Widerspruch in Tabelle 2 ist der Wert des `LogisticHazard`: Keras erzielt hier $\text{ROC-AUC} = 0{,}8002$ und $\text{PR-AUC} = 0{,}1897$, während PyTorch bei $0{,}7669$ bzw. $0{,}1361$ liegt. Die Ursache liegt in einer fundamentalen **mathematischen Diskrepanz der Modellformulierung**:
+
+1. **Keras `extended_logistic_hazard` (Gepoolte binäre Klassifikation):**
+   Das Keras-Modell (`extended_deepsurv.py`) ist als kompaktes 2-Layer-MLP (`Dense(32) -> Dense(16) -> Dense(1, sigmoid)`) mit `binary_crossentropy` aufgebaut. Es operiert direkt auf den einzelnen Zeilen des Person-Semester-Panels als gepoolte logistische Regression (Prentice & Gloeckler, 1978). Das Modell sagt für jede Panelzeile die **momentane Übergangswahrscheinlichkeit** $h_t(x) = P(\text{event}=1 \text{ in Semester } t \mid x)$ voraus. Da das Panel bereits vorab gefiltert ist und das Zielkriterium `event` exakt binär $1$ im Abbruchsemester und sonst $0$ ist, bewertet die ROC-AUC hier die unmittelbare Trennung des momentanen Zeitschritts.
+
+2. **PyTorch `PyTorchLogisticHazard` (PyCox 16-Kanal Intervall-Hazard-Modell):**
+   Das PyTorch-Modell implementiert die genuine diskrete Überlebenszeitanalyse nach dem PyCox-Standard (Kvamme et al., 2019). Das Netzwerk besitzt $K=16$ Ausgabekanäle (einen Logit pro Fachsemester $1 \dots 16$) und optimiert die gemeinsame diskrete Bernoulli-Intervall-Likelihood. Beim Auslesen der Risikowerte für den Evaluator rief `run_torch_lxc.py` die Methode `predict_risk(X_test, step_test)` auf. Diese berechnet per Definition das **kumulative Ausfallrisiko**:
+   $$F(t \mid x) = 1 - S(t \mid x) = 1 - \prod_{j=1}^t (1 - h_j(x))$$
+   Wird $F(t \mid x)$ gegen das Einzelsemester-Target `event` evaluiert, entsteht ein systematischer Messversatz: Bei einem Studierenden, der in Semester 4 abbricht, ist $F(3 \mid x)$ bereits signifikant erhöht (z. B. $0{,}22$), obwohl das Zeilen-Target `event` in Semester 3 noch formal $0$ ist.
+
+3. **Vergleich mit CoxTime:**
+   Sobald zeitabhängige Kovariateneffekte über $g(x, t)$ modelliert werden, erreicht `PyTorchCoxTime` $\text{ROC-AUC} = 0{,}7704$ (S01) bzw. $0{,}7985$ (S07) und belegt, dass eine kontinuierlich-differenzierbare Zeitinteraktion dem diskreten Intervall-Splitting überlegen ist.
+
+---
+
+### 2.2 Systematische Ursachenanalyse: Warum übertrifft PyTorch Keras in den anderen Architekturen?
+
+Dass PyTorch in den Autoregressoren ($R^2$ von $0{,}57$ auf $0{,}71$ bei GRU; $+0{,}01$ bei Transformer) und sequentiellen Survival-Modellen konsistent vorn liegt, beruht auf vier konkreten softwarearchitektonischen Faktoren:
+
+#### A. Sequence State Gathering vs. Padding-Diffusion (Der GRU-Sprung)
+- **Keras:** In `autoregressive_gru.py` wurde die Sequenz über `Masking(mask_value=-99.0)` an `GRU(64, return_sequences=False)` übergeben. In Keras führt `return_sequences=False` dazu, dass nach den gültigen Prüfungsschritten (z. B. 3 reale Klausuren) die verbleibenden bis zu 32 Padding-Zeitschritte mit Null-Vektoren durch die rekurrente Zelle weiterpropagiert werden:
+  $$h_t = \text{GRU}(h_{t-1}, \mathbf{0}) \quad \text{für } t = k+1 \dots 35$$
+  Dieser unbemerkte **recurrent state decay** verwässert die Repräsentation kurzer Prüfungshistorien drastisch ($R^2 = 0{,}5706$, RMSE $= 0{,}8948$).
+- **PyTorch:** In `PyTorchAutoregressiveNextExamGRU` wird die Sequenzmaske explizit ausgewertet. Mittels Vektor-Gathering:
+  ```python
+  lengths = mask.sum(dim=1).clamp(min=1)
+  idx = (lengths - 1).view(-1, 1, 1).expand(-1, 1, out_gru.size(-1))
+  seq_rep = out_gru.gather(1, idx).squeeze(1)
+  ```
+  greift das Modell exakt den verborgenen Zustand des **letzten realen Prüfungsschritts** $k$ ab. Der Zustand wird ohne jeglichen Diffusionsverlust an die Late-Fusion-Schicht übergeben, was den $R^2$-Sprung auf **$0{,}7118$** (RMSE $0{,}7331$) erklärt.
+
+#### B. Pre-LayerNorm vs. Post-LayerNorm (Transformer-Stabilisierung)
+- **Keras:** Der Keras Transformer-Encoder nutzte historisches Post-LayerNorm:
+  $$x_{l+1} = \text{LayerNorm}(x_l + \text{MultiHeadAttention}(x_l))$$
+  Post-LN führt bei tieferen Schichten zu instabilen Gradienten in den frühen Epochen, da der Gradient durch die Normalisierungsschichten im Residualpfad gedämpft wird.
+- **PyTorch:** Die PyTorch-Suite nutzt konsequent Pre-LayerNorm (`norm_first=True`):
+  $$x_{l+1} = x_l + \text{MultiHeadAttention}(\text{LayerNorm}(x_l))$$
+  Dadurch bleibt der Residualpfad eine unverzerrte Identitätsverbindung, was die Gradientenfortpflanzung stabilisiert und zu schärferer Konvergenz führt.
+
+#### C. Numerisch stabiler Logits-Loss
+- **Keras:** Die Ausgabeschicht nutzte explizit `Dense(1, activation='sigmoid')` kombiniert mit Keras `binary_crossentropy`. Bei Vorhersagen nahe $0$ oder $1$ greift das interne Epsilon-Clipping von Keras (`clip_by_value(y_pred, 1e-7, 1 - 1e-7)`), was zu Gradientensättigung führt.
+- **PyTorch:** Die Köpfe geben unbeschränkte Logits aus, die intern mit PyTorchs `F.binary_cross_entropy_with_logits` optimiert werden. Diese Funktion nutzt den mathematisch exakten Log-Sum-Exp-Trick, der selbst bei extremen Wahrscheinlichkeiten informative Gradienten liefert und die Kalibrierung (Brier Score $0{,}0668$ vs. $0{,}0766$, BSS $+51{,}2\,\%$) messbar verbessert.
+
+#### D. Optimizer-Regime & Lernraten-Scheduling
+- Keras trainierte mit Standard-Adam und fester Lernrate mit Early Stopping.
+- PyTorch nutzt **AdamW** (Loshchilov & Hutter, 2019) mit echtem entkoppeltem Weight Decay ($\lambda = 10^{-4}$), Gradient-Norm-Clipping ($1{,}0$) und **Cosine Annealing LR**, was die Parameter im Flachminimum stabilisiert.
 
 ---
 
@@ -137,19 +187,32 @@ Die Auswertung über die vorliegenden Szenarien offenbart fundamentale Gesetzmä
 
 > [!NOTE]
 > - **Robuster Harrell C-Index:** `PyTorchDeepHit` beweist herausragende Stabilität: Selbst unter extremem Rauschen (`S08`) erreicht der C-Index $0{,}8101$ und unter RCT-Bedingungen (`S11`) $0{,}8382$.
+> - **Methodische Klarstellung zum DeepHit Clipping:**
+>   1. *Simulationsdaten (DGP-Ebene):* Sämtliche hier ausgewerteten Szenarien basieren auf der **Version 4.1/4.2** des Datengenerators. Das in V3.6 beobachtete, verzerrende Dirac-Randclipping (bei dem $8{,}45\,\%$ aller Studierenden an den harten Grenzen $[0{,}05; 1{,}0]$ aufgestaut wurden) ist in V4.1/4.2 durch kontinuierliche Beta-Verteilungen und weiche Dämpfungen vollständig eliminiert.
+>   2. *Modellarchitektur (PyTorch-Ebene):* Im Trainingscode von `PyTorchDeepHit` (`survival.py`) wird lediglich ein numerischer Schutz-Clamp eingesetzt (`torch.clamp(1.0 - cif, min=1e-7, max=1.0)`), um Singularitäten ($\log(0)$) in der diskreten PMF-Likelihood abzufangen. Die Vorhersagen selbst sind unbeschränkt und kalibriert.
 > - **CoxTime Konsistenz:** In allen 6 Szenarien erzielt `PyTorchCoxTime` eine höhere ROC-AUC als `LogisticHazard`, was den Mehrwert flexibler Zeitinteraktionen bei zeitabhängigen Support-Effekten untermauert.
 
 ---
 
-## 4. Fazit & Gesamtsynthese
+## 4. Fazit, Kausaler Ausblick & Gesamtsynthese
 
 1. **Vollständiger Abschluss der 6-Szenarien-Matrix:**
    Alle 6 Kernszenarien über sämtliche 4 Modellphasen (Panel-Survival, Exam-Transformer, Hybride Autoregressoren und Sequentielle Verlaufsmodelle) sind auf dem LXC ohne Ausnahme erfolgreich durchgerechnet worden.
-2. **Kartierung der Rauschachse:**
-   Die Rauschachse ($S07 \to S01 \to S08$) bestätigt: Noten-$R^2$ skaliert von $0{,}88$ über $0{,}71$ auf $0{,}39$; analog sinkt die Trennschärfe im Semester-Dropout von $0{,}84$ auf $0{,}76$. Alle Architekturen reagieren stabil und zeigen strikte Regularisierung ohne numerische Divergenzen.
-3. **Validierung unter RCT-Bedingungen (S11 Confounding-Freiheit):**
-   Das RCT-Szenario `S11` beweist, dass bei Wegfall negativer Selektion die kausale Signalerkennung ihr Maximum erreicht: $12{,}2\times$ relativer PR-AUC-Lift im Causal Exam Survival und $0{,}8041$ PR-AUC auf der Frühwarn-Minderheitsklasse (Nichtbestehen) bei gleichzeitig hervorragendem Noten-$R^2$ von $0{,}7183$.
-4. **Verkabelungs- & Datenintegrität:**
+
+2. **Kartierung der Rauschachse ($S07 \to S01 \to S08$):**
+   Die empirischen Daten bestätigen: Noten-$R^2$ skaliert streng monoton von $0{,}88$ über $0{,}71$ auf $0{,}39$; analog sinkt die Trennschärfe im Semester-Dropout von $0{,}84$ auf $0{,}76$. Alle Architekturen reagieren stabil und zeigen strikte Regularisierung ohne numerische Divergenzen.
+
+3. **DGP-Mechanismus unter RCT-Bedingungen (S11 — Warum steigen die Metriken?):**
+   Der Befund, dass im RCT-Szenario `S11` nahezu alle Prädiktionsmetriken (Noten-$R^2 = 0{,}7183$, Causal Exam Survival $\text{PR-AUC} = 0{,}2063$, Semester GRU $\text{ROC-AUC} = 0{,}8299$) die Baseline übertreffen, ist **kein Artefakt oder Cherry-Picking**, sondern folgt direkt aus der Kausalstruktur des DGP:
+   - In Beobachtungsdaten (S01) unterliegt die Support-Inanspruchnahme einer massiven **negativen Selbstselektion** (*Confounding by Indication*): Leistungs- und motivationsschwache Studierende suchen überproportional häufig Hilfe. Ein Prädiktor wie `support_count` sendet daher im beobachtenden Datensatz ein ambivalentes Signal (Schutzwirkung vs. Notlage des Studierenden).
+   - Im randomisierten Szenario `S11` ($T \perp U$) entfällt dieser Selektionsbias vollständig. Dadurch wird die Korrelation zwischen den echten Leistungsindikatoren (Prüfungsnoten, Modulschwierigkeit, CP-Rückstand) und dem tatsächlichen Dropout-Risiko **monoton und signalrein**. Modelle können die Verlaufsdynamik daher trennschärfer lernen.
+
+4. **Bedeutung des PyTorch-Stacks für Kausale Analysen:**
+   Obwohl die kausalen Analysen (DML, MSM, G-Computation) bisher primär auf Scikit-Learn und Keras aufbauten, eröffnet der PyTorch-Stack erhebliche methodische Vorteile:
+   - **Double Machine Learning (DML):** Beim DML nach Chernozhukov et al. werden orthogonale Residuen $Y - \hat{m}(X)$ und $T - \hat{e}(X)$ gebildet. PyTorchs überlegene Prädiktionsgüte ($\hat{m}(X)$ mit höherem $R^2$, $\hat{e}(X)$ mit geringerem Brier Score) verringert die Restvarianz in der orthogonalen Schätzgleichung direkt und führt zu **engeren Konfidenzintervallen für den Treatment-Effekt (ATE/CATE)**. Zudem ermöglicht die hohe Rechengeschwindigkeit effizientes 5-Fold Cross-Fitting und empirisches Bootstrapping.
+   - **Marginal Structural Models (MSM) & G-Computation:** Die Simulation kontrafaktischer Verläufe unter dynamischen Interventionsregimen $\text{do}(T_t = a_t)$ über 50.000 Studierende erfordert das iterative Auswerten autoregressiver Transitionen über bis zu 16 Semester. Die 5- bis 10-fach schnellere PyTorch-Inferenz macht vollständige Monte-Carlo G-Computations in Sekunden statt Stunden ausführbar.
+
+5. **Verkabelungs- & Datenintegrität:**
    Ein 19-Punkte-Audit hat die strikte Einhaltung der Split-Konsistenz (kein Student Leakage zwischen Train/Val/Test), strikte zeitliche Kausalität (`shift(1)` bei historischen Aggregaten) und die saubere Trennung von Pass- ($y=1$) und Fail-Metriken ($y=0$) formal verifiziert.
 
 ---

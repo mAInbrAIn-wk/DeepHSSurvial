@@ -9,6 +9,11 @@ tensorflow==2.21.0
 keras==3.15.0
 keras-tuner==1.4.8
 
+# PyTorch & PyCox Modeling Suite
+torch==2.12.0
+pycox==0.3.0
+torchtuples==0.2.2
+
 # Low-level ML Engine & Windows DLL Policy Fixes
 ml_dtypes==0.5.4
 optree==0.19.1

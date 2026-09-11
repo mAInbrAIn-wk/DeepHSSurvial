@@ -2,6 +2,7 @@
 
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 [![TensorFlow / Keras 3](https://img.shields.io/badge/Keras_3-TensorFlow_2.x-FF6F00?style=flat&logo=tensorflow&logoColor=white)](https://keras.io/)
+[![PyTorch / PyCox](https://img.shields.io/badge/PyTorch_2.x-PyCox_0.3-EE4C2C?style=flat&logo=pytorch&logoColor=white)](docs/03_evaluations_and_benchmarks/pytorch_lxc_benchmark_evaluation_v42.md)
 [![DuckDB](https://img.shields.io/badge/DuckDB-In--Memory_SQL-FFF000?style=flat&logo=duckdb&logoColor=black)](https://duckdb.org/)
 [![Causal ML](https://img.shields.io/badge/Causal_ML-Double_Machine_Learning-4B8BBE?style=flat)](docs/04_causal_and_simulation/)
 [![Parallel Universes](https://img.shields.io/badge/Ground_Truth-8_Parallel_Worlds-10B981?style=flat)](docs/04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md)
@@ -35,7 +36,7 @@ DeepSupport ist heute ein vollwertiges, modulares **Forschungs- und Evaluierungs
 
 1. **Synthetisches Multi-Universe-Testbed:** $N = 50.000$ Studierende werden über bis zu 16 Fachsemester mit individuellen Curricula, Prüfungsversuchen, Zeitkontomodell und Belastungsgrenzen simuliert.
 2. **Kausale Ground Truth Ebene (8 Parallelwelten):** Identische Studierende durchlaufen zeitgleich acht deterministisch synchronisierte Universen mit variierter Supportverfügbarkeit (Voll-Support, Null-Support, partielle und isolierte Angebote).
-3. **Modell-Portfolio:** 15 Modellarchitekturen – von klassischen Cox-Proportional-Hazards-Panels über Double Machine Learning (DML) bis hin zu Autoregressiven Deep Transformern und Multi-Task Survival Netzen.
+3. **Modell-Portfolio:** Vollständige Dual-Framework-Architektur in **TensorFlow/Keras 3** und **PyTorch 2.x / PyCox** – von klassischen Cox-Proportional-Hazards-Panels über Double Machine Learning (DML) bis hin zu Autoregressiven Deep Transformern (Pre-LayerNorm, FlashAttention) und Multi-Task Survival Netzen.
 4. **Strikte Evaluierungsstandards:** Fünf typisierte, modulare Evaluator-Klassen mit Zero-Imputation-Policy (`null` statt `0.0`), Dual-Konfidenzintervallen (asymptotisch & Bootstrap) und Precision-Recall-AUC für alle Klassen.
 
 ---
@@ -192,7 +193,7 @@ Die vollständige Dokumentation umfasst über 60 Fachdokumente. Für den gezielt
 |:---|:---|:---|
 | **DGP & Kausalität** | Simulationsarchitektur, 8 Universen, Bias-Analysen, Survival-Mathematik, V5-Spezifikation | [`datenarchitektur_und_eda_v4.md`](docs/04_causal_and_simulation/datenarchitektur_und_eda_v4.md)<br>[`grundlagen_survival_analyse_und_zensierung.md`](docs/04_causal_and_simulation/grundlagen_survival_analyse_und_zensierung.md)<br>[`visuelle_datenexploration_v4.md`](docs/04_causal_and_simulation/visuelle_datenexploration_v4.md)<br>[`04_Kausale_Vergleichsanalyse.md`](docs/04_causal_and_simulation/04_Kausale_Vergleichsanalyse.md)<br>[`config_audit_und_v5_roadmap.md`](docs/04_causal_and_simulation/config_audit_und_v5_roadmap.md)<br>[`systematische_verteilungsanalyse_v36_vs_v41.md`](docs/04_causal_and_simulation/systematische_verteilungsanalyse_v36_vs_v41.md) |
 | **Deep Learning** | Autoregressive Transformer, Causal Masking, Dynamic DeepHit | [`model_architectures.md`](docs/02_architectures_and_models/model_architectures.md)<br>[`synopse_heavy_suite_s01_s07_s08.md`](docs/03_evaluations_and_benchmarks/synopse_heavy_suite_s01_s07_s08.md) |
-| **Benchmarks** | Master-Synopse aller 15 Szenarien & 225 Modelle, Noten- & Risikolifts | [`master_synopse_v4_gesamt.md`](docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md)<br>[`synopse_supportwirkung_s01_s02_s03.md`](docs/03_evaluations_and_benchmarks/synopse_supportwirkung_s01_s02_s03.md) |
+| **Benchmarks** | Master-Synopse aller 15 Szenarien & 225 Modelle, PyTorch & PyCox Benchmark (LXC, 6 Szenarien) | [`master_synopse_v4_gesamt.md`](docs/03_evaluations_and_benchmarks/master_synopse_v4_gesamt.md)<br>[`pytorch_lxc_benchmark_evaluation_v42.md`](docs/03_evaluations_and_benchmarks/pytorch_lxc_benchmark_evaluation_v42.md)<br>[`synopse_supportwirkung_s01_s02_s03.md`](docs/03_evaluations_and_benchmarks/synopse_supportwirkung_s01_s02_s03.md) |
 | **Engineering** | DuckDB In-Memory SQL, 5 Feature-Modi, 5 OOP-Evaluatoren | [`feature_builder_map.md`](docs/02_architectures_and_models/feature_builder_map.md)<br>[`duckdb_architecture_analysis.md`](docs/02_architectures_and_models/duckdb_architecture_analysis.md)<br>[`refactoring_plan_evaluation_pipeline1.md`](docs/01_master_plans/refactoring_plan_evaluation_pipeline1.md) |
 | **Evolution** | Chronologische Entwicklungsreise, DE/DA/DL-Submodule, Kritik | [`DeepSupport_Projektentwicklung.md`](docs/08_project_evolution/DeepSupport_Projektentwicklung.md)<br>[`DeepSupport_Kritische_Bewertung.md`](docs/08_project_evolution/DeepSupport_Kritische_Bewertung.md) |
 
@@ -223,8 +224,8 @@ C:\GitHub_public\.venv\Scripts\Activate.ps1
 # 1. Schneller Rauchtest der Evaluator-Pipeline
 C:\GitHub_public\.venv\Scripts\python.exe src/deepsupport/runners/run_smoke_test_evaluators.py
 
-# 2. Hypothesen-Untersuchung (Small Batch Test)
-C:\GitHub_public\.venv\Scripts\python.exe src/deepsupport/runners/run_hypothesis_investigation.py --mode test
+# 2. PyTorch & PyCox Turnkey Runner (LXC-Container / Multi-Threading)
+python3 src/run_torch_lxc.py --include_ar --include_seq
 
 # 3. Vollständiger Overnight-Runner auf V4.1-Daten
 C:\GitHub_public\.venv\Scripts\python.exe src/run_overnight_v41.py
