@@ -1,0 +1,30 @@
+# Version Control
+.git
+.gitignore
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Virtual Environments
+.venv/
+venv/
+env/
+
+# Large Datasets & Heavy Artifacts (MUSS via Bind-Mount eingehängt werden!)
+data_v4_grid/
+src/output_v4_grid/
+src/output_v4_grid_v41/
+output_LXC_causal/
+output_dl/
+archive/
+
+# Temporary data, logs & IDE
+*.log
+*.tmp
+.idea/
+.vscode/
+scratch/
