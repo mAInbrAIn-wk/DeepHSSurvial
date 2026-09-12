@@ -74,6 +74,28 @@ EXPERIMENT_RUNS = [
 # KERAS ABLATION MODEL BUILDER
 # ==============================================================================
 
+class IndexGatherLayer(layers.Layer):
+    """Greift den verborgenen Zustand am realen Sequenzende (len_input - 1) ab."""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.supports_masking = True
+
+    def compute_mask(self, inputs, mask=None):
+        return None
+
+    def call(self, inputs):
+        seq, lens = inputs
+        batch_sz = tf.shape(seq)[0]
+        last_idx = tf.maximum(0, tf.squeeze(lens, axis=-1) - 1)
+        batch_idx = tf.range(batch_sz, dtype=tf.int32)
+        indices = tf.stack([batch_idx, last_idx], axis=1)
+        return tf.gather_nd(seq, indices)
+
+    def compute_output_shape(self, input_shape):
+        seq_shape, _ = input_shape
+        return (seq_shape[0], seq_shape[2])
+
+
 def build_keras_ablation_model(
     seq_timesteps: int,
     seq_features: int,
@@ -89,14 +111,7 @@ def build_keras_ablation_model(
     # 1. State Aggregation: GRU + Gathering vs. Diffusion
     if config.state_agg == "gather":
         gru_seq = layers.GRU(64, return_sequences=True, dropout=0.2)(masked_seq)
-        def gather_step(args):
-            seq, lens = args
-            batch_sz = tf.shape(seq)[0]
-            last_idx = tf.maximum(0, tf.squeeze(lens, axis=-1) - 1)
-            batch_idx = tf.range(batch_sz, dtype=tf.int32)
-            indices = tf.stack([batch_idx, last_idx], axis=1)
-            return tf.gather_nd(seq, indices)
-        gru_out = layers.Lambda(gather_step, name="gather_step")([gru_seq, len_input])
+        gru_out = IndexGatherLayer(name="index_gather")([gru_seq, len_input])
     else:  # 'diffusion' (greift Zeitschritt 29 nach Masking ab)
         gru_out = layers.GRU(64, return_sequences=False, dropout=0.2)(masked_seq)
 
@@ -523,6 +538,7 @@ def main():
     parser.add_argument("--runs", nargs="+", default=None, help="Spezifische Runs ausführen (z.B. R0 R1)")
     parser.add_argument("--device", type=str, default="cpu", help="PyTorch Device")
     parser.add_argument("--smoke_test", action="store_true", help="1-Epochen Testlauf auf 5% Subset")
+    parser.add_argument("--overwrite", action="store_true", help="Bereits gerechnete Runs neu berechnen")
     args = parser.parse_args()
 
     # CPU-Optimierung für Host
@@ -609,6 +625,10 @@ def main():
             all_results = {}
 
     for cfg in runs_to_run:
+        if cfg.run_id in all_results and not args.overwrite:
+            print(f"\n>>> [RESUME] Überspringe {cfg.run_id} (bereits in {summary_json} vorhanden).")
+            continue
+
         print("\n" + "=" * 80)
         print(f">>> [ABLATION RUN: {cfg.run_id}] Framework: {cfg.framework.upper()} | {cfg.description}")
         print(f"    State: {cfg.state_agg} | Norm: {cfg.norm_type} | Loss: {cfg.loss_type} | Opt: {cfg.optimizer_type}")
