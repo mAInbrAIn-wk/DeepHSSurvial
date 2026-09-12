@@ -1,0 +1,13 @@
+{
+    "model_name": "ablation_R4_grade",
+    "mode": "standard",
+    "temporal_type": "prev",
+    "n_samples": 120655.0,
+    "r2_score": 0.6704959869384766,
+    "adj_r2": null,
+    "rmse": 0.7839083647552123,
+    "mae": 0.6202067136764526,
+    "median_ae": 0.5193994045257568,
+    "explained_variance": 0.675957202911377,
+    "max_error": 3.5799825191497803
+}

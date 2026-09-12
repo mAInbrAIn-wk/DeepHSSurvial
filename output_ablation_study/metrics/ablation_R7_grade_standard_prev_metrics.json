@@ -1,0 +1,13 @@
+{
+    "model_name": "ablation_R7_grade",
+    "mode": "standard",
+    "temporal_type": "prev",
+    "n_samples": 120655.0,
+    "r2_score": 0.7117191330062898,
+    "adj_r2": null,
+    "rmse": 0.7332344309289742,
+    "mae": 0.5664018231614764,
+    "median_ae": 0.44222474098205566,
+    "explained_variance": 0.7123525507028262,
+    "max_error": 3.679697275161743
+}

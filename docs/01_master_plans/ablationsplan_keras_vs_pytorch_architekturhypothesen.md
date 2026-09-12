@@ -1,7 +1,7 @@
 ---
 created: 2026-09-11
-last_updated: 2026-09-11
-status: in_bearbeitung
+last_updated: 2026-09-12
+status: abgeschlossen
 tags: [ablation-study, architecture-hypotheses, keras-vs-pytorch, state-decay, pre-ln, logits-loss, adamw]
 ---
 
@@ -133,6 +133,7 @@ seq_rep_decayed = out_gru[:, -1, :] # Greift Zeitschritt 35 nach 30 Padding-Null
 
 | Dokument | Pfad / Referenz | Kerninhalt |
 | :--- | :--- | :--- |
+| **Ablationsstudie Evaluation** | [`../03_evaluations_and_benchmarks/ablation_study_keras_vs_pytorch_evaluation.md`](../03_evaluations_and_benchmarks/ablation_study_keras_vs_pytorch_evaluation.md) | Empirische Ergebnisse & Hypothesenprüfung |
 | **LXC Benchmark Evaluation V4.2** | [`../03_evaluations_and_benchmarks/pytorch_lxc_benchmark_evaluation_v42.md`](../03_evaluations_and_benchmarks/pytorch_lxc_benchmark_evaluation_v42.md) | Ausgangsbefund des Keras-vs-PyTorch-Vergleichs |
 | **Methodenvergleich LogisticHazard** | [`../03_evaluations_and_benchmarks/methodenvergleich_logistic_hazard_keras_vs_pycox.md`](../03_evaluations_and_benchmarks/methodenvergleich_logistic_hazard_keras_vs_pycox.md) | Mathematische Klärung der Hazard-Diskrepanz |
 | **Empirische RCT-Kausalanalyse** | [`../04_causal_and_simulation/empirische_rct_kausalanalyse_s11_vs_s01.md`](../04_causal_and_simulation/empirische_rct_kausalanalyse_s11_vs_s01.md) | Erklärung der Metrikverbesserung unter RCT |
