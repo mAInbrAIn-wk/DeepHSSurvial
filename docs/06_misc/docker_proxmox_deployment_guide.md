@@ -68,18 +68,48 @@ pct reboot <VMID>
 
 ## 3. Docker-Installation im LXC Container
 
-Falls Docker auf dem Debian LXC noch nicht installiert ist:
+In Debian 12 (Bookworm) heißt das Compose-v2-Paket **`docker-compose-plugin`** (bzw. `docker-compose`), während der Paketname `docker-compose-v2` distributionsspezifisch ist.
+
+### Option A: Installation über die Debian-Standard-Repositories (Schnellste Variante)
 
 ```bash
-# Paketlisten aktualisieren und Docker installieren
+# Paketlisten aktualisieren und Docker Engine + Compose Plugin installieren
 sudo apt-get update
-sudo apt-get install -y docker.io docker-compose-v2
+sudo apt-get install -y docker.io docker-compose-plugin docker-compose
 
 # Benutzer zur docker-Gruppe hinzufügen (vermeidet sudo vor jedem docker-Befehl)
 sudo usermod -aG docker $USER
 
 # Service aktivieren und starten
 sudo systemctl enable --now docker
+```
+
+*Hinweis:* Nach `usermod` einmal aus dem LXC ausloggen und neu einloggen (oder `newgrp docker` ausführen), damit die Gruppenberechtigung aktiv wird.
+
+### Option B: Installation über das offizielle Docker-CE Repository (Empfohlen für neueste Features)
+
+```bash
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo usermod -aG docker $USER
+sudo systemctl enable --now docker
+```
+
+### Verifikation der Installation:
+```bash
+docker --version
+docker compose version
 ```
 
 ---
